@@ -19,14 +19,14 @@ def request_otp(phone: str = "+919988776655") -> str:
     r = requests.post(f"{API}/auth/otp/request/", json={"phone": phone}, timeout=10)
     r.raise_for_status()
     data = r.json()
-    otp = data.get("dev_otp")
+    otp = data.get("debug_otp") or data.get("dev_otp")
     if not otp:
         raise RuntimeError("dev_otp missing — use development settings")
     return otp
 
 
 def verify_otp(phone: str, otp: str) -> str:
-    r = requests.post(f"{API}/auth/otp/verify/", json={"phone": phone, "otp": otp}, timeout=10)
+    r = requests.post(f"{API}/auth/otp/verify/", json={"phone": phone, "code": otp}, timeout=10)
     r.raise_for_status()
     return r.json()["access"]
 

@@ -49,9 +49,9 @@ def check_incentive_ethics() -> None:
 
 
 def check_otp_validation_exists() -> None:
-    views = read("medilift-api/apps/accounts/views.py")
-    if "OTPRecord" not in views or "is_valid" not in views:
-        fail("OTPRecord validation missing in accounts views")
+    serializers_file = read("medilift-api/accounts/serializers.py")
+    if "OTPChallenge" not in serializers_file or "is_valid" not in serializers_file:
+        fail("OTPChallenge validation missing in accounts serializers")
 
 
 def main() -> int:

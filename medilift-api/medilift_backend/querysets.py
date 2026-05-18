@@ -9,4 +9,4 @@ def for_user_geography(queryset, user):
         value = getattr(user, field, "")
         if value and any(model_field.name == field for model_field in queryset.model._meta.fields):
             filters[field] = value
-    return queryset.filter(**filters) if filters else queryset
+    return queryset.filter(**filters) if filters else queryset.none()

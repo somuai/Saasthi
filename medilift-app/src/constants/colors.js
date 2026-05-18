@@ -1,4 +1,4 @@
-/** NIC / UMANG aligned palette — MEDILIFT master context */
+/** NIC / UMANG aligned palette — SAASTHI master context */
 export const COLORS = {
   primary: "#003087",
   accent: "#FF6600",

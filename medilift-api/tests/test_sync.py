@@ -1,92 +1,61 @@
-import time
+import uuid
 
-from django.contrib.auth.models import User
-from django.test import TestCase
-from rest_framework.test import APIClient
-from rest_framework_simplejwt.tokens import RefreshToken
+import pytest
 
-from apps.patients.models import Patient
+from registry.models import Patient
+from sync.models import SyncEvent
 
 
-class SyncApiTests(TestCase):
-    def setUp(self):
-        self.user = User.objects.create_user(username="919999999999", password="x")
-        refresh = RefreshToken.for_user(self.user)
-        self.client = APIClient()
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
-        ts = int(time.time() * 1000)
-        Patient.objects.create(
-            id="server-patient-1",
-            patient_code="S-P-1",
-            name="Server Patient",
-            asha_worker_server_id=str(self.user.id),
-            is_synced=True,
-            created_at=ts,
-            updated_at=ts,
-            is_deleted=False,
-            is_mock=False,
-        )
-
-    def test_pull_returns_changes_shape(self):
-        res = self.client.get("/api/v1/sync/pull/", {"last_pulled_at": 0})
-        self.assertEqual(res.status_code, 200)
-        self.assertIn("changes", res.data)
-        self.assertIn("patients", res.data["changes"])
-        self.assertTrue(len(res.data["changes"]["patients"]["created"]) >= 1)
-
-    def test_push_creates_patient(self):
-        ts = int(time.time() * 1000)
-        payload = {
-            "changes": {
-                "patients": {
-                    "created": [
-                        {
-                            "id": "client-patient-99",
-                            "patient_code": "C-P-99",
-                            "name": "Client Patient",
-                            "asha_worker_server_id": str(self.user.id),
-                            "is_synced": False,
-                            "created_at": ts,
-                            "updated_at": ts,
-                            "is_deleted": False,
-                            "is_mock": False,
-                        }
-                    ],
-                    "updated": [],
-                    "deleted": [],
-                }
+@pytest.mark.django_db
+def test_sync_push_is_idempotent_by_event_and_local_uuid(auth_client):
+    event_uuid = uuid.uuid4()
+    patient_uuid = uuid.uuid4()
+    payload = {
+        "device_id": "pilot-device-1",
+        "changes": {
+            "patients": {
+                "created": [
+                    {
+                        "event_uuid": str(event_uuid),
+                        "id": str(patient_uuid),
+                        "full_name": "Maya Rao", 
+                        "gender": "female", 
+                        "village": "South"
+                    }
+                ],
+                "updated": [],
+                "deleted": []
             }
-        }
-        res = self.client.post("/api/v1/sync/push/", payload, format="json")
-        self.assertEqual(res.status_code, 200)
-        self.assertEqual(Patient.objects.filter(id="client-patient-99").count(), 1)
-        self.assertIn("flagging", res.data)
+        },
+    }
 
-    def test_push_with_errors_skips_flagging(self):
-        other = User.objects.create_user(username="919999999998", password="x")
-        ts = int(time.time() * 1000)
-        payload = {
-            "changes": {
-                "patients": {
-                    "created": [
-                        {
-                            "id": "client-bad",
-                            "patient_code": "BAD",
-                            "name": "Bad",
-                            "asha_worker_server_id": str(other.id),
-                            "is_synced": False,
-                            "created_at": ts,
-                            "updated_at": ts,
-                            "is_deleted": False,
-                            "is_mock": False,
-                        }
-                    ],
-                    "updated": [],
-                    "deleted": [],
-                }
+    first = auth_client.post("/api/v1/sync/push/", payload, format="json")
+    second = auth_client.post("/api/v1/sync/push/", payload, format="json")
+    update_payload = {
+        "device_id": "pilot-device-1",
+        "changes": {
+            "patients": {
+                "created": [],
+                "updated": [
+                    {
+                        "event_uuid": str(uuid.uuid4()),
+                        "id": str(patient_uuid),
+                        "full_name": "Maya R.", 
+                        "gender": "female", 
+                        "village": "South"
+                    }
+                ],
+                "deleted": []
             }
-        }
-        res = self.client.post("/api/v1/sync/push/", payload, format="json")
-        self.assertEqual(res.status_code, 200)
-        self.assertTrue(res.data.get("errors"))
-        self.assertIsNone(res.data.get("flagging"))
+        },
+    }
+    third = auth_client.post("/api/v1/sync/push/", update_payload, format="json")
+
+    assert first.status_code == 200
+    assert first.data["results"][0]["status"] == SyncEvent.Status.APPLIED
+    assert second.status_code == 200
+    assert second.data["results"][0]["status"] == SyncEvent.Status.DUPLICATE
+    assert third.status_code == 200
+    assert Patient.objects.count() == 1
+    assert Patient.objects.get(local_uuid=patient_uuid).full_name == "Maya R."
+    assert SyncEvent.objects.count() == 2

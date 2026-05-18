@@ -1,4 +1,4 @@
-/** Format medilift-api sync push error payloads for UI and logs. */
+/** Format saasthi-api sync push error payloads for UI and logs. */
 export function formatSyncPushErrors(errors) {
   if (!errors?.length) return null;
   return errors

@@ -35,7 +35,7 @@ def upsert_patient(local_uuid, data, user):
     payload["local_uuid"] = local_uuid
     obj, _ = Patient.objects.update_or_create(
         local_uuid=local_uuid,
-        defaults={k: v for k, v in payload.items() if k in {field.name for field in Patient._meta.fields} and k != "id"},
+        defaults={k: v for k, v in payload.items() if k in {field.name for field in Patient._meta.fields} and k not in {"id", "created_at", "updated_at"}},
     )
     if not obj.created_by_id and user.is_authenticated:
         obj.created_by = user
@@ -103,26 +103,73 @@ UPSERTS = {
 
 
 class SyncPullView(APIView):
-    def post(self, request):
-        serializer = SyncPullSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        since = serializer.validated_data.get("since")
+    def get(self, request):
+        last_pulled_at = request.query_params.get("last_pulled_at")
+        since = None
+        if last_pulled_at and last_pulled_at != "0":
+            from datetime import datetime
+            since = datetime.fromtimestamp(int(last_pulled_at)/1000.0)
+
         patients = for_user_geography(Patient.objects.all().order_by("updated_at"), request.user)
         patient_ids = patients.values("id")
-        return Response(
-            {
-                "patients": serialize_model(patients, PatientSerializer, since),
-                "survey_responses": serialize_model(SurveyResponse.objects.filter(patient_id__in=patient_ids).order_by("updated_at"), SurveyResponseSerializer, since),
-                "flags": list(Flag.objects.filter(patient_id__in=patient_ids).values()),
-                "referrals": list(Referral.objects.filter(patient_id__in=patient_ids).values()),
-            }
-        )
+
+        def to_wm(qs, serializer_class):
+            data = serialize_model(qs, serializer_class, since)
+            for item in data:
+                item["id"] = item.pop("local_uuid", item.get("id"))
+            return {"created": data, "updated": [], "deleted": []}
+
+        changes = {
+            "patients": to_wm(patients, PatientSerializer),
+            "survey_responses": to_wm(SurveyResponse.objects.filter(patient_id__in=patient_ids).order_by("updated_at"), SurveyResponseSerializer),
+        }
+        
+        import time
+        return Response({
+            "changes": changes,
+            "timestamp": int(time.time() * 1000)
+        })
 
 
 class SyncPushView(APIView):
     @transaction.atomic
     def post(self, request):
-        serializer = SyncPushSerializer(data=request.data)
+        # Translate WatermelonDB payload to backend events
+        device_id = request.data.get("device_id", "unknown")
+        wm_changes = request.data.get("changes", {})
+        
+        flat_changes = []
+        table_to_model = {
+            "patients": "patient",
+            "survey_responses": "survey_response",
+            "flags": "flag",
+            "referrals": "referral"
+        }
+        
+        for table_name, ops in wm_changes.items():
+            model_name = table_to_model.get(table_name)
+            if not model_name:
+                continue
+            for op in ["created", "updated"]:
+                for record in ops.get(op, []):
+                    # Map patient_id to patient_local_uuid for surveys
+                    if "patient_id" in record:
+                        record["patient_local_uuid"] = record["patient_id"]
+                    flat_changes.append({
+                        "event_uuid": record.get("event_uuid"),
+                        "model": model_name,
+                        "local_uuid": record.get("id"),
+                        "deleted": False,
+                        "data": record
+                    })
+            for local_uuid in ops.get("deleted", []):
+                flat_changes.append({
+                    "model": model_name,
+                    "local_uuid": local_uuid,
+                    "deleted": True
+                })
+
+        serializer = SyncPushSerializer(data={"client_id": device_id, "changes": flat_changes})
         serializer.is_valid(raise_exception=True)
         client_id = serializer.validated_data["client_id"]
         results = []

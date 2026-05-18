@@ -8,7 +8,7 @@ from _http import API, api_available, auth_headers, now_ms, request_otp, verify_
 
 PHONE_A = "+919988776603"
 PHONE_B = "+919988776604"
-PATIENT_B = "eval-patient-worker-b"
+PATIENT_B = "e4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b"
 
 
 def main() -> int:

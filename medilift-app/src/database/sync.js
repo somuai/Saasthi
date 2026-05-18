@@ -99,7 +99,7 @@ export function initAutoSync() {
   };
 }
 
-/** WatermelonDB synchronize against medilift-api */
+/** WatermelonDB synchronize against saasthi-api */
 export async function syncWithServer() {
   if (!isWatermelonNativeAvailable()) {
     return { success: false, reason: "native_db_unavailable" };

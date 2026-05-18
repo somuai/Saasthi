@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -74,9 +75,9 @@ export default function LoginScreen() {
       <View style={styles.top}>
         <TricolorStripe />
         <SafeAreaView style={styles.topInner}>
-          <Ionicons name="shield-checkmark" size={64} color="#fff" style={{ marginTop: 16 }} />
-          <Text style={styles.logo}>MEDILIFT</Text>
-          <Text style={styles.logoHi}>मेडिलिफ्ट</Text>
+          <Image source={require("../../../assets/saasthi-logo.png")} style={styles.logoImg} resizeMode="contain" />
+          <Text style={styles.logo}>SAASTHI</Text>
+          <Text style={styles.logoHi}>सास्थी</Text>
           <Text style={styles.sub}>ASHA Healthcare Platform</Text>
           <Text style={styles.nhm}>राष्ट्रीय स्वास्थ्य मिशन | National Health Mission</Text>
         </SafeAreaView>
@@ -163,6 +164,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
   top: { flex: 0.36, backgroundColor: COLORS.primary },
   topInner: { flex: 1, alignItems: "center", paddingHorizontal: 16 },
+  logoImg: { width: 72, height: 72, marginTop: 16 },
   logo: { color: "#fff", fontSize: 32, fontWeight: "800", letterSpacing: 3, marginTop: 8 },
   logoHi: { color: "#fff", fontSize: 16, marginTop: 4 },
   sub: { color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 8 },

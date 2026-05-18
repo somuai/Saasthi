@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "MEDILIFT Pilot",
-    "slug": "medilift-pilot",
+    "name": "Saasthi Pilot",
+    "slug": "saasthi-pilot",
     "version": "0.1.0",
     "orientation": "portrait",
-    "scheme": "medilift",
+    "scheme": "saasthi",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
       "**/*"

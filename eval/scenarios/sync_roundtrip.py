@@ -18,10 +18,15 @@ def main() -> int:
     otp = request_otp(PHONE)
     token = verify_otp(PHONE, otp)
     headers = auth_headers(token)
+    
+    # Assign village to user so they can pull patients
+    me_resp = requests.get(f"{API}/auth/users/me/", headers=headers).json()
+    requests.patch(f"{API}/auth/users/{me_resp['id']}/", json={"village": "South"}, headers=headers)
+    
     ts = now_ms()
-    patient_id = "eval-patient-roundtrip"
+    patient_id = "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f"
     payloads = json.loads(FIXTURES.read_text(encoding="utf-8"))
-    survey_id = "eval-survey-1"
+    survey_id = "d3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a"
 
     push = {
         "changes": {
@@ -30,7 +35,8 @@ def main() -> int:
                     {
                         "id": patient_id,
                         "patient_code": "EVAL-P-1",
-                        "name": "Eval Patient",
+                        "full_name": "Eval Patient",
+                        "village": "South",
                         "asha_worker_server_id": None,
                         "is_synced": False,
                         "created_at": ts,
@@ -62,6 +68,7 @@ def main() -> int:
         }
     }
     pr = requests.post(f"{API}/sync/push/", json=push, headers=headers, timeout=15)
+    print("Push Resp:", pr.json())
     if pr.status_code != 200:
         print("FAIL push", pr.status_code, pr.text)
         return 1
@@ -73,6 +80,8 @@ def main() -> int:
     ids = {r["id"] for r in created}
     if patient_id not in ids:
         print("FAIL patient not in pull", ids)
+        print("Me Resp:", requests.get(f"{API}/auth/users/me/", headers=headers).json())
+        print("Pull Resp:", pull.json())
         return 1
     surveys = pull.json()["changes"]["survey_responses"]["created"] + pull.json()["changes"]["survey_responses"]["updated"]
     if not any(s.get("id") == survey_id or s.get("patient_id") == patient_id for s in surveys):

@@ -11,7 +11,7 @@ class SyncEventSerializer(serializers.ModelSerializer):
 
 
 class SyncChangeSerializer(serializers.Serializer):
-    event_uuid = serializers.UUIDField(required=False)
+    event_uuid = serializers.UUIDField(required=False, allow_null=True)
     model = serializers.ChoiceField(choices=["patient", "survey_response", "flag", "referral"])
     local_uuid = serializers.UUIDField()
     deleted = serializers.BooleanField(default=False, required=False)

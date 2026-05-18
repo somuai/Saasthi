@@ -1,5 +1,5 @@
 {
-  "started_at": "2026-05-18T18:31:36Z",
+  "started_at": "2026-05-18T19:50:09Z",
   "tiers": [
     {
       "tier": "T1",
@@ -8,9 +8,9 @@
           "name": "T1_jest",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.73,
+          "duration_sec": 0.84,
           "stdout_tail": "\n> medilift-app@0.1.0 test\n> jest --watchAll=false\n\n",
-          "stderr_tail": "watchman warning:  Recrawled this watch 1 time, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/workerId.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/scorePatient.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       37 passed, 37 total\nSnapshots:   0 total\nTime:        0.365 s, estimated 1 s\nRan all test suites.\n"
+          "stderr_tail": "watchman warning:  Recrawled this watch 1 time, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/workerId.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       37 passed, 37 total\nSnapshots:   0 total\nTime:        0.397 s, estimated 1 s\nRan all test suites.\n"
         }
       ]
     },
@@ -21,9 +21,9 @@
           "name": "T2_django",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 1.9,
-          "stdout_tail": "Found 16 test(s).\nSystem check identified no issues (0 silenced).\n",
-          "stderr_tail": "/Users/soumyajitghosh/Documents/Saasthi/medilift-api/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\nCreating test database for alias 'default'...\n................\n----------------------------------------------------------------------\nRan 16 tests in 1.394s\n\nOK\nDestroying test database for alias 'default'...\n"
+          "duration_sec": 0.34,
+          "stdout_tail": "Found 0 test(s).\nSystem check identified no issues (0 silenced).\n",
+          "stderr_tail": "\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nNO TESTS RAN\n"
         }
       ]
     },
@@ -34,8 +34,8 @@
           "name": "T3_contracts",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.02,
-          "stdout_tail": "PASS fixture sync-watermelon-pull.example.json\nSKIP live API (--offline)\n",
+          "duration_sec": 0.04,
+          "stdout_tail": "PASS fixture sync-watermelon-pull.example.json\nPASS live API reachable (auth enforced)\n",
           "stderr_tail": ""
         }
       ]
@@ -44,10 +44,44 @@
       "tier": "T4",
       "results": [
         {
-          "name": "T4_live_api",
+          "name": "T4_auth_otp",
           "ok": true,
-          "skipped": true,
-          "reason": "--offline"
+          "exit_code": 0,
+          "duration_sec": 0.15,
+          "stdout_tail": "PASS auth_otp\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "T4_flagging_pipeline",
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 0.17,
+          "stdout_tail": "PASS flagging_pipeline {'total_score': 5, 'level': 'medium', 'explanations': [{'code': 'TB_COUGH_RISK', 'name': 'TB Cough Risk', 'field_path': 'survey.answers.comm_cough_2weeks', 'operator': 'eq', 'expected': True, 'actual': True, 'weight': 5, 'severity': 'high', 'flag_type': 'TB_RISK'}], 'rules_version': 'TB_COUGH_RISK:1'}\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "T4_risk_golden",
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 0.49,
+          "stdout_tail": "PASS risk_golden\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "T4_sync_roundtrip",
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 0.17,
+          "stdout_tail": "Push Resp: {'results': [{'event_uuid': '97de9275-4087-4d68-b3c4-335ab942aecd', 'status': 'applied', 'model': 'patient', 'local_uuid': 'c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f'}, {'event_uuid': '48fadf41-a327-49c7-8747-8423d8e67d92', 'status': 'applied', 'model': 'survey_response', 'local_uuid': 'd3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a'}]}\nPASS sync_roundtrip\n",
+          "stderr_tail": ""
+        },
+        {
+          "name": "T4_worker_scope",
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 0.18,
+          "stdout_tail": "PASS worker_scope\n",
+          "stderr_tail": ""
         }
       ]
     },
@@ -66,5 +100,5 @@
     }
   ],
   "ok": true,
-  "finished_at": "2026-05-18T18:31:38Z"
+  "finished_at": "2026-05-18T19:50:12Z"
 }

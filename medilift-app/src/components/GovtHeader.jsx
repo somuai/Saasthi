@@ -1,8 +1,7 @@
 import PropTypes from "prop-types";
-import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import Svg, { Path } from "react-native-svg";
 import { COLORS } from "../constants/colors";
 import { TricolorStripe } from "./TricolorStripe";
 import { OfflineBanner } from "./OfflineBanner";
@@ -46,8 +45,8 @@ export function GovtHeader({
             </Pressable>
           ) : null}
           <View style={styles.brandRow}>
-            <AshokaLion />
-            <Text style={styles.brand}>MEDILIFT</Text>
+            <Image source={require("../../assets/saasthi-logo.png")} style={styles.brandLogo} resizeMode="contain" />
+            <Text style={styles.brand}>SAASTHI</Text>
           </View>
         </View>
         <View style={styles.center}>
@@ -92,6 +91,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 6 },
+  brandLogo: { width: 22, height: 22 },
   brand: { color: "#fff", fontSize: 12, fontWeight: "800", letterSpacing: 1 },
   center: { flex: 2, alignItems: "center" },
   title: { color: "#fff", fontSize: 16, fontWeight: "700" },

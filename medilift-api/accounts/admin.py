@@ -7,7 +7,7 @@ from .models import AuditLog, OTPChallenge, User
 @admin.register(User)
 class MediliftUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets + (
-        ("MEDILIFT", {"fields": ("local_uuid", "phone", "role", "region", "district", "block", "village", "metadata")}),
+        ("SAASTHI", {"fields": ("local_uuid", "phone", "role", "region", "district", "block", "village", "metadata")}),
     )
     readonly_fields = ("local_uuid",)
     list_display = ("username", "phone", "role", "district", "block", "is_staff")

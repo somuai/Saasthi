@@ -1,29 +1,42 @@
-# MEDILIFT API (Prompt 10 skeleton)
+# Saasthi Backend Pilot
 
-Python 3.9+.
+Django/DRF backend skeleton for the Saasthi Pilot MVP. It includes OTP auth, JWT refresh, RBAC/geography-aware APIs, registry and survey models, rule-based risk scoring, flag dedupe, sync pull/push, audit/sync event logging, config endpoints, and a small supervisor dashboard/export surface.
+
+## Local setup
 
 ```bash
-cd medilift-api
-python3 -m venv .venv
+cd medilift-backend
+python -m venv .venv
 source .venv/bin/activate
-pip install -r requirements/dev.txt
-python manage.py migrate
-python manage.py runserver 0.0.0.0:8000
+pip install -r requirements-dev.txt
+python manage.py migrate --run-syncdb
+python manage.py runserver
 ```
 
-- API base: `http://127.0.0.1:8000/api/v1/`
-- OTP request: `POST /api/v1/auth/otp/request/` — returns `dev_otp` in JSON (development only).
-- OTP verify: `POST /api/v1/auth/otp/verify/` — body `{"phone":"+919876543210","otp":"<from dev_otp>"}`. Invalid or expired OTP returns **400**.
-- Sync: `GET /api/v1/sync/pull/` and `POST /api/v1/sync/push/` (JWT required). Pull/push are scoped to the authenticated ASHA worker.
+SQLite is used by default. Set `DATABASE_URL=postgres://user:password@host:5432/dbname` for Postgres.
 
 ## Tests
 
 ```bash
-python manage.py test tests
+cd medilift-backend
+pytest
 ```
 
-## Eval suite
+## Public MVP endpoints
 
-From repo root: `make eval` (see [eval/README.md](../eval/README.md)).
+- `POST /api/v1/auth/otp/request/`
+- `POST /api/v1/auth/otp/verify/`
+- `POST /api/v1/auth/token/refresh/`
+- `POST /api/v1/sync/pull/`
+- `POST /api/v1/sync/push/`
+- `GET /api/v1/config/bootstrap/`
+- `GET /api/v1/config/rules/`
 
-Legacy backend remains in `medilift-backend/`; this package is the v1 sync API.
+When `EXPOSE_DEBUG_OTP=true`, OTP request responses include `debug_otp` so local development and tests need no SMS provider. It defaults to true only when `DJANGO_DEBUG=true`.
+
+## Pilot notes
+
+- Every syncable record has a `local_uuid` for offline/mobile idempotency.
+- Risk scoring stores an explanation trail listing matched rules.
+- Flag creation dedupes by patient, flag type, source, and open status.
+- Incentives are ledgered as quality/training/transport style events only; there is no referral-volume commission model.

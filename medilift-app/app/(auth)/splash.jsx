@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
@@ -59,9 +59,9 @@ export default function AuthSplashScreen() {
       <TricolorStripe />
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
-          <AshokaLion />
-          <Text style={styles.title}>MEDILIFT</Text>
-          <Text style={styles.titleHi}>मेडिलिफ्ट — ASHA संगिनी</Text>
+          <Image source={require("../../assets/saasthi-logo.png")} style={styles.logoImg} resizeMode="contain" />
+          <Text style={styles.title}>SAASTHI</Text>
+          <Text style={styles.titleHi}>सास्थी — ASHA संगिनी</Text>
           <Text style={styles.nhm}>राष्ट्रीय स्वास्थ्य मिशन | National Health Mission</Text>
         </View>
         <View style={styles.footer}>
@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.primary },
   safe: { flex: 1, justifyContent: "space-between", paddingHorizontal: 24 },
   center: { flex: 1, alignItems: "center", justifyContent: "center" },
+  logoImg: { width: 96, height: 96 },
   title: { color: "#fff", fontSize: 28, fontWeight: "900", letterSpacing: 4, marginTop: 20 },
   titleHi: { color: "rgba(255,255,255,0.9)", fontSize: 14, marginTop: 8 },
   nhm: { color: "rgba(255,255,255,0.55)", fontSize: 11, marginTop: 12, textAlign: "center" },

@@ -13,7 +13,7 @@ class BootstrapConfigView(APIView):
     def get(self, request):
         return Response(
             {
-                "app": "MEDILIFT",
+                "app": "SAASTHI",
                 "api_version": "v1",
                 "roles": [choice[0] for choice in User.Role.choices],
                 "gender_choices": ["female", "male", "other", "unknown"],

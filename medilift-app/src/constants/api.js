@@ -12,8 +12,8 @@ export const endpoints = {
   tokenRefresh: "/auth/token/refresh/",
   syncPull: "/sync/pull/",
   syncPush: "/sync/push/",
-  patients: "/patients/",
-  surveys: "/surveys/",
+  patients: "/registry/patients/",
+  surveys: "/surveys/responses/",
   legacyRequestOtp: "/auth/request-otp/",
   legacyVerifyOtp: "/auth/verify-otp/",
 };
