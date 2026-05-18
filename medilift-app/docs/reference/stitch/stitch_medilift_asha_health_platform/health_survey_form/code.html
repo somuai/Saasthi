@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+        }
+        body {
+            background-color: #f8f9fa;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ba1a1a",
+                        "surface-container-high": "#e7e8e9",
+                        "on-surface": "#191c1d",
+                        "on-tertiary-fixed-variant": "#00522d",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f3f4f5",
+                        "surface-container": "#edeeef",
+                        "error-container": "#ffdad6",
+                        "on-secondary-fixed": "#002022",
+                        "on-secondary-fixed-variant": "#004f55",
+                        "tertiary-fixed-dim": "#7ed99e",
+                        "surface-dim": "#d9dadb",
+                        "tertiary-container": "#00210f",
+                        "surface-bright": "#f8f9fa",
+                        "outline": "#74777d",
+                        "inverse-primary": "#bac8dc",
+                        "secondary-fixed": "#a6eff6",
+                        "tertiary-fixed": "#9af6b8",
+                        "secondary-container": "#a6eff6",
+                        "on-tertiary": "#ffffff",
+                        "on-error": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "background": "#f8f9fa",
+                        "surface-tint": "#525f71",
+                        "on-secondary-container": "#1f6e75",
+                        "on-surface-variant": "#44474c",
+                        "on-tertiary-container": "#39945f",
+                        "primary": "#000000",
+                        "surface-container-highest": "#e1e3e4",
+                        "on-primary-fixed-variant": "#3a4859",
+                        "secondary": "#15686f",
+                        "surface": "#f8f9fa",
+                        "inverse-on-surface": "#f0f1f2",
+                        "primary-fixed-dim": "#bac8dc",
+                        "secondary-fixed-dim": "#8bd2da",
+                        "primary-container": "#0f1c2c",
+                        "primary-fixed": "#d6e4f9",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c4c6cc",
+                        "on-background": "#191c1d",
+                        "on-error-container": "#93000a",
+                        "on-primary-container": "#778598",
+                        "inverse-surface": "#2e3132",
+                        "on-tertiary-fixed": "#00210f",
+                        "tertiary": "#000000",
+                        "surface-variant": "#e1e3e4",
+                        "on-primary-fixed": "#0f1c2c",
+                        "custom-teal": "#15686f",
+                        "custom-navy": "#0f1c2c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "touch-target": "48px",
+                        "gutter": "16px",
+                        "section-margin": "24px",
+                        "stack-gap": "12px",
+                        "container-padding": "16px"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Roboto Flex"],
+                        "label-hindi": ["Roboto Flex"],
+                        "headline-lg": ["Roboto Flex"],
+                        "body-lg": ["Roboto Flex"],
+                        "label-lg": ["Roboto Flex"],
+                        "body-md": ["Roboto Flex"],
+                        "headline-sm": ["Roboto Flex"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "700"}],
+                        "label-hindi": ["14px", {"lineHeight": "22px", "letterSpacing": "0px", "fontWeight": "400"}],
+                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "0px", "fontWeight": "700"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
+                        "label-lg": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                        "headline-sm": ["16px", {"lineHeight": "24px", "letterSpacing": "0.1px", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface">
+<!-- Top App Bar -->
+<header class="fixed top-0 left-0 w-full h-touch-target bg-custom-navy text-white flex items-center justify-between px-gutter z-50">
+<div class="flex items-center gap-4">
+<button class="h-touch-target w-touch-target flex items-center justify-center active:scale-95 transition-all">
+<span class="material-symbols-outlined">close</span>
+</button>
+<div>
+<h1 class="font-headline-sm text-headline-sm">Health Survey — Mamata Bibi</h1>
+</div>
+</div>
+<button class="px-4 py-2 bg-secondary-container text-on-secondary-container rounded-full font-label-lg text-label-lg active:scale-95 transition-all">
+            Save Draft
+        </button>
+</header>
+<main class="pt-[64px] pb-[80px] px-gutter">
+<!-- Step Progress Indicator -->
+<section class="py-section-margin bg-white -mx-gutter px-gutter border-b border-outline-variant mb-6">
+<div class="flex items-center justify-between mb-4">
+<span class="font-label-lg text-label-lg text-on-surface-variant">Step 2 of 4</span>
+<span class="font-headline-sm text-headline-sm text-custom-teal">Symptoms / लक्षण</span>
+</div>
+<div class="flex items-center gap-2">
+<!-- Step 1: Complete -->
+<div class="flex-1 h-1 rounded-full bg-tertiary-fixed-dim flex items-center justify-center relative">
+<div class="absolute -top-3 w-6 h-6 bg-tertiary-fixed-dim rounded-full flex items-center justify-center border-2 border-white">
+<span class="material-symbols-outlined text-[14px] text-on-tertiary-fixed" style="font-variation-settings: 'wght' 700;">check</span>
+</div>
+</div>
+<!-- Step 2: Active -->
+<div class="flex-1 h-1 rounded-full bg-custom-teal relative">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 w-6 h-6 bg-custom-teal rounded-full flex items-center justify-center border-2 border-white">
+<div class="w-2 h-2 bg-white rounded-full"></div>
+</div>
+</div>
+<!-- Step 3: Pending -->
+<div class="flex-1 h-1 rounded-full bg-surface-container-highest"></div>
+<!-- Step 4: Pending -->
+<div class="flex-1 h-1 rounded-full bg-surface-container-highest"></div>
+</div>
+</section>
+<!-- Current Symptoms Section -->
+<section class="mb-section-margin">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-gap">Current Symptoms / वर्तमान लक्षण</h2>
+<div class="space-y-4">
+<!-- Symptom Row 1: Fever -->
+<div class="bg-surface-bright border border-outline-variant rounded-xl p-4">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="font-body-lg text-body-lg text-on-surface">Fever</p>
+<p class="font-label-hindi text-label-hindi text-on-surface-variant">बुखार</p>
+</div>
+<div class="flex bg-surface-container rounded-full p-1 h-touch-target">
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors bg-custom-teal text-white">Yes</button>
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors text-on-surface-variant">No</button>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 pt-2 border-t border-outline-variant">
+<p class="w-full font-label-lg text-label-lg text-on-surface-variant mb-1">Severity / तीव्रता:</p>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-label-lg text-label-lg">Mild</button>
+<button class="px-4 py-1.5 rounded-full bg-secondary-container text-on-secondary-container border border-custom-teal font-label-lg text-label-lg">Moderate</button>
+<button class="px-4 py-1.5 rounded-full border border-outline-variant text-on-surface-variant font-label-lg text-label-lg">Severe</button>
+</div>
+</div>
+<!-- Symptom Row 2: Cough -->
+<div class="bg-surface-bright border border-outline-variant rounded-xl p-4">
+<div class="flex justify-between items-center">
+<div>
+<p class="font-body-lg text-body-lg text-on-surface">Cough</p>
+<p class="font-label-hindi text-label-hindi text-on-surface-variant">खांसी</p>
+</div>
+<div class="flex bg-surface-container rounded-full p-1 h-touch-target">
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors text-on-surface-variant">Yes</button>
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors bg-white shadow-sm text-on-surface">No</button>
+</div>
+</div>
+</div>
+<!-- Symptom Row 3: Shortness of Breath -->
+<div class="bg-surface-bright border border-outline-variant rounded-xl p-4">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="font-body-lg text-body-lg text-on-surface">Shortness of Breath</p>
+<p class="font-label-hindi text-label-hindi text-on-surface-variant">साँस फूलना</p>
+</div>
+<div class="flex bg-surface-container rounded-full p-1 h-touch-target">
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors bg-custom-teal text-white">Yes</button>
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors text-on-surface-variant">No</button>
+</div>
+</div>
+<div class="flex flex-wrap gap-2 pt-2 border-t border-outline-variant">
+<p class="w-full font-label-lg text-label-lg text-on-surface-variant mb-1">Severity / तीव्रता:</p>
+<button class="px-4 py-1.5 rounded-full bg-error-container text-on-error-container border border-error font-label-lg text-label-lg">Severe</button>
+</div>
+</div>
+<!-- Symptom Row 4: Fatigue -->
+<div class="bg-surface-bright border border-outline-variant rounded-xl p-4">
+<div class="flex justify-between items-center">
+<div>
+<p class="font-body-lg text-body-lg text-on-surface">Fatigue</p>
+<p class="font-label-hindi text-label-hindi text-on-surface-variant">थकान</p>
+</div>
+<div class="flex bg-surface-container rounded-full p-1 h-touch-target">
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors text-on-surface-variant">Yes</button>
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors bg-white shadow-sm text-on-surface">No</button>
+</div>
+</div>
+</div>
+<!-- Symptom Row 5: Body Ache -->
+<div class="bg-surface-bright border border-outline-variant rounded-xl p-4">
+<div class="flex justify-between items-center">
+<div>
+<p class="font-body-lg text-body-lg text-on-surface">Body Ache</p>
+<p class="font-label-hindi text-label-hindi text-on-surface-variant">बदन दर्द</p>
+</div>
+<div class="flex bg-surface-container rounded-full p-1 h-touch-target">
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors text-on-surface-variant">Yes</button>
+<button class="px-6 rounded-full font-label-lg text-label-lg transition-colors bg-white shadow-sm text-on-surface">No</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Chronic Conditions Section -->
+<section class="mb-section-margin">
+<h2 class="font-headline-md text-headline-md text-on-surface mb-stack-gap">Chronic Conditions / पुरानी बीमारियाँ</h2>
+<div class="bg-surface-bright border border-outline-variant rounded-xl overflow-hidden">
+<!-- Diabetes -->
+<div class="flex items-center justify-between p-4 border-b border-outline-variant">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-custom-navy">glucose</span>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface">Diabetes</p>
+<p class="font-label-hindi text-label-hindi text-on-surface-variant">मधुमेह</p>
+</div>
+</div>
+<div class="w-12 h-6 bg-surface-container-highest rounded-full relative">
+<div class="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-all"></div>
+</div>
+</div>
+<!-- High Blood Pressure -->
+<div class="flex items-center justify-between p-4">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-custom-navy">blood_pressure</span>
+<div>
+<p class="font-body-lg text-body-lg text-on-surface">High Blood Pressure</p>
+<p class="font-label-hindi text-label-hindi text-on-surface-variant">उच्च रक्तचाप</p>
+</div>
+</div>
+<div class="w-12 h-6 bg-custom-teal rounded-full relative">
+<div class="absolute top-1 right-1 w-4 h-4 bg-white rounded-full transition-all"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Helpful Information Card -->
+<div class="bg-secondary-container p-4 rounded-xl flex gap-4">
+<span class="material-symbols-outlined text-on-secondary-container">info</span>
+<p class="font-body-md text-body-md text-on-secondary-container">
+                Identifying symptoms accurately helps in early intervention for potential health risks. Please confirm details with the patient.
+            </p>
+</div>
+</main>
+<!-- Bottom Action Bar -->
+<footer class="fixed bottom-0 left-0 w-full h-20 bg-white border-t border-outline-variant px-gutter flex items-center justify-between z-50">
+<button class="flex items-center justify-center px-6 h-touch-target rounded-full border border-custom-teal text-custom-teal font-headline-sm text-headline-sm active:scale-95 transition-all">
+<span class="material-symbols-outlined mr-2">arrow_back</span>
+            Previous
+        </button>
+<button class="flex items-center justify-center px-8 h-touch-target rounded-full bg-custom-teal text-white font-headline-sm text-headline-sm shadow-md active:scale-95 transition-all">
+            Next: Risk Check
+            <span class="material-symbols-outlined ml-2">arrow_forward</span>
+</button>
+</footer>
+</body></html>

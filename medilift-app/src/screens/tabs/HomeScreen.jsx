@@ -13,6 +13,8 @@ import { Q } from "@nozbe/watermelondb";
 import { useSelector, useDispatch } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { GovtHeader } from "../../components/GovtHeader";
+import { BentoStatGrid } from "../../components/BentoStatGrid";
+import { SyncPendingBanner } from "../../components/SyncPendingBanner";
 import { COLORS } from "../../constants/colors";
 import { todayYmd, timeAgo, firstDayOfMonthYmd } from "../../utils/dateHelpers";
 import { syncWithServer, countPendingRecords } from "../../database/sync";
@@ -26,15 +28,13 @@ export default function HomeScreen() {
   const { pendingCount, lastSyncedAt, isSyncing, isOnline } = useSelector((s) => s.sync);
 
   const [surveysToday, setSurveysToday] = useState(0);
+  const [householdCount, setHouseholdCount] = useState(0);
   const [overdueFu, setOverdueFu] = useState(0);
   const [criticalN, setCriticalN] = useState(0);
-  const [monthInr, setMonthInr] = useState(0);
-  const [pregnancyAlerts, setPregnancyAlerts] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const reload = useCallback(async () => {
     const t = todayYmd();
-    const startM = firstDayOfMonthYmd();
     try {
       const s1 = await database.collections
         .get("survey_responses")
@@ -51,28 +51,11 @@ export default function HomeScreen() {
         .query(Q.where("risk_level", "critical"), Q.where("is_deleted", false))
         .fetchCount();
       setCriticalN(s3);
-      const rows = await database.collections
-        .get("incentive_records")
-        .query(Q.where("period_date", Q.gte(startM)), Q.where("is_deleted", false))
-        .fetch();
-      const sum = rows.reduce((a, r) => a + (r.amountInr ?? r.amount_inr ?? 0), 0);
-      setMonthInr(sum);
-      const pregnant = await database.collections
-        .get("patients")
-        .query(Q.where("is_pregnant", true), Q.where("is_deleted", false))
-        .fetch();
-      const alerts = [];
-      for (const p of pregnant) {
-        const mothers = await database.collections
-          .get("mother_records")
-          .query(Q.where("patient_id", p.id), Q.where("is_deleted", false))
-          .fetch();
-        const mr = mothers[0];
-        if (p.riskLevel === "critical" || p.riskLevel === "high" || mr?.isHighRisk) {
-          alerts.push({ id: p.id, name: p.name, reason: mr?.isHighRisk ? "High-risk pregnancy" : `Risk: ${p.riskLevel}` });
-        }
-      }
-      setPregnancyAlerts(alerts.slice(0, 5));
+      const hh = await database.collections
+        .get("households")
+        .query(Q.where("is_deleted", false))
+        .fetchCount();
+      setHouseholdCount(hh);
       const pend = await countPendingRecords();
       dispatch(setPendingCount(pend));
     } catch {
@@ -102,93 +85,84 @@ export default function HomeScreen() {
   }
 
   const initials = (worker?.name || "A").slice(0, 2);
+  const hour = new Date().getHours();
+  const greetEn = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
+  const greetHi = hour < 12 ? "सुप्रभात" : hour < 17 ? "नमस्ते" : "शुभ संध्या";
 
   return (
     <View style={styles.page}>
-      <GovtHeader titleHi="होम" title="Home" showSync />
+      <GovtHeader
+        titleHi="होम"
+        title="Home"
+        showSync
+        rightComponent={
+          <Pressable onPress={() => router.push("/(tabs)/sync")} style={styles.notifBtn}>
+            <Ionicons name="notifications-outline" size={24} color="#fff" />
+            {pendingCount > 0 ? (
+              <View style={styles.notifBadge}>
+                <Text style={styles.notifBadgeTxt}>{pendingCount > 9 ? "9+" : pendingCount}</Text>
+              </View>
+            ) : null}
+          </Pressable>
+        }
+      />
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
-        <View style={styles.card}>
-          <View style={styles.greetRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarTxt}>{initials}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={styles.hi}>नमस्ते, {worker?.name || "ASHA"}!</Text>
-              <Text style={styles.meta}>
-                {worker?.village || "—"}, {worker?.block || "—"}
-              </Text>
-              <Text style={styles.id}>ID: {worker?.workerCode || "—"}</Text>
-            </View>
-            <Text style={styles.syncTiny}>Last sync / आखरी सिंक: {timeAgo(lastSyncedAt)}</Text>
-          </View>
+        <View style={styles.greetCard}>
+          <Text style={styles.greetEn}>
+            {greetEn}, {worker?.name || "ASHA"}
+          </Text>
+          <Text style={styles.greetHi}>
+            {greetHi}, {worker?.name || "ASHA"}
+          </Text>
+          <Text style={styles.village}>
+            {worker?.village || "—"} • {worker?.block || "—"}
+          </Text>
+          <BentoStatGrid
+            items={[
+              { key: "s", icon: "folder-open-outline", value: surveysToday, labelHi: "सर्वे", labelEn: "Surveys", color: COLORS.primary },
+              { key: "h", icon: "home-outline", value: householdCount, labelHi: "परिवार", labelEn: "Houses", color: COLORS.primary },
+              { key: "a", icon: "flash-outline", value: criticalN, labelHi: "अलर्ट", labelEn: "Alerts", color: COLORS.danger },
+            ]}
+          />
         </View>
 
-        <View style={styles.statsRow}>
-          {[
-            { n: surveysToday, hi: "आज सर्वे", en: "Surveys", c: COLORS.primary },
-            { n: overdueFu, hi: "फॉलो-अप", en: "Overdue", c: overdueFu > 0 ? COLORS.danger : COLORS.success },
-            { n: pendingCount, hi: "सिंक बाकी", en: "Pending", c: pendingCount > 0 ? COLORS.accent : COLORS.success },
-            { n: `₹${Math.round(monthInr)}`, hi: "इस माह", en: "Earned", c: COLORS.success },
-          ].map((b) => (
-            <View key={b.hi} style={styles.statBox}>
-              <Text style={[styles.statNum, { color: b.c }]}>{b.n}</Text>
-              <Text style={styles.statHi}>{b.hi}</Text>
-              <Text style={styles.statEn}>{b.en}</Text>
-            </View>
-          ))}
-        </View>
+        <SyncPendingBanner onSyncPress={onRefresh} />
+
+        <Text style={styles.syncMeta}>
+          Last sync / आखरी सिंक: {timeAgo(lastSyncedAt)} · {isOnline ? "Online" : "Offline"}
+        </Text>
 
         <Text style={styles.sectionHi}>त्वरित क्रियाएं</Text>
         <Text style={styles.sectionEn}>Quick Actions</Text>
         <View style={styles.grid}>
-          <Pressable style={styles.qCard} onPress={() => router.push("/(tabs)/patients")}>
-            <Ionicons name="clipboard-outline" size={36} color={COLORS.accent} />
-            <Text style={styles.qHi}>नया सर्वे</Text>
-            <Text style={styles.qEn}>New Survey</Text>
-          </Pressable>
-          <Pressable style={styles.qCard} onPress={() => router.push("/(tabs)/patients/add")}>
-            <Ionicons name="person-add-outline" size={36} color={COLORS.primary} />
-            <Text style={styles.qHi}>मरीज जोड़ें</Text>
-            <Text style={styles.qEn}>Add Patient</Text>
-          </Pressable>
-          <Pressable style={styles.qCard} onPress={() => router.push("/(tabs)/followups")}>
-            <Ionicons name="calendar-outline" size={36} color={COLORS.success} />
-            <Text style={styles.qHi}>फॉलो-अप</Text>
-            <Text style={styles.qEn}>Follow-ups</Text>
-            {overdueFu > 0 ? (
-              <View style={styles.badge}>
-                <Text style={styles.badgeTxt}>{overdueFu}</Text>
-              </View>
-            ) : null}
-          </Pressable>
-          <Pressable style={styles.qCard} onPress={onRefresh}>
-            <Ionicons name="refresh" size={36} color={isSyncing ? COLORS.accent : COLORS.textSecondary} />
-            <Text style={styles.qHi}>सिंक</Text>
-            <Text style={styles.qEn}>{isOnline ? "Sync Now" : "Offline"}</Text>
-          </Pressable>
+          {[
+            { hi: "परिवार पंजीकरण", en: "Register Household", icon: "person-add-outline", route: "/(tabs)/patients/add" },
+            { hi: "सर्वेक्षण भरें", en: "Fill Survey", icon: "document-text-outline", route: "/(tabs)/patients" },
+            { hi: "फॉलो-अप्स", en: "Follow-Ups", icon: "calendar-outline", route: "/(tabs)/followups", badge: overdueFu },
+            { hi: "मेरा प्रोत्साहन", en: "My Incentives", icon: "wallet-outline", route: "/(tabs)/earnings" },
+            { hi: "सिंक और सेटिंग", en: "Sync & Settings", icon: "settings-outline", route: "/(tabs)/sync" },
+            { hi: "एमसीपी कार्ड", en: "MCP Card", icon: "medkit-outline", route: "/(tabs)/mcp" },
+          ].map((q) => (
+            <Pressable key={q.en} style={styles.qCard} onPress={() => router.push(q.route)}>
+              <Ionicons name={q.icon} size={32} color={COLORS.primary} />
+              <Text style={styles.qHi}>{q.hi}</Text>
+              <Text style={styles.qEn}>{q.en}</Text>
+              {q.badge > 0 ? (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeTxt}>{q.badge}</Text>
+                </View>
+              ) : null}
+            </Pressable>
+          ))}
         </View>
 
-        {criticalN > 0 ? (
-          <View style={styles.alertBox}>
-            <Text style={styles.alertTitle}>तत्काल ध्यान / Urgent: {criticalN} critical</Text>
-          </View>
-        ) : null}
-
-        {pregnancyAlerts.length > 0 ? (
-          <View style={styles.pregSection}>
-            <Text style={styles.sectionHi}>गर्भावस्था अलर्ट</Text>
-            <Text style={styles.sectionEn}>Pregnancy alerts</Text>
-            {pregnancyAlerts.map((a) => (
-              <Pressable key={a.id} style={styles.pregRow} onPress={() => router.push(`/(tabs)/patients/${a.id}`)}>
-                <Text style={styles.pregName}>{a.name}</Text>
-                <Text style={styles.pregReason}>{a.reason}</Text>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
+        <Pressable style={styles.syncRow} onPress={onRefresh} disabled={isSyncing}>
+          <Ionicons name="refresh" size={22} color={COLORS.primary} />
+          <Text style={styles.syncRowTxt}>{isSyncing ? "सिंक हो रहा है…" : "अभी सिंक करें / Sync now"}</Text>
+        </Pressable>
 
         <Text style={styles.disclaimer}>
           Incentives are activity and outcome based — no per-patient brokerage. / प्रोत्साहन गतिविधि पर आधारित।
@@ -201,41 +175,31 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
   scroll: { paddingBottom: 32 },
-  card: {
-    margin: 16,
-    backgroundColor: COLORS.card,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    padding: 16,
-  },
-  greetRow: { flexDirection: "row", alignItems: "center", gap: 12 },
-  avatar: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
-    backgroundColor: COLORS.primary,
+  notifBtn: { minWidth: 52, minHeight: 52, alignItems: "center", justifyContent: "center" },
+  notifBadge: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    backgroundColor: COLORS.danger,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
   },
-  avatarTxt: { color: "#fff", fontSize: 20, fontWeight: "800" },
-  hi: { fontSize: 17, fontWeight: "800", color: COLORS.textPrimary },
-  meta: { fontSize: 13, color: COLORS.textSecondary, marginTop: 2 },
-  id: { fontSize: 12, color: COLORS.textHint, marginTop: 2 },
-  syncTiny: { fontSize: 10, color: COLORS.textHint, maxWidth: 90 },
-  statsRow: { flexDirection: "row", gap: 8, paddingHorizontal: 16, marginBottom: 8 },
-  statBox: {
-    flex: 1,
-    backgroundColor: COLORS.card,
+  notifBadgeTxt: { color: "#fff", fontSize: 9, fontWeight: "800" },
+  greetCard: {
+    margin: 16,
+    backgroundColor: COLORS.greetingCard,
+    borderRadius: 12,
     borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    padding: 12,
-    alignItems: "center",
+    borderColor: COLORS.greetingBorder,
+    padding: 16,
   },
-  statNum: { fontSize: 22, fontWeight: "800" },
-  statHi: { fontSize: 10, color: COLORS.textSecondary, marginTop: 4 },
-  statEn: { fontSize: 9, color: COLORS.textHint },
+  greetEn: { fontSize: 16, fontWeight: "800", color: COLORS.primary },
+  greetHi: { fontSize: 14, color: COLORS.textSecondary, marginTop: 2 },
+  village: { fontSize: 12, color: COLORS.textSecondary, marginTop: 4, marginBottom: 12 },
+  syncMeta: { paddingHorizontal: 16, fontSize: 11, color: COLORS.textHint, marginBottom: 8 },
   sectionHi: { fontSize: 14, fontWeight: "800", color: COLORS.textPrimary, marginHorizontal: 16, marginTop: 8 },
   sectionEn: { fontSize: 11, color: COLORS.textSecondary, marginHorizontal: 16, marginBottom: 8 },
   grid: { flexDirection: "row", flexWrap: "wrap", gap: 12, paddingHorizontal: 16 },
@@ -263,28 +227,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   badgeTxt: { color: "#fff", fontSize: 11, fontWeight: "800" },
-  alertBox: {
-    margin: 16,
-    padding: 12,
-    borderLeftWidth: 4,
-    borderColor: COLORS.border,
-    borderLeftColor: COLORS.danger,
+  syncRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
     backgroundColor: COLORS.card,
-    borderRadius: 8,
-  },
-  alertTitle: { color: COLORS.danger, fontWeight: "800" },
-  disclaimer: { margin: 16, fontSize: 11, color: COLORS.textSecondary, lineHeight: 16 },
-  pregSection: { marginHorizontal: 16, marginTop: 8 },
-  pregRow: {
-    padding: 12,
-    backgroundColor: COLORS.card,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: COLORS.border,
-    borderLeftWidth: 4,
-    borderLeftColor: COLORS.accent,
-    marginBottom: 8,
+    minHeight: 52,
   },
-  pregName: { fontWeight: "800", color: COLORS.textPrimary },
-  pregReason: { fontSize: 12, color: COLORS.danger, marginTop: 4 },
+  syncRowTxt: { fontWeight: "700", color: COLORS.primary },
+  disclaimer: { margin: 16, fontSize: 11, color: COLORS.textSecondary, lineHeight: 16 },
 });

@@ -1,5 +1,5 @@
 {
-  "started_at": "2026-05-18T15:34:02Z",
+  "started_at": "2026-05-18T18:31:36Z",
   "tiers": [
     {
       "tier": "T1",
@@ -8,9 +8,9 @@
           "name": "T1_jest",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 1.29,
+          "duration_sec": 0.73,
           "stdout_tail": "\n> medilift-app@0.1.0 test\n> jest --watchAll=false\n\n",
-          "stderr_tail": "PASS __tests__/syncErrors.test.js\nPASS __tests__/workerId.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/riskScorer.test.js\n\nTest Suites: 9 passed, 9 total\nTests:       23 passed, 23 total\nSnapshots:   0 total\nTime:        0.685 s, estimated 1 s\nRan all test suites.\n"
+          "stderr_tail": "watchman warning:  Recrawled this watch 1 time, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/workerId.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/scorePatient.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       37 passed, 37 total\nSnapshots:   0 total\nTime:        0.365 s, estimated 1 s\nRan all test suites.\n"
         }
       ]
     },
@@ -21,9 +21,9 @@
           "name": "T2_django",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 1.68,
-          "stdout_tail": "Found 15 test(s).\nSystem check identified no issues (0 silenced).\n",
-          "stderr_tail": "/Users/soumyajitghosh/Documents/Saasthi/medilift-api/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\nCreating test database for alias 'default'...\n...............\n----------------------------------------------------------------------\nRan 15 tests in 1.074s\n\nOK\nDestroying test database for alias 'default'...\n"
+          "duration_sec": 1.9,
+          "stdout_tail": "Found 16 test(s).\nSystem check identified no issues (0 silenced).\n",
+          "stderr_tail": "/Users/soumyajitghosh/Documents/Saasthi/medilift-api/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\nCreating test database for alias 'default'...\n................\n----------------------------------------------------------------------\nRan 16 tests in 1.394s\n\nOK\nDestroying test database for alias 'default'...\n"
         }
       ]
     },
@@ -32,11 +32,11 @@
       "results": [
         {
           "name": "T3_contracts",
-          "ok": false,
-          "exit_code": 1,
-          "duration_sec": 0.03,
-          "stdout_tail": "PASS fixture sync-watermelon-pull.example.json\n",
-          "stderr_tail": "FAIL fetch failed\n"
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 0.02,
+          "stdout_tail": "PASS fixture sync-watermelon-pull.example.json\nSKIP live API (--offline)\n",
+          "stderr_tail": ""
         }
       ]
     },
@@ -44,44 +44,10 @@
       "tier": "T4",
       "results": [
         {
-          "name": "T4_auth_otp",
+          "name": "T4_live_api",
           "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.08,
-          "stdout_tail": "SKIP API not reachable\n",
-          "stderr_tail": "/Users/soumyajitghosh/Documents/Saasthi/medilift-api/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\n"
-        },
-        {
-          "name": "T4_flagging_pipeline",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.19,
-          "stdout_tail": "PASS flagging_pipeline {'created': 1}\n",
-          "stderr_tail": ""
-        },
-        {
-          "name": "T4_risk_golden",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.49,
-          "stdout_tail": "PASS risk_golden\n",
-          "stderr_tail": ""
-        },
-        {
-          "name": "T4_sync_roundtrip",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.09,
-          "stdout_tail": "SKIP API not reachable\n",
-          "stderr_tail": "/Users/soumyajitghosh/Documents/Saasthi/medilift-api/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\n"
-        },
-        {
-          "name": "T4_worker_scope",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.08,
-          "stdout_tail": "SKIP API not reachable\n",
-          "stderr_tail": "/Users/soumyajitghosh/Documents/Saasthi/medilift-api/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\n"
+          "skipped": true,
+          "reason": "--offline"
         }
       ]
     },
@@ -99,6 +65,6 @@
       ]
     }
   ],
-  "ok": false,
-  "finished_at": "2026-05-18T15:34:06Z"
+  "ok": true,
+  "finished_at": "2026-05-18T18:31:38Z"
 }

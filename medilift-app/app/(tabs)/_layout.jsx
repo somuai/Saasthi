@@ -1,6 +1,6 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { COLORS } from "../../src/constants/colors";
+import { MediliftTabBar } from "../../src/components/MediliftTabBar";
 import { useOverdueFollowUpCount } from "../../src/hooks/useOverdueFollowUpCount";
 
 export default function TabsLayout() {
@@ -8,19 +8,10 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <MediliftTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          minHeight: 64,
-          paddingBottom: 8,
-          paddingTop: 8,
-          backgroundColor: COLORS.primary,
-          borderTopWidth: 0,
-        },
-        tabBarActiveTintColor: "#fff",
-        tabBarInactiveTintColor: "rgba(255,255,255,0.55)",
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
-        tabBarItemStyle: { paddingTop: 4 },
+        tabBarStyle: { display: "none" },
       }}
     >
       <Tabs.Screen

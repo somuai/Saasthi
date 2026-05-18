@@ -3,16 +3,20 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as SecureStore from "expo-secure-store";
 import { DatabaseProvider } from "@nozbe/watermelondb/react";
 import { Provider } from "react-redux";
-import { database } from "../database";
+import { getDatabase, isWatermelonNativeAvailable } from "../database";
 import { store } from "./store";
 import { setOnlineStatus } from "../features/sync/syncSlice";
 import { subscribeConnectivity } from "../utils/connectivity";
 import { setUser, setWorkerData, setTokens, setOfflinePilotSession } from "../features/auth/authSlice";
-import { initAutoSync } from "../database/sync";
+import {
+  AUTH_USER_KEY,
+  AUTH_WORKER_KEY,
+  clearAuthSession,
+  persistAuthSession,
+} from "../features/auth/authSession";
 import { DatabaseGate } from "../components/DatabaseGate";
 
-const AUTH_USER_KEY = "medilift_auth_user_json";
-const AUTH_WORKER_KEY = "medilift_auth_worker_json";
+export { clearAuthSession, persistAuthSession };
 
 function ConnectivityBridge({ children }) {
   useEffect(() => {
@@ -34,7 +38,8 @@ function ConnectivityBridge({ children }) {
         if (u) store.dispatch(setUser(JSON.parse(u)));
         if (w) store.dispatch(setWorkerData(JSON.parse(w)));
         store.dispatch(setOfflinePilotSession(Boolean(u && !access)));
-        if (u && access) {
+        if (u && access && isWatermelonNativeAvailable()) {
+          const { initAutoSync } = await import("../database/sync");
           stopAutoSync = initAutoSync();
         }
       } catch {
@@ -47,23 +52,24 @@ function ConnectivityBridge({ children }) {
   return children;
 }
 
-export function AppProvider({ children }) {
+function DatabaseShell({ children }) {
+  if (!isWatermelonNativeAvailable()) {
+    return <ConnectivityBridge>{children}</ConnectivityBridge>;
+  }
+
   return (
-    <Provider store={store}>
-      <DatabaseProvider database={database}>
-        <DatabaseGate>
-          <ConnectivityBridge>{children}</ConnectivityBridge>
-        </DatabaseGate>
-      </DatabaseProvider>
-    </Provider>
+    <DatabaseProvider database={getDatabase()}>
+      <DatabaseGate>
+        <ConnectivityBridge>{children}</ConnectivityBridge>
+      </DatabaseGate>
+    </DatabaseProvider>
   );
 }
 
-export async function persistAuthSession(user, worker) {
-  if (user) await AsyncStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
-  if (worker) await AsyncStorage.setItem(AUTH_WORKER_KEY, JSON.stringify(worker));
-}
-
-export async function clearAuthSession() {
-  await AsyncStorage.multiRemove([AUTH_USER_KEY, AUTH_WORKER_KEY]);
+export function AppProvider({ children }) {
+  return (
+    <Provider store={store}>
+      <DatabaseShell>{children}</DatabaseShell>
+    </Provider>
+  );
 }

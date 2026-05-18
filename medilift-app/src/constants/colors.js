@@ -23,6 +23,21 @@ export const COLORS = {
   nhm: "#C0392B",
   pmmvy: "#6C3483",
   jsy: "#138808",
+  /** Stitch-aligned surfaces (NIC palette) */
+  surface: "#F8F9FA",
+  surfaceContainer: "#EDEEEF",
+  surfaceContainerLow: "#F3F4F5",
+  greetingCard: "#EAF7F4",
+  greetingBorder: "#D1ECE7",
+  syncBannerBg: "#FFF8F0",
+  syncBannerBorder: "#FFE0C7",
+  syncBannerIcon: "#D87D00",
+  tricolorSaffron: "#FF9933",
+  tricolorWhite: "#FFFFFF",
+  tricolorGreen: "#138808",
+  incentivePending: "#FFF8E7",
+  incentiveApproved: "#EEF2FF",
+  incentivePaid: "#E8F5E9",
 };
 
 /** Back-compat with older screens */

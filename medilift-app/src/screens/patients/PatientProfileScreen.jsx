@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
-import { Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { GovtHeader } from "../../components/GovtHeader";
+import { GovtButton } from "../../components/GovtButton";
 import { RiskBadge } from "../../components/RiskBadge";
 import { COLORS } from "../../constants/colors";
 import { RISK_LEVEL_COLORS } from "../../ml/riskConstants";
+import { tapTargetMin } from "../../constants/typography";
 
 export default function PatientProfileScreen() {
   const { id } = useLocalSearchParams();
@@ -39,28 +41,44 @@ export default function PatientProfileScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.background }}>
       <GovtHeader titleHi="मरीज प्रोफाइल" title="Patient profile" showBack showSync />
-      <View style={{ padding: 16, gap: 12 }}>
-        <Text style={{ fontSize: 20, fontWeight: "800", color: COLORS.textPrimary }}>{patient.name}</Text>
+      <View style={styles.body}>
+        <Text style={styles.name}>{patient.name}</Text>
         <RiskBadge risk={risk} />
-        <Text style={{ color: COLORS.textSecondary }} onPress={() => router.push(`/(tabs)/survey/${patient.id}`)}>
-          सर्वे शुरू / Start survey →
-        </Text>
+        <GovtButton
+          titleHi="सर्वे शुरू करें"
+          titleEn="Start survey"
+          onPress={() => router.push(`/(tabs)/survey/${patient.id}`)}
+        />
+        <View style={{ height: 12 }} />
+        <GovtButton
+          titleHi="भेंट रिकॉर्ड"
+          titleEn="Record visit"
+          variant="secondary"
+          onPress={() => router.push(`/(tabs)/patients/visit/${patient.id}`)}
+        />
         {patient.isPregnant ? (
-          <Text style={{ color: COLORS.accent, fontWeight: "700" }} onPress={() => router.push(`/(tabs)/mcp/anc?patientId=${patient.id}`)}>
-            ANC register →
-          </Text>
+          <Pressable style={styles.link} onPress={() => router.push(`/(tabs)/mcp/anc?patientId=${patient.id}`)}>
+            <Text style={styles.linkTxt}>ANC register →</Text>
+          </Pressable>
         ) : null}
         {patient.dateOfBirth ? (
           <>
-            <Text style={{ color: COLORS.accent, fontWeight: "700" }} onPress={() => router.push(`/(tabs)/mcp/immunization?patientId=${patient.id}`)}>
-              Immunization →
-            </Text>
-            <Text style={{ color: COLORS.accent, fontWeight: "700" }} onPress={() => router.push(`/(tabs)/mcp/growth?patientId=${patient.id}`)}>
-              Growth monitoring →
-            </Text>
+            <Pressable style={styles.link} onPress={() => router.push(`/(tabs)/mcp/immunization?patientId=${patient.id}`)}>
+              <Text style={styles.linkTxt}>Immunization →</Text>
+            </Pressable>
+            <Pressable style={styles.link} onPress={() => router.push(`/(tabs)/mcp/growth?patientId=${patient.id}`)}>
+              <Text style={styles.linkTxt}>Growth monitoring →</Text>
+            </Pressable>
           </>
         ) : null}
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  body: { padding: 16, gap: 12 },
+  name: { fontSize: 20, fontWeight: "800", color: COLORS.textPrimary },
+  link: { minHeight: tapTargetMin, justifyContent: "center" },
+  linkTxt: { color: COLORS.accent, fontWeight: "700", fontSize: 15 },
+});

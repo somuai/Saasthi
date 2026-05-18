@@ -1,18 +1,27 @@
 import { useEffect, useMemo, useState } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useSelector } from "react-redux";
 import { GovtHeader } from "../../components/GovtHeader";
 import { COLORS } from "../../constants/colors";
 import { firstDayOfMonthYmd, lastDayOfMonthYmd } from "../../utils/dateHelpers";
+import { tapTargetMin } from "../../constants/typography";
 
 const ACTION_LABELS = {
+  SURVEY_COMPLETE: { hi: "सर्वे पूर्ण", en: "Survey completed" },
+  FOLLOWUP_COMPLETE: { hi: "फॉलो-अप पूर्ण", en: "Follow-up done" },
   survey_complete: { hi: "सर्वे पूर्ण", en: "Survey completed" },
   followup_complete: { hi: "फॉलो-अप पूर्ण", en: "Follow-up done" },
   anc_visit: { hi: "ANC विज़िट", en: "ANC visit" },
   immunization: { hi: "टीकाकरण", en: "Immunization" },
   referral_closed: { hi: "रेफरल बंद", en: "Referral closed" },
+};
+
+const CHIP_BG = {
+  pending: COLORS.incentivePending,
+  approved: COLORS.incentiveApproved,
+  paid: COLORS.incentivePaid,
 };
 
 const MONTH_TARGET_PTS = 120;
@@ -48,9 +57,14 @@ export default function EarningsScreen() {
       .slice(0, 4);
   }, [rows]);
 
+  function chipState(item) {
+    if (item.isApproved) return "approved";
+    return "pending";
+  }
+
   return (
     <View style={styles.page}>
-      <GovtHeader titleHi="मेरी कमाई" title="My Earnings" showSync />
+      <GovtHeader titleHi="मेरा प्रोत्साहन" title="Incentive Ledger" showSync />
       <View style={styles.wallet}>
         <Text style={styles.wHi}>ASHA — {worker?.name || "—"}</Text>
         <Text style={styles.wAmt}>₹{totalInr.toFixed(0)}</Text>
@@ -62,6 +76,9 @@ export default function EarningsScreen() {
         <Text style={styles.target}>
           लक्ष्य {MONTH_TARGET_PTS} अंक — {progress}% / Target {MONTH_TARGET_PTS} pts
         </Text>
+        <Pressable style={styles.pdfBtn} onPress={() => {}} disabled>
+          <Text style={styles.pdfTxt}>PDF — जल्द उपलब्ध / Coming soon</Text>
+        </Pressable>
       </View>
 
       {stats.length > 0 ? (
@@ -69,7 +86,7 @@ export default function EarningsScreen() {
           {stats.map((s) => {
             const lbl = ACTION_LABELS[s.actionType] || { hi: s.actionType, en: s.actionType };
             return (
-              <View key={s.actionType} style={styles.statChip}>
+              <View key={s.actionType} style={[styles.statChip, { backgroundColor: COLORS.incentiveApproved }]}>
                 <Text style={styles.statPts}>+{s.points}</Text>
                 <Text style={styles.statHi}>{lbl.hi}</Text>
               </View>
@@ -82,13 +99,19 @@ export default function EarningsScreen() {
       <FlatList
         data={rows}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
         ListEmptyComponent={<Text style={styles.empty}>इस माह कोई रिकॉर्ड नहीं</Text>}
         renderItem={({ item }) => {
           const lbl = ACTION_LABELS[item.actionType] || { hi: item.actionType, en: item.actionType };
+          const state = chipState(item);
           return (
-            <View style={styles.line}>
-              <Text style={styles.action}>{lbl.hi}</Text>
+            <View style={[styles.line, { backgroundColor: CHIP_BG[state] || COLORS.card }]}>
+              <View style={styles.lineTop}>
+                <Text style={styles.action}>{lbl.hi}</Text>
+                <View style={[styles.stateChip, { borderColor: COLORS.border }]}>
+                  <Text style={styles.stateTxt}>{item.isApproved ? "Approved" : "Pending"}</Text>
+                </View>
+              </View>
               <Text style={styles.actionEn}>{lbl.en}</Text>
               <Text style={styles.meta}>+{item.points} pts · ₹{item.amountInr}</Text>
             </View>
@@ -120,9 +143,19 @@ const styles = StyleSheet.create({
   },
   progressFill: { height: "100%", backgroundColor: COLORS.accent, borderRadius: 4 },
   target: { color: "rgba(255,255,255,0.85)", fontSize: 11, marginTop: 8 },
+  pdfBtn: {
+    marginTop: 14,
+    minHeight: tapTargetMin,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.4)",
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: 0.7,
+  },
+  pdfTxt: { color: "#fff", fontSize: 12, fontWeight: "700" },
   statsRow: { flexDirection: "row", flexWrap: "wrap", paddingHorizontal: 12, gap: 8, marginBottom: 8 },
   statChip: {
-    backgroundColor: COLORS.card,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -134,12 +167,23 @@ const styles = StyleSheet.create({
   statHi: { fontSize: 11, color: COLORS.textSecondary, marginTop: 2 },
   h: { paddingHorizontal: 16, fontWeight: "800", color: COLORS.textPrimary, marginBottom: 8 },
   line: {
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1,
     borderColor: COLORS.border,
+    marginBottom: 10,
   },
+  lineTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   action: { fontWeight: "700", color: COLORS.textPrimary },
   actionEn: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
   meta: { fontSize: 12, color: COLORS.textSecondary, marginTop: 4 },
+  stateChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    backgroundColor: COLORS.card,
+  },
+  stateTxt: { fontSize: 10, fontWeight: "800", color: COLORS.textSecondary },
   empty: { color: COLORS.textSecondary, textAlign: "center", marginTop: 24 },
 });

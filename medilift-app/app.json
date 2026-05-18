@@ -22,7 +22,10 @@
     "plugins": [
       "expo-router",
       "expo-dev-client",
-      "./plugins/withWatermelonSimdjson.js"
+      "./plugins/withWatermelonSimdjson.js",
+      "./plugins/withExpoDevMenuSimulatorFix.js",
+      "./plugins/withAndroidLocalProperties.js",
+      "./plugins/withKotlinInPackageFix.js"
     ],
     "experiments": {
       "typedRoutes": false

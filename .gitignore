@@ -39,3 +39,24 @@ models/*.json
 tmp/
 logs/
 
+# Xcode / CocoaPods
+medilift-app/ios/Pods/
+*.xcworkspace
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+
+# EAS / build artifacts
+medilift-app/.easignore
+*.ipa
+*.apk
+*.aab
+
+# IDE / Editor
+.idea/
+.vscode/
+*.swp
+*.swo
+.gemini/

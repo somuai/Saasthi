@@ -32,6 +32,7 @@ import {
   prefillHistoryFromPatient,
   symptomJson,
 } from "./surveySubmit";
+import { draftKey, mergeDraftOrPrefill } from "./surveyDraft";
 
 const STEPS = [
   "Consent / सहमति",
@@ -48,10 +49,6 @@ const EMERGENCY_NUMBERS = [
   { label: "102 Janani", tel: "102" },
 ];
 
-function draftKey(patientId) {
-  return `medilift_survey_draft_${patientId}`;
-}
-
 export default function SurveyScreen() {
   const { patientId } = useLocalSearchParams();
   const database = useDatabase();
@@ -64,7 +61,6 @@ export default function SurveyScreen() {
   const [stepIndex, setStepIndex] = useState(0);
   const [form, setForm] = useState(emptySurveyForm);
   const [seriousModal, setSeriousModal] = useState(false);
-  const [successModal, setSuccessModal] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const patch = useCallback((partial) => setForm((f) => ({ ...f, ...partial })), []);
@@ -86,21 +82,23 @@ export default function SurveyScreen() {
   }, [database, patient]);
 
   useEffect(() => {
-    if (!patient) return;
-    setForm((f) => prefillHistoryFromPatient(f, patient));
-  }, [patient?.id]);
-
-  useEffect(() => {
-    if (!patientId) return undefined;
+    if (!patient?.id || !patientId) return undefined;
+    let cancelled = false;
     (async () => {
       try {
         const raw = await AsyncStorage.getItem(draftKey(patientId));
-        if (raw) setForm({ ...emptySurveyForm(), ...JSON.parse(raw) });
+        if (cancelled) return;
+        setForm(mergeDraftOrPrefill(raw, patient, emptySurveyForm, prefillHistoryFromPatient));
       } catch {
-        /* ignore */
+        if (!cancelled) {
+          setForm(mergeDraftOrPrefill(null, patient, emptySurveyForm, prefillHistoryFromPatient));
+        }
       }
     })();
-  }, [patientId]);
+    return () => {
+      cancelled = true;
+    };
+  }, [patient?.id, patientId]);
 
   useEffect(() => {
     if (!patientId) return undefined;
@@ -263,7 +261,16 @@ export default function SurveyScreen() {
       });
       await AsyncStorage.removeItem(draftKey(patient.id));
       dispatch(incrementPendingCount(5));
-      setSuccessModal(true);
+      router.replace({
+        pathname: "/(tabs)/survey/result",
+        params: {
+          patientId: patient.id,
+          patientName: patient.name,
+          score: String(r.score),
+          riskLevel: r.riskLevel,
+          factors: JSON.stringify(r.triggeredFactors || []),
+        },
+      });
     } finally {
       setSaving(false);
     }
@@ -280,8 +287,23 @@ export default function SurveyScreen() {
 
   return (
     <View style={styles.page}>
-      <GovtHeader titleHi="सर्वे" title={patient.name} showBack showSync />
+      <GovtHeader
+        titleHi="सर्वे"
+        title={patient.name}
+        showBack
+        showSync
+        rightComponent={
+          <Pressable onPress={() => AsyncStorage.setItem(draftKey(patient.id), JSON.stringify(form))} style={styles.draftBtn}>
+            <Text style={styles.draftTxt}>Draft</Text>
+          </Pressable>
+        }
+      />
       <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+        <View style={styles.stepRow}>
+          {STEPS.map((_, i) => (
+            <View key={i} style={[styles.stepDot, i <= stepIndex && styles.stepDotOn]} />
+          ))}
+        </View>
         <Text style={styles.step}>
           Step {stepIndex + 1}/{STEPS.length}: {STEPS[stepIndex]}
         </Text>
@@ -314,7 +336,7 @@ export default function SurveyScreen() {
           <>
             <GovtInput
               labelHi="ASHA अवलोकन"
-              label="ASHA observation"
+              labelEn="ASHA observation"
               value={form.ashaObservation}
               onChangeText={(t) => patch({ ashaObservation: t })}
               multiline
@@ -344,11 +366,11 @@ export default function SurveyScreen() {
                 </Pressable>
               ))}
             </View>
-            <GovtInput labelHi="ऊंचाई (cm)" label="Height cm" value={form.heightCm} onChangeText={(t) => patch({ heightCm: t })} keyboardType="decimal-pad" />
-            <GovtInput labelHi="वजन (kg)" label="Weight kg" value={form.weightKg} onChangeText={(t) => patch({ weightKg: t })} keyboardType="decimal-pad" />
-            <GovtInput labelHi="Hb (g/dl)" label="Hemoglobin" value={form.hemoglobin} onChangeText={(t) => patch({ hemoglobin: t })} keyboardType="decimal-pad" />
-            <GovtInput labelHi="BP systolic" label="BP systolic" value={form.systolicBp} onChangeText={(t) => patch({ systolicBp: t })} keyboardType="number-pad" />
-            <GovtInput labelHi="BP diastolic" label="BP diastolic" value={form.diastolicBp} onChangeText={(t) => patch({ diastolicBp: t })} keyboardType="number-pad" />
+            <GovtInput labelHi="ऊंचाई (cm)" labelEn="Height cm" value={form.heightCm} onChangeText={(t) => patch({ heightCm: t })} keyboardType="decimal-pad" />
+            <GovtInput labelHi="वजन (kg)" labelEn="Weight kg" value={form.weightKg} onChangeText={(t) => patch({ weightKg: t })} keyboardType="decimal-pad" />
+            <GovtInput labelHi="Hb (g/dl)" labelEn="Hemoglobin" value={form.hemoglobin} onChangeText={(t) => patch({ hemoglobin: t })} keyboardType="decimal-pad" />
+            <GovtInput labelHi="BP systolic" labelEn="BP systolic" value={form.systolicBp} onChangeText={(t) => patch({ systolicBp: t })} keyboardType="number-pad" />
+            <GovtInput labelHi="BP diastolic" labelEn="BP diastolic" value={form.diastolicBp} onChangeText={(t) => patch({ diastolicBp: t })} keyboardType="number-pad" />
           </>
         ) : null}
 
@@ -357,7 +379,7 @@ export default function SurveyScreen() {
             <ToggleRow labelHi="पिछले वर्ष अस्पताल" labelEn="Hospitalized last year" value={form.hospitalizedLastYear} onChange={(v) => patch({ hospitalizedLastYear: v })} />
             <ToggleRow labelHi="नियमित दवाएं" labelEn="Regular medicines" value={form.regularMedicines} onChange={(v) => patch({ regularMedicines: v })} />
             {form.regularMedicines ? (
-              <GovtInput labelHi="दवा का नाम" label="Medicine name" value={form.medicinesName} onChangeText={(t) => patch({ medicinesName: t })} />
+              <GovtInput labelHi="दवा का नाम" labelEn="Medicine name" value={form.medicinesName} onChangeText={(t) => patch({ medicinesName: t })} />
             ) : null}
             {patient.isPregnant ? (
               <ToggleRow labelHi="पहले C-section" labelEn="Previous C-section" value={form.previousCSection} onChange={(v) => patch({ previousCSection: v })} />
@@ -441,23 +463,6 @@ export default function SurveyScreen() {
         </View>
       </ScrollView>
 
-      <Modal visible={successModal} transparent animationType="fade">
-        <View style={styles.modalBg}>
-          <View style={styles.modalCard}>
-            <Text style={[styles.modalTitle, { color: COLORS.success }]}>सर्वे सहेजा गया / Survey saved</Text>
-            <Text style={styles.modalBody}>ऑफलाइन सहेजा गया। जोखिम: {risk.riskLevelHi || risk.riskLevel}। सिंक होने पर सर्वर को भेजा जाएगा।</Text>
-            <GovtButton
-              titleHi="ठीक है"
-              titleEn="Done"
-              onPress={() => {
-                setSuccessModal(false);
-                router.replace(`/(tabs)/patients/${patient.id}`);
-              }}
-            />
-          </View>
-        </View>
-      </Modal>
-
       <Modal visible={seriousModal} transparent animationType="slide">
         <View style={styles.modalBg}>
           <View style={styles.modalCard}>
@@ -484,13 +489,21 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, fontWeight: "700", color: COLORS.textSecondary, marginBottom: 6 },
   section: { fontSize: 14, fontWeight: "800", marginTop: 8, marginBottom: 8, color: COLORS.primary },
   row: { flexDirection: "row", gap: 8, marginBottom: 12, flexWrap: "wrap" },
+  stepRow: { flexDirection: "row", gap: 6, marginBottom: 10 },
+  stepDot: { flex: 1, height: 6, borderRadius: 3, backgroundColor: COLORS.border },
+  stepDotOn: { backgroundColor: COLORS.primary },
+  draftBtn: { paddingHorizontal: 8, minHeight: 52, justifyContent: "center" },
+  draftTxt: { color: "#fff", fontSize: 12, fontWeight: "700" },
   chip: {
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingVertical: 10,
+    minHeight: 52,
+    justifyContent: "center",
     borderRadius: 20,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.card,
+    marginBottom: 4,
   },
   chipOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   chipTxt: { fontSize: 12, fontWeight: "700", color: COLORS.textPrimary },

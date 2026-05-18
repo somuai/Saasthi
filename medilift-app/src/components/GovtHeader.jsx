@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Svg, { Path } from "react-native-svg";
 import { COLORS } from "../constants/colors";
+import { TricolorStripe } from "./TricolorStripe";
 import { OfflineBanner } from "./OfflineBanner";
 import { PilotSyncBanner } from "./PilotSyncBanner";
 import { SyncIndicator } from "./SyncIndicator";
@@ -30,6 +31,7 @@ export function GovtHeader({
   const hi = titleHi ?? title;
   return (
     <View style={styles.wrap}>
+      <TricolorStripe />
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
       <View style={styles.bar}>
         <View style={styles.left}>

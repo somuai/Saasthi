@@ -1,5 +1,3 @@
-import { syncWithServer } from "./sync";
-
 const TASK_NAME = "medilift-background-sync";
 
 let taskDefined = false;
@@ -13,6 +11,7 @@ export async function registerBackgroundSync() {
     if (!taskDefined) {
       TaskManager.defineTask(TASK_NAME, async () => {
         try {
+          const { syncWithServer } = await import("./sync");
           const result = await syncWithServer();
           return result.success
             ? BackgroundFetch.BackgroundFetchResult.NewData

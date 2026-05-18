@@ -47,12 +47,12 @@ export default function PatientsListScreen() {
 
   return (
     <View style={styles.page}>
-      <GovtHeader titleHi="मेरे मरीज" title="My Patients" showBack={false} showSync />
+      <GovtHeader titleHi="परिवार सूची" title="Household List" showBack={false} showSync />
       <View style={styles.searchWrap}>
         <Ionicons name="search" size={18} color={COLORS.textHint} style={{ marginLeft: 12 }} />
         <TextInput
           style={styles.search}
-          placeholder="नाम खोजें / Search by name..."
+          placeholder="नाम खोजें… / Search households…"
           placeholderTextColor={COLORS.textHint}
           value={searchText}
           onChangeText={setSearchText}

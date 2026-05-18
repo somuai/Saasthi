@@ -7,7 +7,8 @@ import { BilingualLabel } from "./BilingualLabel";
 
 export function GovtInput({
   labelHi,
-  labelEn,
+  labelEn: labelEnProp,
+  label,
   value,
   onChangeText,
   keyboardType,
@@ -18,6 +19,7 @@ export function GovtInput({
   error,
   editable = true,
 }) {
+  const labelEn = labelEnProp ?? label ?? "";
   const [focused, setFocused] = useState(false);
   return (
     <View style={styles.wrap}>
@@ -56,7 +58,13 @@ export function GovtInput({
 
 GovtInput.propTypes = {
   labelHi: PropTypes.string.isRequired,
-  labelEn: PropTypes.string.isRequired,
+  /** Prefer labelEn; `label` is supported for legacy call sites */
+  labelEn: (props, propName, componentName) => {
+    if (!props.labelEn && !props.label) {
+      return new Error(`One of \`labelEn\` or \`label\` is required in \`${componentName}\`.`);
+    }
+  },
+  label: PropTypes.string,
   value: PropTypes.string,
   onChangeText: PropTypes.func,
   keyboardType: PropTypes.string,

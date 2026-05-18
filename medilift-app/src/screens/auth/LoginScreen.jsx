@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -18,14 +18,28 @@ import { apiClient } from "../../api/client";
 import { endpoints } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
 import { BilingualLabel } from "../../components/BilingualLabel";
+import { TricolorStripe } from "../../components/TricolorStripe";
 import { requestOtp } from "../../features/auth/authSlice";
+import { persistPendingLogin } from "../../features/auth/authSession";
+import { LOCALES, getStoredLocale, setStoredLocale } from "../../utils/locale";
+import { tapTargetMin } from "../../constants/typography";
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [locale, setLocale] = useState("hi");
   const router = useRouter();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    getStoredLocale().then(setLocale);
+  }, []);
+
+  async function pickLocale(id) {
+    setLocale(id);
+    await setStoredLocale(id);
+  }
 
   async function handleSendOTP() {
     if (phone.length !== 10) {
@@ -43,20 +57,24 @@ export default function LoginScreen() {
     } finally {
       setLoading(false);
     }
+    await persistPendingLogin({ phone, locale });
     dispatch(requestOtp(phone));
-    router.push({ pathname: "/(auth)/otp", params: { phone, devOtp } });
+    router.push({ pathname: "/(auth)/otp", params: { phone, devOtp, locale } });
   }
 
-  function pilotLogin() {
-    dispatch(requestOtp("9000000000"));
-    router.push({ pathname: "/(auth)/otp", params: { phone: "9000000000" } });
+  async function pilotLogin() {
+    const pilotPhone = "9000000000";
+    await persistPendingLogin({ phone: pilotPhone, locale });
+    dispatch(requestOtp(pilotPhone));
+    router.push({ pathname: "/(auth)/otp", params: { phone: pilotPhone, locale } });
   }
 
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={styles.top}>
+        <TricolorStripe />
         <SafeAreaView style={styles.topInner}>
-          <Ionicons name="shield-checkmark" size={64} color="#fff" style={{ marginTop: 24 }} />
+          <Ionicons name="shield-checkmark" size={64} color="#fff" style={{ marginTop: 16 }} />
           <Text style={styles.logo}>MEDILIFT</Text>
           <Text style={styles.logoHi}>मेडिलिफ्ट</Text>
           <Text style={styles.sub}>ASHA Healthcare Platform</Text>
@@ -66,8 +84,20 @@ export default function LoginScreen() {
       <View style={styles.card}>
         <ScrollView contentContainerStyle={styles.cardInner} keyboardShouldPersistTaps="handled">
           <Text style={styles.signHi}>साइन इन करें</Text>
-          <Text style={styles.signEn}>Sign In</Text>
-          <View style={{ height: 24 }} />
+          <Text style={styles.signEn}>Sign In — mobile OTP</Text>
+          <View style={styles.langRow}>
+            {LOCALES.map((l) => (
+              <Pressable
+                key={l.id}
+                onPress={() => pickLocale(l.id)}
+                style={[styles.langChip, locale === l.id && styles.langChipOn]}
+                accessibilityLabel={l.full}
+              >
+                <Text style={[styles.langTxt, locale === l.id && styles.langTxtOn]}>{l.label}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <View style={{ height: 16 }} />
           <BilingualLabel labelHi="मोबाइल नंबर" labelEn="Mobile Number" required />
           <View style={[styles.phoneRow, error && { borderColor: COLORS.danger }]}>
             <View style={styles.prefixBox}>
@@ -84,7 +114,7 @@ export default function LoginScreen() {
             />
           </View>
           {error ? <Text style={styles.error}>{error}</Text> : null}
-          <View style={{ height: 24 }} />
+          <View style={{ height: 20 }} />
           <Pressable
             accessibilityRole="button"
             onPress={handleSendOTP}
@@ -117,7 +147,8 @@ export default function LoginScreen() {
           <Pressable style={styles.outlineBtn} onPress={pilotLogin}>
             <Text style={styles.outlineText}>Pilot login (no server) / पायलट</Text>
           </Pressable>
-          <View style={{ flex: 1, minHeight: 24 }} />
+          <Text style={styles.aadhaarHint}>आधार OTP — जल्द उपलब्ध / Aadhaar OTP — coming soon</Text>
+          <View style={{ flex: 1, minHeight: 16 }} />
           <View style={styles.footer}>
             <Ionicons name="lock-closed-outline" size={14} color={COLORS.textHint} />
             <Text style={styles.footerText}>NIC द्वारा सुरक्षित | Secured by NIC</Text>
@@ -130,26 +161,40 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
-  top: { flex: 0.38, backgroundColor: COLORS.primary },
+  top: { flex: 0.36, backgroundColor: COLORS.primary },
   topInner: { flex: 1, alignItems: "center", paddingHorizontal: 16 },
   logo: { color: "#fff", fontSize: 32, fontWeight: "800", letterSpacing: 3, marginTop: 8 },
   logoHi: { color: "#fff", fontSize: 16, marginTop: 4 },
   sub: { color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 8 },
-  nhm: { color: "rgba(255,255,255,0.55)", fontSize: 10, marginTop: 8 },
+  nhm: { color: "rgba(255,255,255,0.55)", fontSize: 10, marginTop: 8, textAlign: "center" },
   card: {
-    flex: 0.62,
+    flex: 0.64,
     backgroundColor: COLORS.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     marginTop: -12,
   },
-  cardInner: { paddingHorizontal: 28, paddingTop: 32, paddingBottom: 32, flexGrow: 1 },
+  cardInner: { paddingHorizontal: 28, paddingTop: 28, paddingBottom: 32, flexGrow: 1 },
   signHi: { fontSize: 22, fontWeight: "800", color: COLORS.textPrimary },
   signEn: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4 },
+  langRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 16 },
+  langChip: {
+    minWidth: 44,
+    minHeight: tapTargetMin,
+    paddingHorizontal: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  langChipOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  langTxt: { fontWeight: "700", color: COLORS.textPrimary },
+  langTxtOn: { color: "#fff" },
   phoneRow: {
     flexDirection: "row",
     alignItems: "center",
-    minHeight: 52,
+    minHeight: tapTargetMin,
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 8,
@@ -157,7 +202,7 @@ const styles = StyleSheet.create({
   },
   prefixBox: {
     width: 52,
-    minHeight: 52,
+    minHeight: tapTargetMin,
     backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
@@ -166,7 +211,7 @@ const styles = StyleSheet.create({
   phoneInput: { flex: 1, paddingHorizontal: 12, fontSize: 18, letterSpacing: 2, color: COLORS.textPrimary },
   error: { color: COLORS.danger, fontSize: 12, marginTop: 8 },
   cta: {
-    minHeight: 52,
+    minHeight: tapTargetMin,
     borderRadius: 8,
     backgroundColor: COLORS.accent,
     alignItems: "center",
@@ -180,7 +225,7 @@ const styles = StyleSheet.create({
   line: { flex: 1, height: 1, backgroundColor: COLORS.border },
   or: { paddingHorizontal: 12, color: COLORS.textHint, fontSize: 12 },
   outlineBtn: {
-    minHeight: 52,
+    minHeight: tapTargetMin,
     borderRadius: 8,
     borderWidth: 1.5,
     borderColor: COLORS.primary,
@@ -188,6 +233,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   outlineText: { color: COLORS.primary, fontSize: 14, fontWeight: "700" },
+  aadhaarHint: { textAlign: "center", fontSize: 11, color: COLORS.textHint, marginTop: 12 },
   footer: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
   footerText: { color: COLORS.textHint, fontSize: 11 },
 });

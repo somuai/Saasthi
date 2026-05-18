@@ -8,15 +8,14 @@ import { GovtButton } from "../../components/GovtButton";
 import { COLORS } from "../../constants/colors";
 import { todayYmd } from "../../utils/dateHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
+import { tapTargetMin } from "../../constants/typography";
 
-function weekDays(baseDate = new Date()) {
-  const d = new Date(baseDate);
-  const day = d.getDay();
-  const monday = new Date(d);
-  monday.setDate(d.getDate() - ((day + 6) % 7));
-  return Array.from({ length: 7 }, (_, i) => {
-    const x = new Date(monday);
-    x.setDate(monday.getDate() + i);
+function calendarDays(centerDate = new Date(), span = 35) {
+  const start = new Date(centerDate);
+  start.setDate(start.getDate() - Math.floor(span / 2));
+  return Array.from({ length: span }, (_, i) => {
+    const x = new Date(start);
+    x.setDate(start.getDate() + i);
     return x.toISOString().slice(0, 10);
   });
 }
@@ -27,18 +26,8 @@ export default function FollowupsScreen() {
   const [rows, setRows] = useState([]);
   const [patients, setPatients] = useState({});
   const [completingId, setCompletingId] = useState(null);
-  const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState(todayYmd());
-
-  const days = useMemo(() => {
-    const base = new Date();
-    base.setDate(base.getDate() + weekOffset * 7);
-    return weekDays(base);
-  }, [weekOffset]);
-
-  useEffect(() => {
-    if (!days.includes(selectedDay)) setSelectedDay(days[0]);
-  }, [days, selectedDay]);
+  const days = useMemo(() => calendarDays(new Date(), 35), []);
 
   useEffect(() => {
     const q = database.collections
@@ -61,6 +50,9 @@ export default function FollowupsScreen() {
   }, [database]);
 
   const filtered = useMemo(() => rows.filter((r) => r.dueDate === selectedDay), [rows, selectedDay]);
+  const today = todayYmd();
+  const overdueTotal = rows.filter((r) => r.dueDate < today).length;
+  const todayTotal = rows.filter((r) => r.dueDate === today).length;
 
   async function markDone(item) {
     setCompletingId(item.id);
@@ -98,41 +90,45 @@ export default function FollowupsScreen() {
     }
   }
 
-  const today = todayYmd();
-
   return (
     <View style={styles.page}>
       <GovtHeader titleHi="फॉलो-अप" title="Follow-ups" showSync />
-      <View style={styles.weekNav}>
-        <Pressable onPress={() => setWeekOffset((w) => w - 1)} style={styles.weekBtn}>
-          <Text style={styles.weekBtnTxt}>◀</Text>
-        </Pressable>
-        <Text style={styles.weekLabel}>सप्ताह / Week</Text>
-        <Pressable onPress={() => setWeekOffset((w) => w + 1)} style={styles.weekBtn}>
-          <Text style={styles.weekBtnTxt}>▶</Text>
-        </Pressable>
+      <View style={styles.statsRow}>
+        <View style={styles.statBox}>
+          <Text style={styles.statN}>{todayTotal}</Text>
+          <Text style={styles.statL}>आज / Today</Text>
+        </View>
+        <View style={[styles.statBox, styles.statDanger]}>
+          <Text style={[styles.statN, { color: COLORS.danger }]}>{overdueTotal}</Text>
+          <Text style={styles.statL}>देर / Overdue</Text>
+        </View>
       </View>
-      <View style={styles.strip}>
-        {days.map((d) => {
+      <FlatList
+        horizontal
+        data={days}
+        keyExtractor={(d) => d}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.strip}
+        renderItem={({ item: d }) => {
           const count = rows.filter((r) => r.dueDate === d).length;
-          const overdue = d < today;
           const on = d === selectedDay;
+          const overdue = d < today && count > 0;
           return (
             <Pressable
-              key={d}
-              style={[styles.dayChip, on && styles.dayChipOn, overdue && count > 0 && styles.dayChipLate]}
+              style={[styles.dayChip, on && styles.dayChipOn, overdue && styles.dayChipLate]}
               onPress={() => setSelectedDay(d)}
             >
-              <Text style={[styles.dayTxt, on && styles.dayTxtOn]}>{d.slice(5)}</Text>
-              {count > 0 ? <Text style={styles.dayCount}>{count}</Text> : null}
+              <Text style={[styles.dayTxt, on && styles.dayTxtOn]}>{d.slice(8)}</Text>
+              <Text style={[styles.dayMo, on && styles.dayTxtOn]}>{d.slice(5, 7)}</Text>
+              {count > 0 ? <View style={styles.dot} /> : null}
             </Pressable>
           );
-        })}
-      </View>
+        }}
+      />
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
         ListEmptyComponent={
           <Text style={styles.empty}>इस दिन कोई फॉलो-अप नहीं / No follow-ups on {selectedDay}</Text>
         }
@@ -144,7 +140,11 @@ export default function FollowupsScreen() {
               <Text style={styles.name}>{p?.name || "Patient"}</Text>
               <Text style={styles.due}>Due / देय: {item.dueDate}</Text>
               <Text style={styles.type}>{item.followType}</Text>
-              {overdue ? <Text style={styles.late}>Overdue / देर से</Text> : null}
+              {overdue ? (
+                <View style={styles.overdueBadge}>
+                  <Text style={styles.overdueTxt}>OVERDUE / देर से</Text>
+                </View>
+              ) : null}
               <GovtButton
                 titleHi="पूर्ण"
                 titleEn="Mark done"
@@ -162,30 +162,42 @@ export default function FollowupsScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
-  weekNav: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 8 },
-  weekBtn: { padding: 8 },
-  weekBtnTxt: { fontSize: 18, fontWeight: "800", color: COLORS.primary },
-  weekLabel: { fontWeight: "700", color: COLORS.textSecondary },
-  strip: { flexDirection: "row", paddingHorizontal: 8, paddingVertical: 8, gap: 4 },
-  dayChip: {
+  statsRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingTop: 8 },
+  statBox: {
     flex: 1,
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     alignItems: "center",
-    paddingVertical: 8,
-    borderRadius: 8,
+  },
+  statDanger: { borderColor: COLORS.danger },
+  statN: { fontSize: 22, fontWeight: "900", color: COLORS.primary },
+  statL: { fontSize: 11, color: COLORS.textSecondary, marginTop: 4 },
+  strip: { paddingHorizontal: 12, paddingVertical: 10, gap: 8 },
+  dayChip: {
+    width: 56,
+    alignItems: "center",
+    paddingVertical: 10,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     backgroundColor: COLORS.card,
+    minHeight: tapTargetMin,
+    justifyContent: "center",
   },
   dayChipOn: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
   dayChipLate: { borderColor: COLORS.danger },
-  dayTxt: { fontSize: 11, fontWeight: "700", color: COLORS.textPrimary },
+  dayTxt: { fontSize: 14, fontWeight: "800", color: COLORS.textPrimary },
+  dayMo: { fontSize: 10, color: COLORS.textSecondary },
   dayTxtOn: { color: "#fff" },
-  dayCount: { fontSize: 10, fontWeight: "900", color: COLORS.accent, marginTop: 2 },
+  dot: { width: 6, height: 6, borderRadius: 3, backgroundColor: COLORS.accent, marginTop: 4 },
   empty: { textAlign: "center", marginTop: 40, color: COLORS.textSecondary },
   row: {
     padding: 14,
     backgroundColor: COLORS.card,
-    borderRadius: 8,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     marginBottom: 10,
@@ -197,5 +209,12 @@ const styles = StyleSheet.create({
   name: { fontWeight: "800", color: COLORS.textPrimary, fontSize: 15 },
   due: { fontWeight: "700", color: COLORS.textPrimary },
   type: { color: COLORS.textSecondary },
-  late: { color: COLORS.danger, fontWeight: "700" },
+  overdueBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#FFEBEE",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  overdueTxt: { color: COLORS.danger, fontSize: 10, fontWeight: "800" },
 });

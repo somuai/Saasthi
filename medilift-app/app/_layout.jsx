@@ -1,33 +1,57 @@
 import { useEffect } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
-import { useFonts, NotoSans_400Regular, NotoSans_700Bold } from "@expo-google-fonts/noto-sans";
+import { useMediliftFonts } from "../src/hooks/useMediliftFonts";
 import { StatusBar } from "expo-status-bar";
 import { useSelector } from "react-redux";
 import { AppProvider } from "../src/store/AppProvider";
 import { COLORS } from "../src/constants/colors";
+import { isWatermelonNativeAvailable } from "../src/database/isNativeAvailable";
 
 function AuthGuard({ children }) {
   const user = useSelector((s) => s.auth.user);
   const segments = useSegments();
   const router = useRouter();
+  const nativeDb = isWatermelonNativeAvailable();
 
   useEffect(() => {
     const inAuth = segments[0] === "(auth)";
-    if (!user && !inAuth) {
-      router.replace("/(auth)/login");
-    } else if (user && inAuth) {
-      router.replace("/(tabs)/home");
+    const authScreen = segments[1];
+    const onSplash = authScreen === "splash";
+    const onNativeRequired = authScreen === "native-required";
+
+    if (__DEV__) {
+      console.log("[AuthGuard]", { user: !!user, inAuth, authScreen, nativeDb });
     }
-  }, [user, segments, router]);
+
+    // ── Unauthenticated: always allow auth screens ──
+    if (!user) {
+      if (!inAuth) {
+        router.replace("/(auth)/splash");
+      } else if (!onSplash && authScreen !== "login" && authScreen !== "otp") {
+        router.replace("/(auth)/login");
+      }
+      // Otherwise stay on the current auth screen (login / otp / splash)
+      return;
+    }
+
+    // ── Authenticated: route to app or native-required ──
+    if (inAuth && !onSplash && !onNativeRequired) {
+      if (nativeDb) {
+        router.replace("/(tabs)/home");
+      } else {
+        router.replace("/(auth)/native-required");
+      }
+    }
+    if (!inAuth && !nativeDb) {
+      router.replace("/(auth)/native-required");
+    }
+  }, [user, segments, router, nativeDb]);
 
   return children;
 }
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({
-    NotoSans_400Regular,
-    NotoSans_700Bold,
-  });
+  const [fontsLoaded] = useMediliftFonts();
 
   if (!fontsLoaded) {
     return null;
@@ -51,3 +75,4 @@ export default function RootLayout() {
     </AppProvider>
   );
 }
+

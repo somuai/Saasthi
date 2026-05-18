@@ -31,10 +31,10 @@ export function DatabaseGate({ children }) {
         <Text style={styles.hi}>डेटाबेस लोड नहीं हुआ</Text>
         <Text style={styles.en}>Local database could not start.</Text>
         <Text style={styles.hint}>
-          Expo Go में ऐप नहीं चलेगा। टर्मिनल में npm run native:ios चलाएँ, फिर npm start और i दबाएँ।
+          Expo Go में ऐप नहीं चलेगा। Android: npm run native:android · iOS: npm run native:ios · फिर npm run start:dev
         </Text>
         <Text style={styles.hintEn}>
-          Do not use Expo Go. Run npm run native:ios once, then npm start and press i.
+          Do not use Expo Go. Android: npm run native:android · iOS: npm run native:ios · then npm run start:dev
         </Text>
       </View>
     );

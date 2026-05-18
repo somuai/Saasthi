@@ -6,7 +6,8 @@ import { setPendingCount, setOnlineStatus, syncFailed, syncStarted, syncSucceede
 import { subscribeConnectivity, fetchIsOnline } from "../utils/connectivity";
 import { apiClient } from "../api/client";
 import { endpoints } from "../constants/api";
-import { database } from "./index";
+import { getDatabase } from "./getDatabase";
+import { isWatermelonNativeAvailable } from "./isNativeAvailable";
 import { getDeviceId } from "../utils/deviceId";
 import { formatSyncPushErrors } from "../utils/syncErrors";
 import { registerBackgroundSync } from "./backgroundSync";
@@ -39,6 +40,8 @@ export async function countPendingRecords() {
 
 /** Per-table unsynced counts for sync status UI */
 export async function countPendingByTable() {
+  if (!isWatermelonNativeAvailable()) return [];
+  const database = getDatabase();
   const rows = [];
   for (const table of TABLES) {
     try {
@@ -62,6 +65,7 @@ async function setLastPulledAt(ts) {
 
 /** Subscribe to NetInfo, refresh pending count, auto-sync when online */
 export function initAutoSync() {
+  if (!isWatermelonNativeAvailable()) return () => {};
   countPendingRecords().then((c) => store.dispatch(setPendingCount(c)));
   if (connectivityUnsub) return connectivityUnsub;
 
@@ -97,6 +101,10 @@ export function initAutoSync() {
 
 /** WatermelonDB synchronize against medilift-api */
 export async function syncWithServer() {
+  if (!isWatermelonNativeAvailable()) {
+    return { success: false, reason: "native_db_unavailable" };
+  }
+  const database = getDatabase();
   if (syncInFlight) return { success: false, reason: "sync_in_progress" };
   const { auth } = store.getState();
   if (auth.isOfflinePilotSession || !auth.accessToken) {

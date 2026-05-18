@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { GovtHeader } from "../../components/GovtHeader";
 import { COLORS } from "../../constants/colors";
@@ -8,6 +9,9 @@ import { countPendingByTable, countPendingRecords, syncWithServer } from "../../
 import { formatSyncFailureMessage } from "../../utils/syncErrors";
 import { API_BASE_URL } from "../../constants/api";
 import { setPendingCount, syncFailed, syncStarted, syncSucceeded } from "../../features/sync/syncSlice";
+import { signOut } from "../../features/auth/authSlice";
+import { clearAuthSession } from "../../store/AppProvider";
+import { tapTargetMin } from "../../constants/typography";
 
 const TABLE_LABELS = {
   patients: { hi: "मरीज", en: "Patients" },
@@ -24,9 +28,12 @@ const TABLE_LABELS = {
   child_development: { hi: "बाल विकास", en: "Child dev." },
 };
 
+const ESTIMATED_TOTAL = 50;
+
 export default function SyncScreen() {
   const dispatch = useDispatch();
-  const { isSyncing, lastSyncedAt, lastError, isOnline } = useSelector((s) => s.sync);
+  const router = useRouter();
+  const { isSyncing, lastSyncedAt, lastError, isOnline, pendingCount: reduxPending } = useSelector((s) => s.sync);
   const isOfflinePilot = useSelector((s) => s.auth.isOfflinePilotSession);
   const [localPending, setLocalPending] = useState(0);
   const [breakdown, setBreakdown] = useState([]);
@@ -40,7 +47,7 @@ export default function SyncScreen() {
 
   useEffect(() => {
     refresh();
-  }, [refresh]);
+  }, [refresh, reduxPending]);
 
   async function runSync() {
     dispatch(syncStarted());
@@ -57,15 +64,32 @@ export default function SyncScreen() {
     await refresh();
   }
 
+  async function logout() {
+    await clearAuthSession();
+    dispatch(signOut());
+    router.replace("/(auth)/splash");
+  }
+
+  const syncedPct = Math.max(0, Math.min(100, Math.round(((ESTIMATED_TOTAL - localPending) / ESTIMATED_TOTAL) * 100)));
+
   return (
     <View style={styles.page}>
-      <GovtHeader titleHi="डेटा सिंक" title="Data Sync" showBack showSync={false} />
+      <GovtHeader titleHi="सिंक और सेटिंग" title="Sync & Settings" showBack showSync={false} />
       <Text style={styles.sub}>आखरी सिंक / Last sync: {timeAgo(lastSyncedAt)}</Text>
+      <View style={styles.netRow}>
+        <View style={[styles.netDot, { backgroundColor: isOnline ? COLORS.success : COLORS.danger }]} />
+        <Text style={styles.netTxt}>
+          {isOnline ? "ऑनलाइन / Online" : "ऑफलाइन / Offline"}
+        </Text>
+      </View>
       <Text style={styles.api}>API: {API_BASE_URL}</Text>
       <View style={styles.card}>
         <Text style={styles.big}>{localPending}</Text>
         <Text style={styles.muted}>रिकॉर्ड बाकी / Records pending sync</Text>
-        {!isOnline ? <Text style={styles.warn}>ऑफलाइन — नेट जुड़ने पर स्वतः सिंक</Text> : null}
+        <View style={styles.progressTrack}>
+          <View style={[styles.progressFill, { width: `${syncedPct}%` }]} />
+        </View>
+        <Text style={styles.progressLbl}>{syncedPct}% synced (estimate)</Text>
         {isOfflinePilot ? (
           <Text style={styles.warn}>पायलट ऑफलाइन लॉगिन — सर्वर OTP से सिंक चालू करें</Text>
         ) : null}
@@ -103,13 +127,20 @@ export default function SyncScreen() {
       >
         <Text style={styles.btnTxt}>{isSyncing ? "सिंक हो रहा है…" : "अभी सिंक करें / Sync Now"}</Text>
       </Pressable>
+
+      <Pressable style={styles.logoutBtn} onPress={logout} accessibilityRole="button">
+        <Text style={styles.logoutTxt}>लॉग आउट / Log out</Text>
+      </Pressable>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
-  sub: { paddingHorizontal: 16, color: COLORS.textSecondary, fontSize: 13 },
+  sub: { paddingHorizontal: 16, color: COLORS.textSecondary, fontSize: 13, marginTop: 8 },
+  netRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 16, marginTop: 8 },
+  netDot: { width: 10, height: 10, borderRadius: 5 },
+  netTxt: { fontSize: 13, fontWeight: "700", color: COLORS.textPrimary },
   api: { paddingHorizontal: 16, fontSize: 11, color: COLORS.textHint, marginBottom: 12 },
   card: {
     margin: 16,
@@ -123,8 +154,18 @@ const styles = StyleSheet.create({
   },
   big: { fontSize: 40, fontWeight: "900", color: COLORS.accent },
   muted: { fontSize: 13, color: COLORS.textSecondary, marginTop: 8 },
-  warn: { color: COLORS.danger, marginTop: 12, fontWeight: "700" },
-  err: { color: COLORS.danger, marginTop: 8 },
+  progressTrack: {
+    width: "100%",
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.surfaceContainer,
+    marginTop: 16,
+    overflow: "hidden",
+  },
+  progressFill: { height: "100%", backgroundColor: COLORS.success, borderRadius: 4 },
+  progressLbl: { fontSize: 11, color: COLORS.textHint, marginTop: 6 },
+  warn: { color: COLORS.danger, marginTop: 12, fontWeight: "700", textAlign: "center" },
+  err: { color: COLORS.danger, marginTop: 8, textAlign: "center" },
   h: { paddingHorizontal: 16, fontWeight: "800", color: COLORS.textPrimary, marginBottom: 8 },
   list: { flexGrow: 0, maxHeight: 280 },
   row: {
@@ -141,8 +182,7 @@ const styles = StyleSheet.create({
   btn: {
     marginHorizontal: 16,
     marginTop: 8,
-    marginBottom: 24,
-    minHeight: 52,
+    minHeight: tapTargetMin,
     borderRadius: 8,
     backgroundColor: COLORS.accent,
     alignItems: "center",
@@ -150,4 +190,16 @@ const styles = StyleSheet.create({
   },
   btnDis: { opacity: 0.45 },
   btnTxt: { color: "#fff", fontWeight: "800", fontSize: 16 },
+  logoutBtn: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 32,
+    minHeight: tapTargetMin,
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: COLORS.danger,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logoutTxt: { color: COLORS.danger, fontWeight: "800", fontSize: 15 },
 });

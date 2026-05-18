@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -6,17 +6,17 @@ import {
   Pressable,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDispatch } from "react-redux";
-import * as SecureStore from "expo-secure-store";
 import { Ionicons } from "@expo/vector-icons";
 import { apiClient } from "../../api/client";
 import { endpoints } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
+import { OtpInputRow } from "../../components/OtpInputRow";
+import { TricolorStripe } from "../../components/TricolorStripe";
 import {
   verifyOtp,
   setTokens,
@@ -24,9 +24,17 @@ import {
   setWorkerData,
   setOfflinePilotSession,
 } from "../../features/auth/authSlice";
-import { persistAuthSession } from "../../store/AppProvider";
-import { initAutoSync } from "../../database/sync";
-import { store } from "../../store/store";
+import {
+  isInvalidOtpError,
+  clearPendingLogin,
+  persistAuthSession,
+  persistAuthTokens,
+  readPendingLogin,
+  shouldFallbackToOfflinePilot,
+} from "../../features/auth/authSession";
+import { isWatermelonNativeAvailable } from "../../database/isNativeAvailable";
+import { setStoredLocale } from "../../utils/locale";
+import { tapTargetMin } from "../../constants/typography";
 
 const MOCK_WORKER = {
   serverId: "local-asha-worker",
@@ -36,18 +44,40 @@ const MOCK_WORKER = {
   workerCode: "WB-ASHA-001",
 };
 
+function buildPilotUser(phone, locale) {
+  return {
+    id: `phone-${phone}`,
+    name: "Pilot ASHA",
+    phone: `+91${phone}`,
+    language: locale,
+  };
+}
+
 export default function OtpScreen() {
   const params = useLocalSearchParams();
-  const phone = params.phone || "9000000000";
-  const devOtp = params.devOtp ? String(params.devOtp) : "";
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [phone, setPhone] = useState(params.phone ? String(params.phone) : "");
+  const [devOtp, setDevOtp] = useState(params.devOtp ? String(params.devOtp) : "");
+  const [locale, setLocaleState] = useState(params.locale ? String(params.locale) : "hi");
+  const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(45);
   const [canResend, setCanResend] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resending, setResending] = useState(false);
   const [error, setError] = useState("");
-  const refs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
   const router = useRouter();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (params.phone && params.locale) return;
+    readPendingLogin().then(({ phone: p, locale: l }) => {
+      if (!params.phone && p) setPhone(p);
+      if (!params.locale && l) setLocaleState(l);
+    });
+  }, [params.phone, params.locale]);
+
+  useEffect(() => {
+    if (locale) setStoredLocale(locale);
+  }, [locale]);
 
   useEffect(() => {
     if (timer <= 0) {
@@ -58,60 +88,84 @@ export default function OtpScreen() {
     return () => clearInterval(t);
   }, [timer]);
 
-  async function handleVerify() {
-    const otpString = otp.join("");
-    if (otpString.length !== 6) return;
+  async function completeLogin(sessionUser, worker, accessToken) {
+    await persistAuthSession(sessionUser, worker);
+    await clearPendingLogin();
+    if (accessToken && isWatermelonNativeAvailable()) {
+      const { initAutoSync } = await import("../../database/sync");
+      initAutoSync();
+    }
+    if (isWatermelonNativeAvailable()) {
+      router.replace("/(tabs)/home");
+    } else {
+      router.replace("/(auth)/native-required");
+    }
+  }
+
+  async function handleVerify(otpString) {
+    const code = otpString || otp;
+    if (phone.length !== 10) {
+      setError("मोबाइल नंबर गायब — लॉगिन पर वापस जाएँ / Missing phone — return to login");
+      return;
+    }
+    if (code.length !== 6) return;
     setLoading(true);
     setError("");
     try {
       const res = await apiClient.post(endpoints.verifyOtp, {
         phone: `+91${phone}`,
-        otp: otpString,
+        otp: code,
       });
       const { access, refresh, user, worker } = res.data;
-      if (access) await SecureStore.setItemAsync("accessToken", access);
-      if (refresh) await SecureStore.setItemAsync("refreshToken", refresh);
+      await persistAuthTokens({ access, refresh });
       dispatch(setTokens({ access, refresh }));
-      dispatch(setUser(user));
-      dispatch(setWorkerData(worker || MOCK_WORKER));
+      const sessionUser = { ...user, language: locale };
+      const sessionWorker = worker || MOCK_WORKER;
+      dispatch(setUser(sessionUser));
+      dispatch(setWorkerData(sessionWorker));
       dispatch(setOfflinePilotSession(false));
-      await persistAuthSession(user, worker || MOCK_WORKER);
-    } catch {
+      await completeLogin(sessionUser, sessionWorker, access);
+    } catch (err) {
+      if (isInvalidOtpError(err)) {
+        setError("गलत या समाप्त OTP / Invalid or expired OTP");
+        return;
+      }
+      if (!shouldFallbackToOfflinePilot(err)) {
+        setError("सर्वर त्रुटि — बाद में प्रयास करें / Server error, try again");
+        return;
+      }
+      const sessionUser = buildPilotUser(phone, locale);
       dispatch(setOfflinePilotSession(true));
-      dispatch(
-        verifyOtp({
-          user: { id: `phone-${phone}`, name: "Pilot ASHA", phone: `+91${phone}` },
-          worker: MOCK_WORKER,
-        })
-      );
+      dispatch(verifyOtp({ user: sessionUser, worker: MOCK_WORKER }));
+      await completeLogin(sessionUser, MOCK_WORKER, null);
     } finally {
       setLoading(false);
     }
-    const { user: u2, workerData: w2, accessToken } = store.getState().auth;
-    await persistAuthSession(u2, w2 || MOCK_WORKER);
-    if (accessToken) initAutoSync();
-    router.replace("/(tabs)/home");
   }
 
-  function onDigit(i, text) {
-    const digit = text.replace(/\D/g, "").slice(-1);
-    const next = [...otp];
-    next[i] = digit;
-    setOtp(next);
-    if (digit && i < 5) refs[i + 1].current?.focus?.();
-  }
-
-  function onKeyPress(i, e) {
-    if (e.nativeEvent.key === "Backspace" && !otp[i] && i > 0) {
-      refs[i - 1].current?.focus?.();
+  async function handleResend() {
+    if (phone.length !== 10) {
+      setError("मोबाइल नंबर गायब — लॉगिन पर वापस जाएँ / Missing phone — return to login");
+      return;
     }
-  }
-
-  function handleResend() {
+    setResending(true);
+    setError("");
+    try {
+      const res = await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
+      const nextDevOtp = res.data?.dev_otp ? String(res.data.dev_otp) : "";
+      if (nextDevOtp) setDevOtp(nextDevOtp);
+    } catch (err) {
+      if (!shouldFallbackToOfflinePilot(err)) {
+        setError("OTP नहीं भेजा जा सका — बाद में प्रयास करें / Could not resend OTP");
+        setResending(false);
+        return;
+      }
+      /* offline — allow resend UI reset without new SMS */
+    }
     setTimer(45);
     setCanResend(false);
-    setOtp(["", "", "", "", "", ""]);
-    refs[0].current?.focus?.();
+    setOtp("");
+    setResending(false);
   }
 
   const last4 = String(phone).slice(-4);
@@ -119,6 +173,7 @@ export default function OtpScreen() {
   return (
     <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={styles.top}>
+        <TricolorStripe />
         <SafeAreaView style={styles.topInner}>
           <Text style={styles.logo}>MEDILIFT</Text>
         </SafeAreaView>
@@ -134,31 +189,24 @@ export default function OtpScreen() {
           OTP sent to +91 …{last4}
         </Text>
         {devOtp ? (
-          <Pressable
-            style={styles.devHint}
-            onPress={() => setOtp(devOtp.split("").slice(0, 6))}
-          >
+          <Pressable style={styles.devHint} onPress={() => setOtp(devOtp.slice(0, 6))}>
             <Text style={styles.devHintTxt}>Dev OTP: {devOtp} (tap to fill)</Text>
           </Pressable>
         ) : null}
-        <View style={styles.boxRow}>
-          {otp.map((d, i) => (
-            <TextInput
-              key={i}
-              ref={refs[i]}
-              style={[styles.box, d ? styles.boxFilled : null]}
-              keyboardType="number-pad"
-              maxLength={1}
-              value={d}
-              onChangeText={(t) => onDigit(i, t)}
-              onKeyPress={(e) => onKeyPress(i, e)}
-            />
-          ))}
-        </View>
+        <OtpInputRow
+          value={otp}
+          onChange={setOtp}
+          onComplete={handleVerify}
+          autoFocus
+        />
         {error ? <Text style={styles.error}>{error}</Text> : null}
         {canResend ? (
-          <Pressable onPress={handleResend}>
-            <Text style={styles.resendActive}>फिर से भेजें / Resend OTP</Text>
+          <Pressable onPress={handleResend} disabled={resending} style={styles.resendBtn}>
+            {resending ? (
+              <ActivityIndicator color={COLORS.accent} />
+            ) : (
+              <Text style={styles.resendActive}>फिर से भेजें / Resend OTP</Text>
+            )}
           </Pressable>
         ) : (
           <Text style={styles.resend}>
@@ -166,9 +214,9 @@ export default function OtpScreen() {
           </Text>
         )}
         <Pressable
-          style={[styles.verify, otp.some((x) => x === "") || loading ? styles.verifyDisabled : null]}
-          disabled={otp.some((x) => x === "") || loading}
-          onPress={handleVerify}
+          style={[styles.verify, otp.length < 6 || loading ? styles.verifyDisabled : null]}
+          disabled={otp.length < 6 || loading}
+          onPress={() => handleVerify()}
         >
           {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.verifyText}>सत्यापित करें / Verify</Text>}
         </Pressable>
@@ -179,11 +227,11 @@ export default function OtpScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
-  top: { flex: 0.22, backgroundColor: COLORS.primary },
+  top: { flex: 0.2, backgroundColor: COLORS.primary },
   topInner: { flex: 1, alignItems: "center", justifyContent: "center" },
   logo: { color: "#fff", fontSize: 22, fontWeight: "800" },
   card: {
-    flex: 0.78,
+    flex: 0.8,
     backgroundColor: COLORS.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -191,7 +239,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 24,
   },
-  back: { position: "absolute", top: 16, left: 16, zIndex: 2, padding: 8 },
+  back: { position: "absolute", top: 16, left: 16, zIndex: 2, padding: 8, minHeight: tapTargetMin, minWidth: tapTargetMin },
   titleHi: { fontSize: 20, fontWeight: "800", color: COLORS.textPrimary },
   titleEn: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4 },
   info: { fontSize: 13, color: COLORS.textSecondary, marginTop: 20, lineHeight: 20 },
@@ -204,26 +252,13 @@ const styles = StyleSheet.create({
     borderColor: COLORS.success,
   },
   devHintTxt: { fontSize: 12, fontWeight: "700", color: COLORS.success, textAlign: "center" },
-  boxRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 28 },
-  box: {
-    width: 44,
-    height: 52,
-    borderWidth: 1.5,
-    borderColor: COLORS.border,
-    borderRadius: 8,
-    textAlign: "center",
-    fontSize: 22,
-    fontWeight: "800",
-    color: COLORS.textPrimary,
-    paddingTop: 10,
-  },
-  boxFilled: { borderColor: COLORS.primary },
   error: { color: COLORS.danger, marginTop: 8 },
   resend: { textAlign: "center", color: COLORS.textHint, marginTop: 20, fontSize: 13 },
-  resendActive: { textAlign: "center", color: COLORS.accent, marginTop: 20, fontSize: 13, fontWeight: "800" },
+  resendActive: { textAlign: "center", color: COLORS.accent, fontSize: 13, fontWeight: "800" },
+  resendBtn: { marginTop: 20, minHeight: tapTargetMin, justifyContent: "center" },
   verify: {
     marginTop: 28,
-    minHeight: 52,
+    minHeight: tapTargetMin,
     borderRadius: 8,
     backgroundColor: COLORS.accent,
     alignItems: "center",
