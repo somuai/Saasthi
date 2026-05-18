@@ -23,7 +23,7 @@ jobs:
           cd medilift-api
           python -m venv .venv
           . .venv/bin/activate
-          pip install -r requirements/dev.txt
+          pip install -r requirements-dev.txt
           python manage.py migrate
       - name: Run offline eval
         run: make eval-offline
@@ -42,7 +42,7 @@ jobs:
       - name: Install deps
         run: |
           cd medilift-app && npm ci
-          cd ../medilift-api && python -m venv .venv && . .venv/bin/activate && pip install -r requirements/dev.txt
+          cd ../medilift-api && python -m venv .venv && . .venv/bin/activate && pip install -r requirements-dev.txt
           pip install -r ../eval/requirements.txt
           python manage.py migrate
       - name: Start API
