@@ -1,5 +1,8 @@
 # MEDILIFT — Runbook (senior dev)
 
+**Repo:** https://github.com/Luciferai04/Saasthi  
+**Branch:** `main` (pilot MVP)
+
 ## Prerequisites
 
 - Node 20+, Python 3.9+, npm
