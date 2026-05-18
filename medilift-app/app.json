@@ -1,0 +1,35 @@
+{
+  "expo": {
+    "name": "MEDILIFT Pilot",
+    "slug": "medilift-pilot",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "medilift",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "in.medilift.pilot"
+    },
+    "android": {
+      "package": "in.medilift.pilot",
+      "adaptiveIcon": {
+        "backgroundColor": "#0F766E"
+      }
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": {
+      "typedRoutes": false
+    },
+    "extra": {
+      "apiBaseUrl": "http://127.0.0.1:8000/api/v1",
+      "eas": {
+        "projectId": "medilift-pilot-local"
+      }
+    }
+  }
+}

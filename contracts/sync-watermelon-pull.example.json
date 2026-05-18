@@ -1,0 +1,65 @@
+{
+  "timestamp": 1716048000,
+  "changes": {
+    "patients": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "households": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "survey_responses": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "follow_ups": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "mother_records": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "immunization_records": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "growth_records": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "flags": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "referrals": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "incentive_records": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "anc_visit_records": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    },
+    "child_development": {
+      "created": [],
+      "updated": [],
+      "deleted": []
+    }
+  }
+}

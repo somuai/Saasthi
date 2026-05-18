@@ -1,0 +1,42 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+    command: python manage.py runserver 0.0.0.0:8000
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+      - web
+    command: celery -A config worker -l info
+
+  celery-beat:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - redis
+      - web
+    command: celery -A config beat -l info

@@ -1,0 +1,14 @@
+{
+  "configVersion": "pilot_config_2026_05",
+  "rulesVersion": "rules_v2_mcp_2026",
+  "colors": {
+    "primary": "#003087",
+    "accent": "#FF6600",
+    "success": "#138808",
+    "danger": "#C0392B"
+  },
+  "roles": ["asha", "anm", "supervisor", "admin", "partner"],
+  "programs": ["maternal", "child", "chronic", "communicable", "family_planning"],
+  "facilityTypes": ["phc", "sub_centre", "hospital", "clinic", "diagnostic", "nrc", "dots"]
+}
+

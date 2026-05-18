@@ -1,0 +1,38 @@
+# MEDILIFT monorepo
+
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Node / Expo
+node_modules/
+.expo/
+dist/
+web-build/
+coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python / Django
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+db.sqlite3
+media/
+staticfiles/
+
+# Model artifacts
+*.pkl
+*.joblib
+models/*.json
+
+# Local runtime
+tmp/
+logs/
+

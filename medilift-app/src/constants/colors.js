@@ -1,0 +1,43 @@
+/** NIC / UMANG aligned palette — MEDILIFT master context */
+export const COLORS = {
+  primary: "#003087",
+  accent: "#FF6600",
+  success: "#138808",
+  warning: "#FFC200",
+  danger: "#C0392B",
+  purple: "#6C3483",
+  background: "#F2F4F8",
+  card: "#FFFFFF",
+  border: "#E0E6ED",
+  textPrimary: "#1A1A2E",
+  textSecondary: "#6B7280",
+  textHint: "#9CA3AF",
+  navyLight: "#EEF2FF",
+  riskLow: "#138808",
+  riskMedium: "#FFC200",
+  riskHigh: "#FF6600",
+  riskCritical: "#C0392B",
+  synced: "#138808",
+  pending: "#FF6600",
+  offline: "#C0392B",
+  nhm: "#C0392B",
+  pmmvy: "#6C3483",
+  jsy: "#138808",
+};
+
+/** Back-compat with older screens */
+export const colors = {
+  background: COLORS.background,
+  surface: COLORS.card,
+  primary: COLORS.primary,
+  primaryDark: "#002060",
+  secondary: COLORS.accent,
+  accent: COLORS.accent,
+  text: COLORS.textPrimary,
+  muted: COLORS.textSecondary,
+  border: COLORS.border,
+  success: COLORS.success,
+  warning: COLORS.warning,
+  danger: COLORS.danger,
+  info: COLORS.primary,
+};

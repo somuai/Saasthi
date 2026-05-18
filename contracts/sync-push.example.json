@@ -1,0 +1,26 @@
+{
+  "device_id": "android-asha-demo",
+  "app_version": "0.1.0",
+  "last_pulled_at": 0,
+  "changes": {
+    "patients": {
+      "created": [
+        {
+          "id": "local-patient-001",
+          "local_uuid": "local-patient-001",
+          "patient_code": "WB-BATA-P-0001",
+          "name": "Demo Patient",
+          "age": 42,
+          "gender": "F",
+          "risk_score": 0,
+          "risk_level": "low",
+          "is_synced": false,
+          "is_mock": true
+        }
+      ],
+      "updated": [],
+      "deleted": []
+    }
+  }
+}
+

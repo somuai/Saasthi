@@ -1,0 +1,4 @@
+-r requirements.txt
+pytest>=8,<9
+pytest-django>=4.8,<5
+freezegun>=1.5,<2

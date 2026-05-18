@@ -1,0 +1,33 @@
+{
+  "description": "MEDILIFT API v1 auth contract (mobile <-> Django)",
+  "basePath": "/api/v1",
+  "endpoints": {
+    "requestOtp": {
+      "method": "POST",
+      "path": "/auth/otp/request/",
+      "body": { "phone": "+919876543210" },
+      "responses": {
+        "200": { "message": "OTP sent successfully" },
+        "400": { "error": "Invalid phone number" }
+      }
+    },
+    "verifyOtp": {
+      "method": "POST",
+      "path": "/auth/otp/verify/",
+      "body": { "phone": "+919876543210", "otp": "123456" },
+      "responses": {
+        "200": {
+          "access": "jwt-access",
+          "refresh": "jwt-refresh",
+          "user": {},
+          "worker": {}
+        }
+      }
+    },
+    "tokenRefresh": {
+      "method": "POST",
+      "path": "/auth/token/refresh/",
+      "body": { "refresh": "jwt-refresh" }
+    }
+  }
+}
