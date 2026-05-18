@@ -128,3 +128,7 @@ SPECTACULAR_SETTINGS = {
 
 OTP_TTL_MINUTES = int(os.getenv("OTP_TTL_MINUTES", "10"))
 EXPOSE_DEBUG_OTP = os.getenv("EXPOSE_DEBUG_OTP", "true" if DEBUG else "false").lower() in {"1", "true", "yes"}
+
+# MSG91 SMS Provider Settings
+MSG91_AUTH_KEY = os.getenv("MSG91_AUTH_KEY")
+MSG91_TEMPLATE_ID = os.getenv("MSG91_TEMPLATE_ID")

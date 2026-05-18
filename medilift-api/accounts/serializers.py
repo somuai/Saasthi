@@ -7,6 +7,7 @@ from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .models import OTPChallenge
+from .sms import send_otp_sms
 
 User = get_user_model()
 
@@ -18,6 +19,7 @@ class OTPRequestSerializer(serializers.Serializer):
     def create(self, validated_data):
         code = f"{random.SystemRandom().randint(0, 999999):06d}"
         challenge = OTPChallenge.create_for_code(validated_data["phone"], code, validated_data.get("purpose", "login"))
+        send_otp_sms(validated_data["phone"], code)
         return challenge, code
 
 
