@@ -7,6 +7,8 @@ const initialState = {
   user: null,
   workerData: null,
   otpRequested: false,
+  /** True when OTP fell back without JWT — sync disabled until real login */
+  isOfflinePilotSession: false,
 };
 
 const authSlice = createSlice({
@@ -20,6 +22,10 @@ const authSlice = createSlice({
     setTokens(state, action) {
       state.accessToken = action.payload.access;
       state.refreshToken = action.payload.refresh ?? state.refreshToken;
+      if (action.payload.access) state.isOfflinePilotSession = false;
+    },
+    setOfflinePilotSession(state, action) {
+      state.isOfflinePilotSession = action.payload;
     },
     setUser(state, action) {
       state.user = action.payload;
@@ -54,6 +60,7 @@ export const {
   setUser,
   setWorkerData,
   setTokens,
+  setOfflinePilotSession,
   updateAccessToken,
 } = authSlice.actions;
 export default authSlice.reducer;

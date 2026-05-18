@@ -60,3 +60,33 @@ class SyncApiTests(TestCase):
         res = self.client.post("/api/v1/sync/push/", payload, format="json")
         self.assertEqual(res.status_code, 200)
         self.assertEqual(Patient.objects.filter(id="client-patient-99").count(), 1)
+        self.assertIn("flagging", res.data)
+
+    def test_push_with_errors_skips_flagging(self):
+        other = User.objects.create_user(username="919999999998", password="x")
+        ts = int(time.time() * 1000)
+        payload = {
+            "changes": {
+                "patients": {
+                    "created": [
+                        {
+                            "id": "client-bad",
+                            "patient_code": "BAD",
+                            "name": "Bad",
+                            "asha_worker_server_id": str(other.id),
+                            "is_synced": False,
+                            "created_at": ts,
+                            "updated_at": ts,
+                            "is_deleted": False,
+                            "is_mock": False,
+                        }
+                    ],
+                    "updated": [],
+                    "deleted": [],
+                }
+            }
+        }
+        res = self.client.post("/api/v1/sync/push/", payload, format="json")
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(res.data.get("errors"))
+        self.assertIsNone(res.data.get("flagging"))

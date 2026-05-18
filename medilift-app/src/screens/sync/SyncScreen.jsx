@@ -5,6 +5,7 @@ import { GovtHeader } from "../../components/GovtHeader";
 import { COLORS } from "../../constants/colors";
 import { timeAgo } from "../../utils/dateHelpers";
 import { countPendingByTable, countPendingRecords, syncWithServer } from "../../database/sync";
+import { formatSyncFailureMessage } from "../../utils/syncErrors";
 import { API_BASE_URL } from "../../constants/api";
 import { setPendingCount, syncFailed, syncStarted, syncSucceeded } from "../../features/sync/syncSlice";
 
@@ -26,6 +27,7 @@ const TABLE_LABELS = {
 export default function SyncScreen() {
   const dispatch = useDispatch();
   const { isSyncing, lastSyncedAt, lastError, isOnline } = useSelector((s) => s.sync);
+  const isOfflinePilot = useSelector((s) => s.auth.isOfflinePilotSession);
   const [localPending, setLocalPending] = useState(0);
   const [breakdown, setBreakdown] = useState([]);
 
@@ -47,10 +49,10 @@ export default function SyncScreen() {
       if (r.success) {
         dispatch(syncSucceeded({ syncedAt: new Date().toISOString(), pendingCount: r.pendingCount ?? 0 }));
       } else {
-        dispatch(syncFailed(r.reason || r.error || "failed"));
+        dispatch(syncFailed(formatSyncFailureMessage(r.reason || r.error || "failed")));
       }
     } catch (e) {
-      dispatch(syncFailed(e?.message || "error"));
+      dispatch(syncFailed(formatSyncFailureMessage(e)));
     }
     await refresh();
   }
@@ -64,7 +66,10 @@ export default function SyncScreen() {
         <Text style={styles.big}>{localPending}</Text>
         <Text style={styles.muted}>रिकॉर्ड बाकी / Records pending sync</Text>
         {!isOnline ? <Text style={styles.warn}>ऑफलाइन — नेट जुड़ने पर स्वतः सिंक</Text> : null}
-        {lastError ? <Text style={styles.err}>{lastError}</Text> : null}
+        {isOfflinePilot ? (
+          <Text style={styles.warn}>पायलट ऑफलाइन लॉगिन — सर्वर OTP से सिंक चालू करें</Text>
+        ) : null}
+        {lastError ? <Text style={styles.err}>{formatSyncFailureMessage(lastError)}</Text> : null}
       </View>
 
       {breakdown.length > 0 ? (

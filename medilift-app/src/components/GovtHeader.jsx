@@ -5,6 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Svg, { Path } from "react-native-svg";
 import { COLORS } from "../constants/colors";
 import { OfflineBanner } from "./OfflineBanner";
+import { PilotSyncBanner } from "./PilotSyncBanner";
 import { SyncIndicator } from "./SyncIndicator";
 
 function AshokaLion({ size = 22 }) {
@@ -56,6 +57,7 @@ export function GovtHeader({
           {rightComponent}
         </View>
       </View>
+      <PilotSyncBanner />
       <OfflineBanner />
     </View>
   );

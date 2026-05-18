@@ -1,12 +1,13 @@
 import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import { DatabaseProvider } from "@nozbe/watermelondb/react";
 import { Provider } from "react-redux";
 import { database } from "../database";
 import { store } from "./store";
 import { setOnlineStatus } from "../features/sync/syncSlice";
 import { subscribeConnectivity } from "../utils/connectivity";
-import { setUser, setWorkerData } from "../features/auth/authSlice";
+import { setUser, setWorkerData, setTokens, setOfflinePilotSession } from "../features/auth/authSlice";
 import { initAutoSync } from "../database/sync";
 import { DatabaseGate } from "../components/DatabaseGate";
 
@@ -27,9 +28,13 @@ function ConnectivityBridge({ children }) {
       try {
         const u = await AsyncStorage.getItem(AUTH_USER_KEY);
         const w = await AsyncStorage.getItem(AUTH_WORKER_KEY);
+        const access = await SecureStore.getItemAsync("accessToken");
+        const refresh = await SecureStore.getItemAsync("refreshToken");
+        if (access) store.dispatch(setTokens({ access, refresh }));
         if (u) store.dispatch(setUser(JSON.parse(u)));
         if (w) store.dispatch(setWorkerData(JSON.parse(w)));
-        if (u) {
+        store.dispatch(setOfflinePilotSession(Boolean(u && !access)));
+        if (u && access) {
           stopAutoSync = initAutoSync();
         }
       } catch {

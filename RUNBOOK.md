@@ -69,6 +69,9 @@ Profiles in [`medilift-app/eas.json`](medilift-app/eas.json): `development` (sim
 | LogBox: `No route named "patients"` / `"mcp"` / `"survey"` | Ensure `app/(tabs)/patients/_layout.jsx`, `mcp/_layout.jsx`, and `survey/_layout.jsx` exist (Stack group layouts). Reload Metro. |
 | Red screen / SQLite / `WMDatabaseBridge` | You are on Expo Go — use native build (`npm run native:ios`). |
 | Full-screen “डेटाबेस लोड नहीं हुआ” | Reinstall dev build; do not use Expo Go. |
+| Red pilot banner after login | Offline OTP only — log in again with API running and use `dev_otp`. |
+| Sync shows push errors | Some rows rejected (e.g. wrong worker); fix data and sync again — app keeps failed rows unsynced. |
+| Server flags missing | Ensure push succeeded (no `errors`); flagging runs automatically after a clean push. |
 
 Login: enter 10-digit mobile → OTP screen. With API running, use `dev_otp` from the network tab / API response. Offline pilot: any 6 digits on OTP screen falls back to local session.
 

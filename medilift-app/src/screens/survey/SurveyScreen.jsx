@@ -12,7 +12,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { GovtHeader } from "../../components/GovtHeader";
 import { GovtButton } from "../../components/GovtButton";
 import { SymptomCard } from "../../components/SymptomCard";
@@ -23,6 +23,7 @@ import { COLORS } from "../../constants/colors";
 import { scorePatient } from "../../ml/riskScorer";
 import { todayYmd } from "../../utils/dateHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
+import { getWorkerServerId } from "../../utils/workerId";
 import {
   VISIT_TYPES,
   buildSurveyPayload,
@@ -55,6 +56,8 @@ export default function SurveyScreen() {
   const { patientId } = useLocalSearchParams();
   const database = useDatabase();
   const dispatch = useDispatch();
+  const auth = useSelector((s) => s.auth);
+  const workerServerId = getWorkerServerId(auth);
   const router = useRouter();
   const [patient, setPatient] = useState(null);
   const [mother, setMother] = useState(null);
@@ -159,6 +162,7 @@ export default function SurveyScreen() {
       await database.write(async () => {
         const survey = await database.collections.get("survey_responses").create((s) => {
           s.patientId = patient.id;
+          if (workerServerId) s.ashaWorkerServerId = workerServerId;
           s.surveyDate = day;
           s.visitType = form.visitType || "first";
           s.consentAccepted = form.consent;
@@ -211,6 +215,7 @@ export default function SurveyScreen() {
         for (const flag of sideFx.flags) {
           await database.collections.get("flags").create((f) => {
             f.patientId = patient.id;
+            if (workerServerId) f.ashaWorkerServerId = workerServerId;
             f.flagType = flag.flagType;
             f.severity = flag.severity;
             f.description = flag.description;

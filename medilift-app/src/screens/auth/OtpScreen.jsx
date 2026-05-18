@@ -17,7 +17,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { apiClient } from "../../api/client";
 import { endpoints } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
-import { verifyOtp, setTokens, setUser, setWorkerData } from "../../features/auth/authSlice";
+import {
+  verifyOtp,
+  setTokens,
+  setUser,
+  setWorkerData,
+  setOfflinePilotSession,
+} from "../../features/auth/authSlice";
 import { persistAuthSession } from "../../store/AppProvider";
 import { initAutoSync } from "../../database/sync";
 import { store } from "../../store/store";
@@ -68,8 +74,10 @@ export default function OtpScreen() {
       dispatch(setTokens({ access, refresh }));
       dispatch(setUser(user));
       dispatch(setWorkerData(worker || MOCK_WORKER));
+      dispatch(setOfflinePilotSession(false));
       await persistAuthSession(user, worker || MOCK_WORKER);
     } catch {
+      dispatch(setOfflinePilotSession(true));
       dispatch(
         verifyOtp({
           user: { id: `phone-${phone}`, name: "Pilot ASHA", phone: `+91${phone}` },
@@ -79,9 +87,9 @@ export default function OtpScreen() {
     } finally {
       setLoading(false);
     }
-    const { user: u2, workerData: w2 } = store.getState().auth;
+    const { user: u2, workerData: w2, accessToken } = store.getState().auth;
     await persistAuthSession(u2, w2 || MOCK_WORKER);
-    initAutoSync();
+    if (accessToken) initAutoSync();
     router.replace("/(tabs)/home");
   }
 

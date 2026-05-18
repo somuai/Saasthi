@@ -17,6 +17,10 @@ export const STRINGS = {
   SYNCING: { hi: "सिंक हो रहा है", en: "Syncing" },
   SYNCED: { hi: "सिंक हो गया", en: "Synced" },
   OFFLINE_MODE: { hi: "ऑफलाइन मोड", en: "Offline Mode" },
+  OFFLINE_PILOT_SYNC: {
+    hi: "सिंक के लिए सर्वर से OTP लें — अभी केवल स्थानीय डेटा",
+    en: "Log in with server OTP to sync — local data only for now",
+  },
   PENDING_SYNC: { hi: "सिंक बाकी", en: "Pending sync" },
   LAST_SYNCED: { hi: "आखरी सिंक", en: "Last synced" },
   SURVEYS_TODAY: { hi: "आज सर्वे", en: "Surveys today" },

@@ -8,6 +8,7 @@ import { apiClient } from "../api/client";
 import { endpoints } from "../constants/api";
 import { database } from "./index";
 import { getDeviceId } from "../utils/deviceId";
+import { formatSyncPushErrors } from "../utils/syncErrors";
 import { registerBackgroundSync } from "./backgroundSync";
 import Constants from "expo-constants";
 
@@ -97,6 +98,12 @@ export function initAutoSync() {
 /** WatermelonDB synchronize against medilift-api */
 export async function syncWithServer() {
   if (syncInFlight) return { success: false, reason: "sync_in_progress" };
+  const { auth } = store.getState();
+  if (auth.isOfflinePilotSession || !auth.accessToken) {
+    const msg = "offline_pilot_no_token";
+    store.dispatch(syncFailed(msg));
+    return { success: false, reason: msg };
+  }
   syncInFlight = true;
   store.dispatch(syncStarted());
   try {
@@ -116,12 +123,21 @@ export async function syncWithServer() {
         return { changes: data.changes, timestamp: data.timestamp };
       },
       pushChanges: async ({ changes, lastPulledAt }) => {
-        await apiClient.post(endpoints.syncPush, {
+        const { data } = await apiClient.post(endpoints.syncPush, {
           changes,
           last_pulled_at: lastPulledAt ?? (await getLastPulledAt()),
           device_id: await getDeviceId(),
           app_version: Constants.expoConfig?.version || "0.1.0",
         });
+        const errors = data?.errors;
+        if (errors?.length) {
+          const msg = formatSyncPushErrors(errors) || "sync_push_failed";
+          const err = new Error(msg);
+          err.code = "SYNC_PUSH_ERRORS";
+          err.pushErrors = errors;
+          err.processed = data?.processed;
+          throw err;
+        }
       },
       migrationsEnabledAtVersion: 1,
     });

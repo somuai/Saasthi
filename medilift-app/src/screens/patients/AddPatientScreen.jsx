@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { GovtHeader } from "../../components/GovtHeader";
 import { GovtInput } from "../../components/GovtInput";
 import { ToggleRow } from "../../components/ToggleRow";
@@ -10,6 +10,7 @@ import { COLORS } from "../../constants/colors";
 import { todayYmd } from "../../utils/dateHelpers";
 import { scorePatient } from "../../ml/riskScorer";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
+import { getWorkerServerId } from "../../utils/workerId";
 
 const steps = ["पहचान / Identity", "चिकित्सा / Medical", "परिवार / Household"];
 
@@ -17,6 +18,8 @@ export default function AddPatientScreen() {
   const database = useDatabase();
   const router = useRouter();
   const dispatch = useDispatch();
+  const auth = useSelector((s) => s.auth);
+  const workerServerId = getWorkerServerId(auth);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -57,6 +60,7 @@ export default function AddPatientScreen() {
           h.householdCode = `HH-${now.toString(36)}`;
           h.headOfFamily = form.headOfFamily || form.name;
           h.village = form.village;
+          if (workerServerId) h.ashaWorkerId = workerServerId;
           h.isSynced = false;
           h.isDeleted = false;
           h.isMock = false;
@@ -90,6 +94,7 @@ export default function AddPatientScreen() {
           p.riskScore = risk.score;
           p.riskLevel = risk.riskLevel;
           p.lastVisited = todayYmd();
+          if (workerServerId) p.ashaWorkerServerId = workerServerId;
           p.isSynced = false;
           p.isDeleted = false;
           p.isMock = false;
