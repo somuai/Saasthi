@@ -9,7 +9,7 @@ import { GovtHeader } from "../../components/GovtHeader";
 import { GovtInput } from "../../components/GovtInput";
 import { GovtButton } from "../../components/GovtButton";
 import { COLORS } from "../../constants/colors";
-import { classifyNutrition, nutritionLabel, weightForAgeZ } from "../../constants/whoGrowth";
+import { classifyNutrition, nutritionLabel, weightForAgeZ, whoChartBandLines } from "../../constants/whoGrowth";
 import { isoFromDate } from "../../utils/mcpHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
 
@@ -51,9 +51,11 @@ export default function GrowthScreen() {
     return () => sub.unsubscribe();
   }, [database, patient]);
 
+  const bands = useMemo(() => whoChartBandLines(W, 120), []);
+
   const chartPoints = useMemo(() => {
     if (!records.length) return "";
-    const maxW = Math.max(...records.map((r) => r.weightKg || 0), 1);
+    const maxW = Math.max(...records.map((r) => r.weightKg || 0), bands.chartHeight / 2, 1);
     return records
       .map((r, i) => {
         const x = (i / Math.max(records.length - 1, 1)) * (W - 40) + 20;
@@ -61,7 +63,7 @@ export default function GrowthScreen() {
         return `${x},${y}`;
       })
       .join(" ");
-  }, [records]);
+  }, [records, bands.chartHeight]);
 
   const previewZ = weight && ageMonths ? weightForAgeZ(weight, ageMonths) : null;
   const previewStatus = classifyNutrition(previewZ);
@@ -128,6 +130,9 @@ export default function GrowthScreen() {
         <Text style={styles.h}>Weight trend / वजन प्रवृत्ति</Text>
         <Svg width={W} height={140} style={styles.chart}>
           <Line x1={20} y1={120} x2={W - 20} y2={120} stroke={COLORS.border} strokeWidth={1} />
+          <Polyline points={bands.minus2} fill="none" stroke={COLORS.warning} strokeWidth={1} strokeDasharray="4 3" />
+          <Polyline points={bands.median} fill="none" stroke={COLORS.textHint} strokeWidth={1} />
+          <Polyline points={bands.plus2} fill="none" stroke={COLORS.warning} strokeWidth={1} strokeDasharray="4 3" />
           {chartPoints ? <Polyline points={chartPoints} fill="none" stroke={COLORS.primary} strokeWidth={2} /> : null}
           {records.map((r, i) => {
             const maxW = Math.max(...records.map((x) => x.weightKg || 0), 1);

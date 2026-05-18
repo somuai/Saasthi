@@ -29,6 +29,7 @@ export default function HomeScreen() {
   const [overdueFu, setOverdueFu] = useState(0);
   const [criticalN, setCriticalN] = useState(0);
   const [monthInr, setMonthInr] = useState(0);
+  const [pregnancyAlerts, setPregnancyAlerts] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
   const reload = useCallback(async () => {
@@ -56,6 +57,22 @@ export default function HomeScreen() {
         .fetch();
       const sum = rows.reduce((a, r) => a + (r.amountInr ?? r.amount_inr ?? 0), 0);
       setMonthInr(sum);
+      const pregnant = await database.collections
+        .get("patients")
+        .query(Q.where("is_pregnant", true), Q.where("is_deleted", false))
+        .fetch();
+      const alerts = [];
+      for (const p of pregnant) {
+        const mothers = await database.collections
+          .get("mother_records")
+          .query(Q.where("patient_id", p.id), Q.where("is_deleted", false))
+          .fetch();
+        const mr = mothers[0];
+        if (p.riskLevel === "critical" || p.riskLevel === "high" || mr?.isHighRisk) {
+          alerts.push({ id: p.id, name: p.name, reason: mr?.isHighRisk ? "High-risk pregnancy" : `Risk: ${p.riskLevel}` });
+        }
+      }
+      setPregnancyAlerts(alerts.slice(0, 5));
       const pend = await countPendingRecords();
       dispatch(setPendingCount(pend));
     } catch {
@@ -160,6 +177,19 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
+        {pregnancyAlerts.length > 0 ? (
+          <View style={styles.pregSection}>
+            <Text style={styles.sectionHi}>गर्भावस्था अलर्ट</Text>
+            <Text style={styles.sectionEn}>Pregnancy alerts</Text>
+            {pregnancyAlerts.map((a) => (
+              <Pressable key={a.id} style={styles.pregRow} onPress={() => router.push(`/(tabs)/patients/${a.id}`)}>
+                <Text style={styles.pregName}>{a.name}</Text>
+                <Text style={styles.pregReason}>{a.reason}</Text>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+
         <Text style={styles.disclaimer}>
           Incentives are activity and outcome based — no per-patient brokerage. / प्रोत्साहन गतिविधि पर आधारित।
         </Text>
@@ -244,4 +274,17 @@ const styles = StyleSheet.create({
   },
   alertTitle: { color: COLORS.danger, fontWeight: "800" },
   disclaimer: { margin: 16, fontSize: 11, color: COLORS.textSecondary, lineHeight: 16 },
+  pregSection: { marginHorizontal: 16, marginTop: 8 },
+  pregRow: {
+    padding: 12,
+    backgroundColor: COLORS.card,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderLeftWidth: 4,
+    borderLeftColor: COLORS.accent,
+    marginBottom: 8,
+  },
+  pregName: { fontWeight: "800", color: COLORS.textPrimary },
+  pregReason: { fontSize: 12, color: COLORS.danger, marginTop: 4 },
 });

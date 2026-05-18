@@ -120,8 +120,9 @@ const styles = StyleSheet.create({
   tagText: { fontSize: 10, color: COLORS.accent, fontWeight: "700" },
   right: { alignItems: "flex-end", gap: 8, maxWidth: 120 },
   surveyBtn: {
-    minHeight: 32,
-    paddingHorizontal: 10,
+    minHeight: 52,
+    minWidth: 52,
+    paddingHorizontal: 12,
     borderRadius: 8,
     backgroundColor: COLORS.accent,
     alignItems: "center",

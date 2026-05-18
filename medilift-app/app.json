@@ -20,16 +20,15 @@
       }
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-dev-client",
+      "./plugins/withWatermelonSimdjson.js"
     ],
     "experiments": {
       "typedRoutes": false
     },
     "extra": {
-      "apiBaseUrl": "http://127.0.0.1:8000/api/v1",
-      "eas": {
-        "projectId": "medilift-pilot-local"
-      }
+      "apiBaseUrl": "http://127.0.0.1:8000/api/v1"
     }
   }
 }

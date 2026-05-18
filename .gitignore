@@ -8,6 +8,9 @@
 # Node / Expo
 node_modules/
 .expo/
+medilift-app/ios/
+medilift-app/android/
+.cursor/
 dist/
 web-build/
 coverage/

@@ -8,7 +8,9 @@ import { GovtHeader } from "../../components/GovtHeader";
 import { ImmunizationRow } from "../../components/ImmunizationRow";
 import { COLORS } from "../../constants/colors";
 import { calculateVaccineDates, isoDate } from "../../utils/immunizationSchedule";
+import { buildFicIncentiveIfEligible, ficProgress } from "../../utils/ficIncentive";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
+import { todayYmd } from "../../utils/dateHelpers";
 
 const VACCINE_LABELS = {
   BCG: { en: "BCG", hi: "बीसीजी" },
@@ -29,6 +31,7 @@ export default function ImmunizationScreen() {
   const [patient, setPatient] = useState(null);
   const [records, setRecords] = useState([]);
   const [sheet, setSheet] = useState(null);
+  const [ficToast, setFicToast] = useState(null);
 
   useEffect(() => {
     if (patientId) return undefined;
@@ -81,6 +84,7 @@ export default function ImmunizationScreen() {
     if (!sheet || !patient) return;
     const now = Date.now();
     const today = isoDate(new Date());
+    let ficAwarded = false;
     await database.write(async () => {
       if (sheet.recordId) {
         const rec = await database.collections.get("immunization_records").find(sheet.recordId);
@@ -106,9 +110,61 @@ export default function ImmunizationScreen() {
           r.isMock = false;
         });
       }
+
+      const immRows = await database.collections
+        .get("immunization_records")
+        .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false))
+        .fetch();
+      const administered = immRows.filter((r) => r.isAdministered).map((r) => r.vaccineCode);
+      const priorIncentives = await database.collections
+        .get("incentive_records")
+        .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false))
+        .fetch();
+      const existingTypes = priorIncentives.map((ir) => ir.actionType);
+      const fic = buildFicIncentiveIfEligible({
+        dateOfBirth: patient.dateOfBirth,
+        administeredCodes: administered,
+        existingActionTypes: existingTypes,
+      });
+      if (fic) {
+        await database.collections.get("incentive_records").create((ir) => {
+          ir.actionType = fic.actionType;
+          ir.patientId = patient.id;
+          ir.referenceId = patient.id;
+          ir.points = fic.points;
+          ir.amountInr = fic.amountInr;
+          ir.periodDate = fic.periodDate;
+          ir.isApproved = false;
+          ir.isSynced = false;
+          ir.isDeleted = false;
+          ir.isMock = false;
+          ir.createdAt = now;
+          ir.updatedAt = now;
+        });
+        ficAwarded = true;
+      }
+
+      await database.collections.get("incentive_records").create((ir) => {
+        ir.actionType = "IMMUNIZATION_GIVEN";
+        ir.patientId = patient.id;
+        ir.referenceId = sheet.code;
+        ir.points = 5;
+        ir.amountInr = 25;
+        ir.periodDate = todayYmd();
+        ir.isApproved = false;
+        ir.isSynced = false;
+        ir.isDeleted = false;
+        ir.isMock = false;
+        ir.createdAt = now;
+        ir.updatedAt = now;
+      });
     });
-    dispatch(incrementPendingCount(1));
+    dispatch(incrementPendingCount(ficAwarded ? 3 : 2));
     setSheet(null);
+    if (ficAwarded) {
+      setFicToast("FIC पूर्ण / Fully immunized — ₹50 incentive recorded");
+      setTimeout(() => setFicToast(null), 4000);
+    }
   }
 
   if (!patientId) {
@@ -131,9 +187,25 @@ export default function ImmunizationScreen() {
     );
   }
 
+  const fic = ficProgress(
+    patient?.dateOfBirth,
+    records.filter((r) => r.isAdministered).map((r) => r.vaccineCode)
+  );
+
   return (
     <View style={styles.page}>
       <GovtHeader titleHi="टीकाकरण" title={patient?.name || "Immunization"} showBack showSync />
+      <View style={styles.ficBar}>
+        <Text style={styles.ficHi}>FIC प्रगति / FIC progress</Text>
+        <Text style={styles.ficEn}>
+          {fic.done}/{fic.total} core vaccines
+        </Text>
+      </View>
+      {ficToast ? (
+        <View style={styles.ficToast}>
+          <Text style={styles.ficToastTxt}>{ficToast}</Text>
+        </View>
+      ) : null}
       <FlatList
         data={schedule}
         keyExtractor={(item) => item.code}
@@ -184,4 +256,23 @@ const styles = StyleSheet.create({
   },
   btnTxt: { color: "#fff", fontWeight: "800" },
   cancel: { textAlign: "center", marginTop: 16, color: COLORS.textSecondary },
+  ficBar: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: COLORS.navyLight,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  ficHi: { fontSize: 14, fontWeight: "800", color: COLORS.textPrimary },
+  ficEn: { fontSize: 11, color: COLORS.textSecondary, marginTop: 2 },
+  ficToast: {
+    marginHorizontal: 16,
+    marginTop: 8,
+    padding: 12,
+    backgroundColor: COLORS.success,
+    borderRadius: 8,
+  },
+  ficToastTxt: { color: "#fff", fontSize: 14, fontWeight: "700", textAlign: "center" },
 });

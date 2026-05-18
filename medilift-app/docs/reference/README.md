@@ -1,9 +1,11 @@
 # MEDILIFT reference documents
 
-Place official PDFs here for field-level alignment during development:
+Official PDFs for field-level UI alignment:
 
-- `ASHAHealthSurveyForm.pdf` — ASHA health survey (all register types)
-- `India MCP Card_English_5.28.2018.pdf` — Mother & Child Protection Card (MoHFW 2018)
-- `HealthCareService.pdf` — service definitions (if applicable)
+| File | Use |
+|------|-----|
+| `ASHAHealthSurveyForm.pdf` | Survey wizard (Prompt 6) |
+| `India MCP Card_English_5.28.2018.pdf` | ANC, PNC, immunization, growth (Prompt 7) |
+| `HealthCareService.pdf` | Service / referral copy |
 
-Copy from your machine into this folder. Paths are not committed if files are missing; the app builds without them.
+When implementing a screen, diff labels and fields against the matching PDF before adding columns to `src/database/schema.js`.

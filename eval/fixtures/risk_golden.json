@@ -1,0 +1,28 @@
+{
+  "cases": [
+    {
+      "id": "critical_breathing",
+      "patient": { "age": 45, "isPregnant": false },
+      "survey": { "serious_severe_breathing": true },
+      "expect": { "minScore": 35, "levels": ["medium", "high", "critical"], "factors": ["severe_breathing"] }
+    },
+    {
+      "id": "tb_cough",
+      "patient": { "age": 30 },
+      "survey": { "comm_cough_2weeks": true },
+      "expect": { "minScore": 20, "levels": ["low", "medium", "high", "critical"], "factors": ["tb_cough"] }
+    },
+    {
+      "id": "pregnant_baseline",
+      "patient": { "age": 24, "isPregnant": true },
+      "survey": {},
+      "expect": { "minScore": 15, "levels": ["low", "medium", "high"], "factors": [] }
+    },
+    {
+      "id": "healthy_low",
+      "patient": { "age": 20 },
+      "survey": { "livingCondition": "clean", "healthcareAccess": "easy" },
+      "expect": { "minScore": 0, "maxScore": 25, "levels": ["low"] }
+    }
+  ]
+}

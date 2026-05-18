@@ -1,4 +1,11 @@
 import { MODEL_VERSION, RISK_LEVEL_COLORS, RISK_LEVEL_HINDI } from "./riskConstants";
+import {
+  ancVisitCountFromMcp,
+  hasModerateAnemiaFromMcp,
+  hasSevereAnemiaFromMcp,
+  isAncUnderUtilized,
+  latestAncHb,
+} from "./mcpRiskRules";
 
 function getRiskLevel(score) {
   if (score <= 25) return "low";
@@ -24,11 +31,24 @@ function normPatient(p) {
     isPregnant: raw.is_pregnant ?? p.isPregnant,
     hasDiabetes: raw.has_diabetes ?? p.hasDiabetes,
     hasHypertension: raw.has_hypertension ?? p.hasHypertension,
+    hasTb: raw.has_tb ?? p.hasTb,
+    hasHeartDisease: raw.has_heart_disease ?? p.hasHeartDisease,
     hospitalizedLastYear: raw.hospitalized_last_year ?? p.hospitalizedLastYear,
     lastVisited: raw.last_visited ?? p.lastVisited,
     immunizationDefaulter: raw.immunization_defaulter ?? p.immunizationDefaulter,
     latestWeightForAgeZ: raw.latest_weight_for_age_z ?? p.latestWeightForAgeZ,
   };
+}
+
+function surveyHb(s) {
+  const v = s?.vitals?.hemoglobin ?? s?.hemoglobin;
+  return v != null && v !== "" ? Number(v) : null;
+}
+
+function surveyBp(s) {
+  const sys = Number(s?.vitals?.systolicBp ?? s?.systolicBp ?? 0);
+  const dia = Number(s?.vitals?.diastolicBp ?? s?.diastolicBp ?? 0);
+  return { sys, dia };
 }
 
 export const RISK_RULES = [
@@ -39,7 +59,9 @@ export const RISK_RULES = [
     category: "critical",
     weight: 35,
     check: (p, s) =>
-      s?.seriousConditions?.severBreathing === true || s?.seriousConditions?.severeBreathing === true || s?.serious_severe_breathing === true,
+      s?.seriousConditions?.severBreathing === true ||
+      s?.seriousConditions?.severeBreathing === true ||
+      s?.serious_severe_breathing === true,
   },
   {
     factor: "continuous_chest_pain",
@@ -50,12 +72,31 @@ export const RISK_RULES = [
     check: (p, s) => s?.seriousConditions?.chestPain === true || s?.serious_chest_pain === true,
   },
   {
+    factor: "unable_to_walk",
+    labelHi: "चलने में असमर्थ",
+    labelEn: "Unable to Walk",
+    category: "critical",
+    weight: 30,
+    check: (p, s) => s?.seriousConditions?.unableToWalk === true || s?.serious_unable_walk === true,
+  },
+  {
     factor: "pregnancy_complications",
     labelHi: "गर्भावस्था जटिलताएं",
     labelEn: "Pregnancy Complications",
     category: "critical",
     weight: 30,
     check: (p, s) => s?.seriousConditions?.pregnancyComplications === true || s?.serious_pregnancy_comp === true,
+  },
+  {
+    factor: "severe_anemia",
+    labelHi: "गंभीर एनीमिया (Hb < 8)",
+    labelEn: "Severe Anemia",
+    category: "critical",
+    weight: 28,
+    check: (p, s, mcp) => {
+      const hb = surveyHb(s) ?? latestAncHb(mcp);
+      return (hb != null && hb > 0 && hb < 8) || hasSevereAnemiaFromMcp(mcp);
+    },
   },
   {
     factor: "pregnant",
@@ -74,6 +115,14 @@ export const RISK_RULES = [
     check: (p, s, mcp) => mcp?.is_high_risk === true || mcp?.isHighRisk === true,
   },
   {
+    factor: "anc_under_utilized",
+    labelHi: "ANC कम उपयोग",
+    labelEn: "Under-utilized ANC",
+    category: "maternal",
+    weight: 18,
+    check: (p, s, mcp) => p.isPregnant && isAncUnderUtilized(mcp),
+  },
+  {
     factor: "tb_cough",
     labelHi: "2 सप्ताह से अधिक खांसी (TB जोखिम)",
     labelEn: "Cough > 2 weeks (TB Risk)",
@@ -82,20 +131,72 @@ export const RISK_RULES = [
     check: (p, s) => s?.communicable?.coughOver2Weeks === true || s?.comm_cough_2weeks === true,
   },
   {
+    factor: "high_bp",
+    labelHi: "उच्च रक्तचाप",
+    labelEn: "High Blood Pressure",
+    category: "chronic",
+    weight: 20,
+    check: (p, s, mcp) => {
+      const { sys, dia } = surveyBp(s);
+      if (sys >= 140 || dia >= 90) return true;
+      const ms = Number(mcp?.bpSystolic ?? mcp?.latestAncVisit?.bpSystolic ?? 0);
+      const md = Number(mcp?.bpDiastolic ?? mcp?.latestAncVisit?.bpDiastolic ?? 0);
+      return ms >= 140 || md >= 90 || p.hasHypertension === true;
+    },
+  },
+  {
     factor: "diabetes",
     labelHi: "मधुमेह",
     labelEn: "Diabetes",
     category: "chronic",
     weight: 18,
-    check: (p, s) => p.hasDiabetes === true || s?.hasDiabetes === true,
+    check: (p, s) => p.hasDiabetes === true || s?.chronic_known_bp_dm === true || s?.chronicKnownBpDm === true,
+  },
+  {
+    factor: "anemia",
+    labelHi: "एनीमिया (Hb < 11)",
+    labelEn: "Anemia",
+    category: "chronic",
+    weight: 16,
+    check: (p, s, mcp) => {
+      const hb = surveyHb(s) ?? latestAncHb(mcp);
+      return (hb != null && hb >= 8 && hb < 11) || hasModerateAnemiaFromMcp(mcp);
+    },
   },
   {
     factor: "hypertension",
-    labelHi: "उच्च रक्तचाप",
-    labelEn: "High Blood Pressure",
+    labelHi: "उच्च रक्तचाप (ज्ञात)",
+    labelEn: "Known Hypertension",
     category: "chronic",
     weight: 16,
     check: (p) => p.hasHypertension === true,
+  },
+  {
+    factor: "chronic_bp_dm_symptoms",
+    labelHi: "मधुमेह/बीपी लक्षण",
+    labelEn: "Diabetes/BP Symptoms",
+    category: "chronic",
+    weight: 12,
+    check: (p, s) =>
+      s?.chronic_freq_urination === true ||
+      s?.chronic_excess_thirst === true ||
+      s?.chronicKnownBpDm === true,
+  },
+  {
+    factor: "has_tb",
+    labelHi: "टीबी इतिहास",
+    labelEn: "TB History",
+    category: "chronic",
+    weight: 14,
+    check: (p) => p.hasTb === true,
+  },
+  {
+    factor: "heart_disease",
+    labelHi: "हृदय रोग",
+    labelEn: "Heart Disease",
+    category: "chronic",
+    weight: 14,
+    check: (p) => p.hasHeartDisease === true,
   },
   {
     factor: "age_elderly",
@@ -120,6 +221,46 @@ export const RISK_RULES = [
     category: "communicable",
     weight: 10,
     check: (p, s) => s?.communicable?.feverOver3Days === true || s?.comm_fever_3days === true,
+  },
+  {
+    factor: "infection_wounds",
+    labelHi: "संक्रमण/घाव",
+    labelEn: "Infection or Wounds",
+    category: "communicable",
+    weight: 10,
+    check: (p, s) => s?.communicable?.infectionWounds === true || s?.comm_infection_wounds === true,
+  },
+  {
+    factor: "contact_sick",
+    labelHi: "बीमार व्यक्ति से संपर्क",
+    labelEn: "Contact with Sick Person",
+    category: "communicable",
+    weight: 8,
+    check: (p, s) => s?.communicable?.contactSick === true || s?.comm_contact_sick === true,
+  },
+  {
+    factor: "immunization_defaulter",
+    labelHi: "टीकाकरण चूका",
+    labelEn: "Immunization Defaulter",
+    category: "child",
+    weight: 14,
+    check: (p) => p.immunizationDefaulter === true,
+  },
+  {
+    factor: "malnutrition",
+    labelHi: "कुपोषण (WFA Z)",
+    labelEn: "Malnutrition",
+    category: "child",
+    weight: 16,
+    check: (p) => (p.latestWeightForAgeZ ?? 0) < -2,
+  },
+  {
+    factor: "hospitalized_last_year",
+    labelHi: "पिछले वर्ष अस्पताल में भर्ती",
+    labelEn: "Hospitalized Last Year",
+    category: "history",
+    weight: 8,
+    check: (p) => p.hospitalizedLastYear === true,
   },
   {
     factor: "no_healthcare_access",

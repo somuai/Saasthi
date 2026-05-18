@@ -13,12 +13,13 @@ import { Q } from "@nozbe/watermelondb";
 import { GovtHeader } from "../../components/GovtHeader";
 import { GovtInput } from "../../components/GovtInput";
 import { GovtButton } from "../../components/GovtButton";
+import { ToggleRow } from "../../components/ToggleRow";
 import { COLORS } from "../../constants/colors";
 import { calculateEDD, calculatePOG, getANCDueDates, isoFromDate } from "../../utils/mcpHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
 import { useDispatch } from "react-redux";
 
-const VISITS = [1, 2, 3, 4];
+const VISITS = [1, 2, 3, 4, 5];
 
 export default function AncScreen() {
   const { patientId } = useLocalSearchParams();
@@ -30,7 +31,21 @@ export default function AncScreen() {
   const [mother, setMother] = useState(null);
   const [visits, setVisits] = useState([]);
   const [activeVisit, setActiveVisit] = useState(1);
-  const [form, setForm] = useState({ weightKg: "", bpSystolic: "", bpDiastolic: "", hemoglobinGm: "", lmpDate: "" });
+  const [form, setForm] = useState({
+    weightKg: "",
+    bpSystolic: "",
+    bpDiastolic: "",
+    hemoglobinGm: "",
+    lmpDate: "",
+    pulseRate: "",
+    oedema: false,
+    jaundice: false,
+    fetalHeartRate: "",
+    tt1Date: "",
+    tt2Date: "",
+    ifaTablets: "",
+    isUnderPmsma: false,
+  });
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -88,9 +103,31 @@ export default function AncScreen() {
         bpDiastolic: currentVisit.bpDiastolic ? String(currentVisit.bpDiastolic) : "",
         hemoglobinGm: currentVisit.hemoglobinGm ? String(currentVisit.hemoglobinGm) : "",
         lmpDate: mother?.lmpDate || "",
+        pulseRate: currentVisit.pulseRate ? String(currentVisit.pulseRate) : "",
+        oedema: currentVisit.oedema === true,
+        jaundice: currentVisit.jaundice === true,
+        fetalHeartRate: currentVisit.fetalHeartRate ? String(currentVisit.fetalHeartRate) : "",
+        tt1Date: mother?.ttInjection1Date || "",
+        tt2Date: mother?.ttInjection2Date || "",
+        ifaTablets: mother?.ifaTabletsIssued != null ? String(mother.ifaTabletsIssued) : "",
+        isUnderPmsma: currentVisit.isUnderPmsma === true,
       });
     } else {
-      setForm({ weightKg: "", bpSystolic: "", bpDiastolic: "", hemoglobinGm: "", lmpDate: mother?.lmpDate || "" });
+      setForm({
+        weightKg: "",
+        bpSystolic: "",
+        bpDiastolic: "",
+        hemoglobinGm: "",
+        lmpDate: mother?.lmpDate || "",
+        pulseRate: "",
+        oedema: false,
+        jaundice: false,
+        fetalHeartRate: "",
+        tt1Date: mother?.ttInjection1Date || "",
+        tt2Date: mother?.ttInjection2Date || "",
+        ifaTablets: mother?.ifaTabletsIssued != null ? String(mother.ifaTabletsIssued) : "",
+        isUnderPmsma: false,
+      });
     }
   }, [currentVisit, activeVisit, mother]);
 
@@ -156,6 +193,11 @@ export default function AncScreen() {
             rec.bpSystolic = form.bpSystolic ? Number(form.bpSystolic) : null;
             rec.bpDiastolic = form.bpDiastolic ? Number(form.bpDiastolic) : null;
             rec.hemoglobinGm = form.hemoglobinGm ? Number(form.hemoglobinGm) : null;
+            rec.pulseRate = form.pulseRate ? Number(form.pulseRate) : null;
+            rec.oedema = form.oedema;
+            rec.jaundice = form.jaundice;
+            rec.fetalHeartRate = form.fetalHeartRate ? Number(form.fetalHeartRate) : null;
+            rec.isUnderPmsma = form.isUnderPmsma;
             rec.isSynced = false;
             rec.updatedAt = now;
           });
@@ -169,6 +211,11 @@ export default function AncScreen() {
             rec.bpSystolic = form.bpSystolic ? Number(form.bpSystolic) : null;
             rec.bpDiastolic = form.bpDiastolic ? Number(form.bpDiastolic) : null;
             rec.hemoglobinGm = form.hemoglobinGm ? Number(form.hemoglobinGm) : null;
+            rec.pulseRate = form.pulseRate ? Number(form.pulseRate) : null;
+            rec.oedema = form.oedema;
+            rec.jaundice = form.jaundice;
+            rec.fetalHeartRate = form.fetalHeartRate ? Number(form.fetalHeartRate) : null;
+            rec.isUnderPmsma = form.isUnderPmsma;
             rec.isSynced = false;
             rec.createdAt = now;
             rec.updatedAt = now;
@@ -180,6 +227,14 @@ export default function AncScreen() {
           await mr.update((r) => {
             r.lmpDate = lmp;
             r.edd = edd;
+            r.ttInjection1Date = form.tt1Date || r.ttInjection1Date;
+            r.ttInjection2Date = form.tt2Date || r.ttInjection2Date;
+            r.ifaTabletsIssued = form.ifaTablets ? Number(form.ifaTablets) : r.ifaTabletsIssued;
+            r.isHighRisk =
+              Number(form.bpSystolic) >= 140 ||
+              Number(form.hemoglobinGm) < 11 ||
+              form.oedema ||
+              form.jaundice;
             r.isSynced = false;
             r.updatedAt = now;
           });
@@ -222,6 +277,14 @@ export default function AncScreen() {
         <GovtInput labelHi="BP systolic" label="BP systolic" value={form.bpSystolic} onChangeText={(t) => setForm({ ...form, bpSystolic: t })} keyboardType="number-pad" />
         <GovtInput labelHi="BP diastolic" label="BP diastolic" value={form.bpDiastolic} onChangeText={(t) => setForm({ ...form, bpDiastolic: t })} keyboardType="number-pad" />
         <GovtInput labelHi="Hb (g/dl)" label="Hemoglobin" value={form.hemoglobinGm} onChangeText={(t) => setForm({ ...form, hemoglobinGm: t })} keyboardType="decimal-pad" />
+        <GovtInput labelHi="नाड़ी" label="Pulse rate" value={form.pulseRate} onChangeText={(t) => setForm({ ...form, pulseRate: t })} keyboardType="number-pad" />
+        <GovtInput labelHi="भ्रूण HR" label="Fetal heart rate" value={form.fetalHeartRate} onChangeText={(t) => setForm({ ...form, fetalHeartRate: t })} keyboardType="number-pad" />
+        <ToggleRow labelHi="सूजन (oedema)" labelEn="Oedema" value={form.oedema} onChange={(v) => setForm({ ...form, oedema: v })} />
+        <ToggleRow labelHi="पीलिया" labelEn="Jaundice" value={form.jaundice} onChange={(v) => setForm({ ...form, jaundice: v })} />
+        <ToggleRow labelHi="PMSMA के अंतर्गत" labelEn="Under PMSMA" value={form.isUnderPmsma} onChange={(v) => setForm({ ...form, isUnderPmsma: v })} />
+        <GovtInput labelHi="TT-1 तिथि" label="TT dose 1 date" value={form.tt1Date} onChangeText={(t) => setForm({ ...form, tt1Date: t })} />
+        <GovtInput labelHi="TT-2 तिथि" label="TT dose 2 date" value={form.tt2Date} onChangeText={(t) => setForm({ ...form, tt2Date: t })} />
+        <GovtInput labelHi="IFA गोलियां" label="IFA tablets issued" value={form.ifaTablets} onChangeText={(t) => setForm({ ...form, ifaTablets: t })} keyboardType="number-pad" />
         {alert ? <Text style={styles.alert}>{alert}</Text> : null}
         <GovtButton titleHi="सहेजें" titleEn="Save visit" onPress={saveVisit} loading={saving} />
       </ScrollView>
@@ -251,7 +314,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     backgroundColor: COLORS.card,
   },
-  tabOn: { borderColor: COLORS.primary, backgroundColor: "#E8EEF7" },
+  tabOn: { borderColor: COLORS.primary, backgroundColor: COLORS.navyLight },
   tabDone: { borderLeftWidth: 4, borderLeftColor: COLORS.success },
   tabTxt: { fontWeight: "800", fontSize: 13 },
   tabSub: { fontSize: 10, color: COLORS.textHint, marginTop: 2 },

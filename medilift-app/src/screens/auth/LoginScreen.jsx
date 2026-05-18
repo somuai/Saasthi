@@ -34,15 +34,17 @@ export default function LoginScreen() {
     }
     setLoading(true);
     setError("");
+    let devOtp = "";
     try {
-      await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
+      const res = await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
+      devOtp = res.data?.dev_otp || "";
     } catch {
       /* offline / no API — pilot continues */
     } finally {
       setLoading(false);
     }
     dispatch(requestOtp(phone));
-    router.push({ pathname: "/(auth)/otp", params: { phone } });
+    router.push({ pathname: "/(auth)/otp", params: { phone, devOtp } });
   }
 
   function pilotLogin() {

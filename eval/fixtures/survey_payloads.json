@@ -1,0 +1,11 @@
+{
+  "tb_cluster": {
+    "comm_cough_2weeks": true,
+    "comm_fever_3days": true,
+    "serious_severe_breathing": false
+  },
+  "critical_symptoms": {
+    "serious_severe_breathing": true,
+    "serious_chest_pain": true
+  }
+}

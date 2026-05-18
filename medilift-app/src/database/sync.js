@@ -7,6 +7,9 @@ import { subscribeConnectivity, fetchIsOnline } from "../utils/connectivity";
 import { apiClient } from "../api/client";
 import { endpoints } from "../constants/api";
 import { database } from "./index";
+import { getDeviceId } from "../utils/deviceId";
+import { registerBackgroundSync } from "./backgroundSync";
+import Constants from "expo-constants";
 
 const LAST_PULLED_KEY = "medilift_last_pulled_at";
 
@@ -29,16 +32,22 @@ let connectivityUnsub = null;
 let syncInFlight = false;
 
 export async function countPendingRecords() {
-  let total = 0;
+  const rows = await countPendingByTable();
+  return rows.reduce((sum, r) => sum + r.count, 0);
+}
+
+/** Per-table unsynced counts for sync status UI */
+export async function countPendingByTable() {
+  const rows = [];
   for (const table of TABLES) {
     try {
-      const n = await database.collections.get(table).query(Q.where("is_synced", false)).fetchCount();
-      total += n;
+      const count = await database.collections.get(table).query(Q.where("is_synced", false)).fetchCount();
+      if (count > 0) rows.push({ table, count });
     } catch {
       /* table missing in tests */
     }
   }
-  return total;
+  return rows.sort((a, b) => b.count - a.count);
 }
 
 async function getLastPulledAt() {
@@ -77,6 +86,8 @@ export function initAutoSync() {
     }
   });
 
+  registerBackgroundSync().catch(() => {});
+
   return () => {
     connectivityUnsub?.();
     connectivityUnsub = null;
@@ -108,6 +119,8 @@ export async function syncWithServer() {
         await apiClient.post(endpoints.syncPush, {
           changes,
           last_pulled_at: lastPulledAt ?? (await getLastPulledAt()),
+          device_id: await getDeviceId(),
+          app_version: Constants.expoConfig?.version || "0.1.0",
         });
       },
       migrationsEnabledAtVersion: 1,

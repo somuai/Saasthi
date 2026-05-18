@@ -69,10 +69,37 @@ def model_to_record(obj, table):
     return data
 
 
+def _assert_patient_scope(patient_id, worker_id):
+    if not patient_id or not worker_id:
+        return
+    patient = pm.Patient.objects.filter(id=patient_id).first()
+    if not patient:
+        return
+    owner = patient.asha_worker_server_id
+    if owner and str(owner) != str(worker_id):
+        raise PermissionError(f"patient {patient_id} not owned by worker {worker_id}")
+
+
 def apply_record(model_cls, table, payload, worker_id):
     record_id = payload.get("id")
     if not record_id:
         return None
+    if table == "patients":
+        owner = payload.get("asha_worker_server_id")
+        if owner and worker_id and str(owner) != str(worker_id):
+            raise PermissionError("cannot push patient for another worker")
+    patient_id = payload.get("patient_id")
+    if patient_id and table in {
+        "survey_responses",
+        "follow_ups",
+        "flags",
+        "referrals",
+        "mother_records",
+        "immunization_records",
+        "growth_records",
+        "child_development",
+    }:
+        _assert_patient_scope(patient_id, worker_id)
     explicit = {f.name for f in model_cls._meta.fields if f.name != "id"}
     defaults = {}
     json_payload = {}

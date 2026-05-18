@@ -1,8 +1,11 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../src/constants/colors";
+import { useOverdueFollowUpCount } from "../../src/hooks/useOverdueFollowUpCount";
 
 export default function TabsLayout() {
+  const overdueCount = useOverdueFollowUpCount();
+
   return (
     <Tabs
       screenOptions={{
@@ -40,7 +43,8 @@ export default function TabsLayout() {
         name="followups"
         options={{
           title: "Follow-ups",
-          tabBarLabel: "फॉलो-अप",
+          tabBarLabel: "फॉलो-अप / Follow-ups",
+          tabBarBadge: overdueCount > 0 ? overdueCount : undefined,
           tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
         }}
       />
@@ -48,7 +52,7 @@ export default function TabsLayout() {
         name="earnings"
         options={{
           title: "Earnings",
-          tabBarLabel: "कमाई",
+          tabBarLabel: "कमाई / Earnings",
           tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
         }}
       />
@@ -56,7 +60,7 @@ export default function TabsLayout() {
         name="mcp"
         options={{
           title: "MCP",
-          tabBarLabel: "MCP",
+          tabBarLabel: "एमसीपी / MCP",
           tabBarIcon: ({ color, size }) => <Ionicons name="medkit" size={size} color={color} />,
         }}
       />

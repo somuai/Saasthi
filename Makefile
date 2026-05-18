@@ -1,16 +1,13 @@
-.PHONY: test test-backend test-mobile lint-backend lint-mobile
+.PHONY: eval eval-offline eval-tier1 eval-tier2
 
-test: test-backend test-mobile
+eval:
+	python3 eval/run.py
 
-test-backend:
-	cd medilift-backend && pytest
+eval-offline:
+	python3 eval/run.py --offline
 
-test-mobile:
-	cd medilift-app && npm test -- --runInBand
+eval-tier1:
+	cd medilift-app && npm test
 
-lint-backend:
-	cd medilift-backend && ruff check .
-
-lint-mobile:
-	cd medilift-app && npm run lint
-
+eval-tier2:
+	cd medilift-api && . .venv/bin/activate && python manage.py test tests

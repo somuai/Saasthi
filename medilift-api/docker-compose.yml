@@ -1,4 +1,15 @@
 services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: medilift
+      POSTGRES_USER: medilift
+      POSTGRES_PASSWORD: medilift
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
   web:
     build: .
     ports:
@@ -8,8 +19,10 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.development
       CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgres://medilift:medilift@db:5432/medilift
     depends_on:
       - redis
+      - db
     command: python manage.py runserver 0.0.0.0:8000
 
   redis:
@@ -24,8 +37,10 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.development
       CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgres://medilift:medilift@db:5432/medilift
     depends_on:
       - redis
+      - db
       - web
     command: celery -A config worker -l info
 
@@ -36,7 +51,12 @@ services:
     environment:
       DJANGO_SETTINGS_MODULE: config.settings.development
       CELERY_BROKER_URL: redis://redis:6379/0
+      DATABASE_URL: postgres://medilift:medilift@db:5432/medilift
     depends_on:
       - redis
+      - db
       - web
     command: celery -A config beat -l info
+
+volumes:
+  pgdata:

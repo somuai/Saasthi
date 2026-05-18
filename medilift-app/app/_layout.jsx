@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
+import { useFonts, NotoSans_400Regular, NotoSans_700Bold } from "@expo-google-fonts/noto-sans";
+import { StatusBar } from "expo-status-bar";
+import { useSelector } from "react-redux";
 import { AppProvider } from "../src/store/AppProvider";
 import { COLORS } from "../src/constants/colors";
 
@@ -21,6 +24,15 @@ function AuthGuard({ children }) {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({
+    NotoSans_400Regular,
+    NotoSans_700Bold,
+  });
+
+  if (!fontsLoaded) {
+    return null;
+  }
+
   return (
     <AppProvider>
       <AuthGuard>

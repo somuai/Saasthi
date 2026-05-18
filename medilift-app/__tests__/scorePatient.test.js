@@ -11,5 +11,6 @@ describe("scorePatient", () => {
     expect(r.score).toBeLessThanOrEqual(100);
     expect(["low", "medium", "high", "critical"]).toContain(r.riskLevel);
     expect(r.triggeredFactors.length).toBeGreaterThan(0);
+    expect(r.totalFactorsChecked).toBeGreaterThanOrEqual(25);
   });
 });

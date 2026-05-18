@@ -44,6 +44,24 @@ export function classifyNutrition(z) {
   return "overweight";
 }
 
+/** SVG polyline points for WHO median and ±2 SD bands (boys WFA). */
+export function whoChartBandLines(chartWidth = 280, chartHeight = 120) {
+  const ages = Object.keys(WHO_WFA_MEDIAN_BOYS)
+    .map(Number)
+    .sort((a, b) => a - b);
+  const maxW =
+    Math.max(...ages.map((a) => WHO_WFA_MEDIAN_BOYS[a] + 2 * WHO_WFA_SD_BOYS), 1) * 1.1;
+  const toPoint = (ageIdx, weightKg) => {
+    const x = 20 + (ageIdx / Math.max(ages.length - 1, 1)) * (chartWidth - 40);
+    const y = chartHeight - 10 - (weightKg / maxW) * (chartHeight - 20);
+    return `${x},${y}`;
+  };
+  const median = ages.map((a, i) => toPoint(i, WHO_WFA_MEDIAN_BOYS[a])).join(" ");
+  const minus2 = ages.map((a, i) => toPoint(i, WHO_WFA_MEDIAN_BOYS[a] - 2 * WHO_WFA_SD_BOYS)).join(" ");
+  const plus2 = ages.map((a, i) => toPoint(i, WHO_WFA_MEDIAN_BOYS[a] + 2 * WHO_WFA_SD_BOYS)).join(" ");
+  return { median, minus2, plus2, chartHeight, chartWidth };
+}
+
 export function nutritionLabel(status) {
   const map = {
     sam: "SAM / गंभीर कुपोषण",

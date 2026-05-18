@@ -1,0 +1,70 @@
+{
+  "started_at": "2026-05-18T14:27:24Z",
+  "tiers": [
+    {
+      "tier": "T1",
+      "results": [
+        {
+          "name": "T1_jest",
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 1.12,
+          "stdout_tail": "\n> medilift-app@0.1.0 test\n> jest --watchAll=false\n\n",
+          "stderr_tail": "PASS __tests__/ficIncentive.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/scorePatient.test.js\n\nTest Suites: 7 passed, 7 total\nTests:       19 passed, 19 total\nSnapshots:   0 total\nTime:        0.602 s, estimated 1 s\nRan all test suites.\n"
+        }
+      ]
+    },
+    {
+      "tier": "T2",
+      "results": [
+        {
+          "name": "T2_django",
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 1.64,
+          "stdout_tail": "Found 15 test(s).\nSystem check identified no issues (0 silenced).\n",
+          "stderr_tail": "/Users/soumyajitghosh/Documents/Saasthi/medilift-api/.venv/lib/python3.9/site-packages/urllib3/__init__.py:35: NotOpenSSLWarning: urllib3 v2 only supports OpenSSL 1.1.1+, currently the 'ssl' module is compiled with 'LibreSSL 2.8.3'. See: https://github.com/urllib3/urllib3/issues/3020\n  warnings.warn(\nCreating test database for alias 'default'...\n...............\n----------------------------------------------------------------------\nRan 15 tests in 1.050s\n\nOK\nDestroying test database for alias 'default'...\n"
+        }
+      ]
+    },
+    {
+      "tier": "T3",
+      "results": [
+        {
+          "name": "T3_contracts",
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 0.02,
+          "stdout_tail": "PASS fixture sync-watermelon-pull.example.json\nSKIP live API (--offline)\n",
+          "stderr_tail": ""
+        }
+      ]
+    },
+    {
+      "tier": "T4",
+      "results": [
+        {
+          "name": "T4_live_api",
+          "ok": true,
+          "skipped": true,
+          "reason": "--offline"
+        }
+      ]
+    },
+    {
+      "tier": "T5",
+      "results": [
+        {
+          "name": "T5_compliance",
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 0.02,
+          "stdout_tail": "PASS all compliance checks\n",
+          "stderr_tail": ""
+        }
+      ]
+    }
+  ],
+  "ok": true,
+  "finished_at": "2026-05-18T14:27:27Z"
+}

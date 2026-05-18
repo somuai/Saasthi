@@ -25,6 +25,8 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.patients",
     "apps.sync_api",
+    "apps.flagging",
+    "apps.risk_engine",
 ]
 
 MIDDLEWARE = [
@@ -99,12 +101,20 @@ CORS_ALLOWED_ORIGINS = [
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 CELERY_BEAT_SCHEDULE = {
+    "hourly-flagging": {
+        "task": "apps.sync_api.tasks.run_flagging_engine",
+        "schedule": 3600.0,
+    },
     "weekly-rescore": {
         "task": "apps.sync_api.tasks.rescore_all_patients",
         "schedule": 604800.0,
     },
     "daily-incentive-rollup": {
         "task": "apps.sync_api.tasks.rollup_incentives",
+        "schedule": 86400.0,
+    },
+    "daily-immunization-defaulters": {
+        "task": "apps.sync_api.tasks.immunization_defaulters",
         "schedule": 86400.0,
     },
 }

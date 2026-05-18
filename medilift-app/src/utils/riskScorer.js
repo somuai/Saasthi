@@ -1,5 +1,9 @@
 import { calculateAgeYears } from "./mcp/dateHelpers";
 
+/**
+ * @deprecated Use `scorePatient` from `../ml/riskScorer` for ASHA survey risk.
+ * This helper remains for maternal vitals scoring in legacy tests.
+ */
 export const RISK_MODEL_VERSION = "medilift-js-rules-v0.1";
 
 const LEVELS = {

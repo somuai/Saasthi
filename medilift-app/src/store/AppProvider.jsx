@@ -7,6 +7,8 @@ import { store } from "./store";
 import { setOnlineStatus } from "../features/sync/syncSlice";
 import { subscribeConnectivity } from "../utils/connectivity";
 import { setUser, setWorkerData } from "../features/auth/authSlice";
+import { initAutoSync } from "../database/sync";
+import { DatabaseGate } from "../components/DatabaseGate";
 
 const AUTH_USER_KEY = "medilift_auth_user_json";
 const AUTH_WORKER_KEY = "medilift_auth_worker_json";
@@ -20,16 +22,21 @@ function ConnectivityBridge({ children }) {
   }, []);
 
   useEffect(() => {
+    let stopAutoSync;
     (async () => {
       try {
         const u = await AsyncStorage.getItem(AUTH_USER_KEY);
         const w = await AsyncStorage.getItem(AUTH_WORKER_KEY);
         if (u) store.dispatch(setUser(JSON.parse(u)));
         if (w) store.dispatch(setWorkerData(JSON.parse(w)));
+        if (u) {
+          stopAutoSync = initAutoSync();
+        }
       } catch {
         /* ignore */
       }
     })();
+    return () => stopAutoSync?.();
   }, []);
 
   return children;
@@ -39,7 +46,9 @@ export function AppProvider({ children }) {
   return (
     <Provider store={store}>
       <DatabaseProvider database={database}>
-        <ConnectivityBridge>{children}</ConnectivityBridge>
+        <DatabaseGate>
+          <ConnectivityBridge>{children}</ConnectivityBridge>
+        </DatabaseGate>
       </DatabaseProvider>
     </Provider>
   );

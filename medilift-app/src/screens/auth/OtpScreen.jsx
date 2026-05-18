@@ -33,6 +33,7 @@ const MOCK_WORKER = {
 export default function OtpScreen() {
   const params = useLocalSearchParams();
   const phone = params.phone || "9000000000";
+  const devOtp = params.devOtp ? String(params.devOtp) : "";
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [timer, setTimer] = useState(45);
   const [canResend, setCanResend] = useState(false);
@@ -124,6 +125,14 @@ export default function OtpScreen() {
           आपके +91 XXXXXX{last4} पर OTP भेजा गया है{"\n"}
           OTP sent to +91 …{last4}
         </Text>
+        {devOtp ? (
+          <Pressable
+            style={styles.devHint}
+            onPress={() => setOtp(devOtp.split("").slice(0, 6))}
+          >
+            <Text style={styles.devHintTxt}>Dev OTP: {devOtp} (tap to fill)</Text>
+          </Pressable>
+        ) : null}
         <View style={styles.boxRow}>
           {otp.map((d, i) => (
             <TextInput
@@ -178,6 +187,15 @@ const styles = StyleSheet.create({
   titleHi: { fontSize: 20, fontWeight: "800", color: COLORS.textPrimary },
   titleEn: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4 },
   info: { fontSize: 13, color: COLORS.textSecondary, marginTop: 20, lineHeight: 20 },
+  devHint: {
+    marginTop: 12,
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#E8F5E9",
+    borderWidth: 1,
+    borderColor: COLORS.success,
+  },
+  devHintTxt: { fontSize: 12, fontWeight: "700", color: COLORS.success, textAlign: "center" },
   boxRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 28 },
   box: {
     width: 44,
