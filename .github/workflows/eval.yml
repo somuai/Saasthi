@@ -52,4 +52,4 @@ jobs:
           python manage.py runserver 127.0.0.1:8000 &
           sleep 3
       - name: Live eval tiers
-        run: python3 eval/run.py --tier 3 && python3 eval/run.py --tier 4
+        run: python3 eval/run.py --tier 3 --verbose && python3 eval/run.py --tier 4 --verbose
