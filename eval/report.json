@@ -1,45 +1,6 @@
 {
-  "started_at": "2026-05-18T19:50:09Z",
+  "started_at": "2026-05-19T05:10:18Z",
   "tiers": [
-    {
-      "tier": "T1",
-      "results": [
-        {
-          "name": "T1_jest",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.84,
-          "stdout_tail": "\n> medilift-app@0.1.0 test\n> jest --watchAll=false\n\n",
-          "stderr_tail": "watchman warning:  Recrawled this watch 1 time, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/workerId.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       37 passed, 37 total\nSnapshots:   0 total\nTime:        0.397 s, estimated 1 s\nRan all test suites.\n"
-        }
-      ]
-    },
-    {
-      "tier": "T2",
-      "results": [
-        {
-          "name": "T2_django",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.34,
-          "stdout_tail": "Found 0 test(s).\nSystem check identified no issues (0 silenced).\n",
-          "stderr_tail": "\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nNO TESTS RAN\n"
-        }
-      ]
-    },
-    {
-      "tier": "T3",
-      "results": [
-        {
-          "name": "T3_contracts",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.04,
-          "stdout_tail": "PASS fixture sync-watermelon-pull.example.json\nPASS live API reachable (auth enforced)\n",
-          "stderr_tail": ""
-        }
-      ]
-    },
     {
       "tier": "T4",
       "results": [
@@ -47,7 +8,7 @@
           "name": "T4_auth_otp",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.15,
+          "duration_sec": 0.71,
           "stdout_tail": "PASS auth_otp\n",
           "stderr_tail": ""
         },
@@ -55,7 +16,7 @@
           "name": "T4_flagging_pipeline",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.17,
+          "duration_sec": 0.25,
           "stdout_tail": "PASS flagging_pipeline {'total_score': 5, 'level': 'medium', 'explanations': [{'code': 'TB_COUGH_RISK', 'name': 'TB Cough Risk', 'field_path': 'survey.answers.comm_cough_2weeks', 'operator': 'eq', 'expected': True, 'actual': True, 'weight': 5, 'severity': 'high', 'flag_type': 'TB_RISK'}], 'rules_version': 'TB_COUGH_RISK:1'}\n",
           "stderr_tail": ""
         },
@@ -63,7 +24,7 @@
           "name": "T4_risk_golden",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.49,
+          "duration_sec": 0.88,
           "stdout_tail": "PASS risk_golden\n",
           "stderr_tail": ""
         },
@@ -71,34 +32,21 @@
           "name": "T4_sync_roundtrip",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.17,
-          "stdout_tail": "Push Resp: {'results': [{'event_uuid': '97de9275-4087-4d68-b3c4-335ab942aecd', 'status': 'applied', 'model': 'patient', 'local_uuid': 'c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f'}, {'event_uuid': '48fadf41-a327-49c7-8747-8423d8e67d92', 'status': 'applied', 'model': 'survey_response', 'local_uuid': 'd3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a'}]}\nPASS sync_roundtrip\n",
+          "duration_sec": 0.18,
+          "stdout_tail": "Push Resp: {'results': [{'event_uuid': '4883000e-fb93-4a46-932b-5ac6b9ff1391', 'status': 'applied', 'model': 'patient', 'local_uuid': 'c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f'}, {'event_uuid': 'bf0ef4be-5b4d-499e-9c53-24d724187daf', 'status': 'applied', 'model': 'survey_response', 'local_uuid': 'd3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a'}]}\nPASS sync_roundtrip\n",
           "stderr_tail": ""
         },
         {
           "name": "T4_worker_scope",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.18,
+          "duration_sec": 0.17,
           "stdout_tail": "PASS worker_scope\n",
-          "stderr_tail": ""
-        }
-      ]
-    },
-    {
-      "tier": "T5",
-      "results": [
-        {
-          "name": "T5_compliance",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.02,
-          "stdout_tail": "PASS all compliance checks\n",
           "stderr_tail": ""
         }
       ]
     }
   ],
   "ok": true,
-  "finished_at": "2026-05-18T19:50:12Z"
+  "finished_at": "2026-05-19T05:10:20Z"
 }
