@@ -1,4 +1,4 @@
-# MEDILIFT — Digital ASHA Healthcare Platform
+# SHAASTHI — Digital ASHA Healthcare Platform
 
 > **Offline-first mobile platform for India's 10 lakh+ ASHA health workers.**
 > Digitize household surveys, MCP Card workflows, explainable risk scoring, and supervisor dashboards — all working without internet.
@@ -10,9 +10,9 @@
 
 ---
 
-## Why MEDILIFT?
+## Why SHAASTHI?
 
-ASHA (Accredited Social Health Activist) workers serve as the first point of contact for healthcare in rural India. They still use paper registers and manual MCP cards, leading to missed follow-ups, delayed risk detection, and lost data. MEDILIFT solves this with:
+ASHA (Accredited Social Health Activist) workers serve as the first point of contact for healthcare in rural India. They still use paper registers and manual MCP cards, leading to missed follow-ups, delayed risk detection, and lost data. SHAASTHI solves this with:
 
 - **Offline-first data capture** — register households, record surveys, and track patients with zero connectivity
 - **Explainable risk scoring** — 24-rule weighted engine flags high-risk patients with human-readable reasons in Hindi + English
@@ -77,7 +77,7 @@ This will:
 <summary>Manual backend setup</summary>
 
 ```bash
-cd medilift-api
+cd shaasthi-api
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements/dev.txt
 python manage.py migrate
@@ -90,7 +90,7 @@ python manage.py runserver 127.0.0.1:8000
 ### 3. Build & Run the Mobile App
 
 ```bash
-cd medilift-app
+cd shaasthi-app
 npm install
 npm run native:ios       # First run: ~5-15 min (builds native modules)
 ```
@@ -135,7 +135,7 @@ The mobile app displays the dev OTP as a tappable green banner. For production, 
 
 ```
 Shaasthi/
-├── medilift-app/                 # 📱 Expo React Native mobile app
+├── shaasthi-app/                 # 📱 Expo React Native mobile app
 │   ├── app/                      #    File-based routing (expo-router)
 │   │   ├── (auth)/               #    Login, OTP, splash screens
 │   │   └── (tabs)/               #    Home, patients, follow-ups, earnings, MCP, sync
@@ -150,7 +150,7 @@ Shaasthi/
 │   │   └── store/                #    Redux store + AppProvider
 │   └── __tests__/                #    Jest test suites (17 specs)
 │
-├── medilift-api/                 # ⚙️ Django API (primary backend)
+├── shaasthi-api/                 # ⚙️ Django API (primary backend)
 │   ├── apps/
 │   │   ├── accounts/             #    OTP auth + JWT
 │   │   ├── patients/             #    Patient CRUD
@@ -160,7 +160,7 @@ Shaasthi/
 │   ├── config/                   #    Django settings (dev/prod)
 │   └── tests/                    #    Django test suites (12 specs)
 │
-├── medilift-backend/             # ⚙️ Extended backend (RBAC, surveys, audit)
+├── shaasthi-backend/             # ⚙️ Extended backend (RBAC, surveys, audit)
 │   ├── accounts/                 #    Custom User model with roles
 │   ├── registry/                 #    Household + patient registry
 │   ├── surveys/                  #    Survey definitions + responses
@@ -212,10 +212,10 @@ make eval
 make eval-offline
 
 # Mobile unit tests (17 specs)
-cd medilift-app && npm test
+cd shaasthi-app && npm test
 
 # Backend unit tests (12 specs)
-cd medilift-api && source .venv/bin/activate && python manage.py test tests
+cd shaasthi-api && source .venv/bin/activate && python manage.py test tests
 ```
 
 **Current status:** All 9/9 eval suites passing ✅
@@ -242,7 +242,7 @@ cd medilift-api && source .venv/bin/activate && python manage.py test tests
 | `WMDatabaseBridge is not defined` | You're on Expo Go — run `npm run native:ios` instead |
 | `No route named "patients"` | Ensure `app/(tabs)/patients/_layout.jsx` exists; restart Metro |
 | Port 8000 already in use | `lsof -i :8000` → `kill <PID>` |
-| iOS build fails | `cd medilift-app/ios && pod install` then retry |
+| iOS build fails | `cd shaasthi-app/ios && pod install` then retry |
 | "डेटाबेस लोड नहीं हुआ" | Reinstall the dev build; do not use Expo Go |
 | OTP not received | In dev, OTP is in the API response (`dev_otp`). No SMS provider needed |
 
@@ -270,7 +270,7 @@ With the API running, visit:
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Run tests: `make eval-offline && cd medilift-app && npm test`
+3. Run tests: `make eval-offline && cd shaasthi-app && npm test`
 4. Commit with clear messages: `git commit -m "feat: add immunization reminder"`
 5. Push and open a PR
 

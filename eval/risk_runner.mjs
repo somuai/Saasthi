@@ -6,8 +6,8 @@ import { fileURLToPath } from "url";
 import { createRequire } from "module";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const require = createRequire(path.join(__dirname, "../medilift-app/package.json"));
-const { scorePatient } = require("../medilift-app/src/ml/riskScorer.js");
+const require = createRequire(path.join(__dirname, "../shaasthi-app/package.json"));
+const { scorePatient } = require("../shaasthi-app/src/ml/riskScorer.js");
 
 const fixtures = JSON.parse(
   fs.readFileSync(path.join(__dirname, "fixtures/risk_golden.json"), "utf8")

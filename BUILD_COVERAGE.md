@@ -1,4 +1,4 @@
-# MEDILIFT — Build Guide Coverage Audit
+# SHAASTHI — Build Guide Coverage Audit
 
 Senior assessment against the **Final Cursor Build Guide** (Prompts 0–11).  
 **Overall: ~62% of the full guide is implemented; ~85% of the pilot-critical path is runnable.**
@@ -20,8 +20,8 @@ Last verified: **2026-05-18** — `make eval` PASS (T1–T5) · `make eval-offli
 | **6** | Survey + risk | **74%** | 7-step survey, `surveySubmit.js`, TB heuristic, 27 risk rules |
 | **7** | MCP screens | **58%** | ANC 1–5 + PMSMA, immunization, growth bands, PNC, child-dev stub |
 | **8** | Earnings / follow-ups / sync | **70%** | Wallet, week strip, sync breakdown; badges partial |
-| **9** | Django backend | **45%** | `medilift-api` sync+OTP+flagging; not full `medilift-backend` domain split |
-| **10** | Admin dashboard | **0%** | `medilift-dashboard/` not started |
+| **9** | Django backend | **45%** | `shaasthi-api` sync+OTP+flagging; not full `shaasthi-backend` domain split |
+| **10** | Admin dashboard | **0%** | `shaasthi-dashboard/` not started |
 | **11** | Audit + fixes | **80%** | `eval/` suite + compliance checks; not manual screen-by-screen |
 
 ---
@@ -29,7 +29,7 @@ Last verified: **2026-05-18** — `make eval` PASS (T1–T5) · `make eval-offli
 ## What runs today (pilot path)
 
 1. **API** — `scripts/dev.sh` or `python manage.py runserver`
-2. **App** — `cd medilift-app && npx expo start`
+2. **App** — `cd shaasthi-app && npx expo start`
 3. **Login** — OTP from API `dev_otp` (tap hint on OTP screen)
 4. **Offline** — WatermelonDB writes, risk score, sync when online
 
@@ -90,14 +90,14 @@ make eval           # + T4 live API (needs :8000)
 
 ```mermaid
 flowchart TB
-  subgraph mobile [medilift-app]
+  subgraph mobile [shaasthi-app]
     UI[Expo Router screens]
     WM[WatermelonDB 12 tables]
     ML[riskScorer 27 rules]
     UI --> WM
     UI --> ML
   end
-  subgraph api [medilift-api]
+  subgraph api [shaasthi-api]
     OTP[JWT OTP]
     SYNC[pull/push sync]
     FLAG[FlaggingEngine]
@@ -107,13 +107,13 @@ flowchart TB
   WM -->|when online| SYNC
 ```
 
-Guide also references `medilift-backend/` (legacy pilot REST) — **not** the primary sync target.
+Guide also references `shaasthi-backend/` (legacy pilot REST) — **not** the primary sync target.
 
 ---
 
 ## Recommendation
 
-**Ship pilot** with current stack: mobile + `medilift-api` + `make eval` in CI.  
+**Ship pilot** with current stack: mobile + `shaasthi-api` + `make eval` in CI.  
 **Next sprint:** immunization FIC incentives, remaining flagging rules, ANC field parity, then admin dashboard.
 
 See [RUNBOOK.md](RUNBOOK.md) for run instructions.

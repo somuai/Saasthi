@@ -1,5 +1,5 @@
 {
-  "description": "MEDILIFT API v1 auth contract (mobile <-> Django)",
+  "description": "SHAASTHI API v1 auth contract (mobile <-> Django)",
   "basePath": "/api/v1",
   "endpoints": {
     "requestOtp": {

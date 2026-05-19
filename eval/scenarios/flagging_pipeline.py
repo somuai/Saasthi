@@ -3,8 +3,8 @@ import os
 import sys
 
 # Django setup for direct engine run
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "medilift-api"))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "medilift_backend.settings")
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "shaasthi-api"))
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shaasthi_backend.settings")
 
 import django
 django.setup()

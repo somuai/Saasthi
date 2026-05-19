@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 def main() -> int:
     proc = subprocess.run(
         ["npm", "test", "--", "--testPathPattern=riskGolden"],
-        cwd=ROOT / "medilift-app",
+        cwd=ROOT / "shaasthi-app",
         capture_output=True,
         text=True,
     )

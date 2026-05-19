@@ -1,5 +1,5 @@
 {
-  "name": "medilift-monorepo",
+  "name": "shaasthi-monorepo",
   "private": true,
   "scripts": {
     "eval": "python3 eval/run.py",

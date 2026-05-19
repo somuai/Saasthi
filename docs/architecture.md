@@ -1,4 +1,4 @@
-# MEDILIFT Pilot Architecture
+# SHAASTHI Pilot Architecture
 
 ## Goal
 

@@ -1,4 +1,4 @@
-# MEDILIFT build audit (May 2026)
+# SHAASTHI build audit (May 2026)
 
 **Last verified:** 2026-05-18 — `make eval` OVERALL PASS · `npx expo-doctor` 15/15.
 
@@ -27,20 +27,20 @@ Run instructions: [RUNBOOK.md](RUNBOOK.md)
 | Background sync hook (`expo-background-fetch` when installed) | Done |
 | Sync screen per-table breakdown, earnings progress | Done |
 
-## Mobile (`medilift-app`)
+## Mobile (`shaasthi-app`)
 
-- Offline-first WatermelonDB + sync against `medilift-api`
+- Offline-first WatermelonDB + sync against `shaasthi-api`
 - Jest: contracts, risk golden, survey submit, MCP calculators
-- Reference PDFs: `medilift-app/docs/reference/`
+- Reference PDFs: `shaasthi-app/docs/reference/`
 
-## Backend (`medilift-api`)
+## Backend (`shaasthi-api`)
 
 - 12-table Watermelon sync, flagging engine, Celery stubs
 - Postgres optional via `DATABASE_URL` in docker-compose
 
 ## Optional / deferred
 
-- Admin dashboard (`medilift-dashboard/`)
+- Admin dashboard (`shaasthi-dashboard/`)
 - Full ASHA PDF field parity (all sections)
 - sklearn RF training at scale
 - Device E2E (Detox/Maestro)

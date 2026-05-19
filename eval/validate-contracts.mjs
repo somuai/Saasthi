@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(__dirname, "..");
 const contractsDir = path.join(ROOT, "contracts");
 const offline = process.argv.includes("--offline");
-const apiUrl = process.env.MEDILIFT_API_URL || "http://127.0.0.1:8000";
+const apiUrl = process.env.SHAASTHI_API_URL || "http://127.0.0.1:8000";
 
 const EXPECTED_TABLES = [
   "patients",

@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: shaasthi
+      POSTGRES_USER: shaasthi
+      POSTGRES_PASSWORD: shaasthi
+    ports:
+      - "5432:5432"
+    volumes:
+      - shaasthi_postgres:/var/lib/postgresql/data
+
+  api:
+    build: .
+    command: sh -c "python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"
+    environment:
+      DJANGO_SECRET_KEY: dev-secret
+      DJANGO_DEBUG: "true"
+      DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,api
+      DATABASE_URL: postgres://shaasthi:shaasthi@db:5432/shaasthi
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+
+volumes:
+  shaasthi_postgres:

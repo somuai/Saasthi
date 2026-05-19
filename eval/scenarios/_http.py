@@ -3,7 +3,7 @@ import time
 
 import requests
 
-BASE = os.getenv("MEDILIFT_API_URL", "http://127.0.0.1:8000").rstrip("/")
+BASE = os.getenv("SHAASTHI_API_URL", "http://127.0.0.1:8000").rstrip("/")
 API = f"{BASE}/api/v1"
 
 

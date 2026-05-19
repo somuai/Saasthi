@@ -1,6 +1,6 @@
-# MEDILIFT — Cursor build guide (repo)
+# SHAASTHI — Cursor build guide (repo)
 
-This repo is set up for the Cursor workflow in your MEDILIFT Final Build Guide.
+This repo is set up for the Cursor workflow in your SHAASTHI Final Build Guide.
 
 ## Already in repo
 
@@ -8,11 +8,11 @@ This repo is set up for the Cursor workflow in your MEDILIFT Final Build Guide.
 |------|----------|
 | Cursor rules | `.cursor/rules/*.mdc` |
 | MCP config | `.cursor/mcp.json` (edit postgres URL if needed) |
-| Mobile app | `medilift-app/` |
-| Sync API | `medilift-api/` |
-| Legacy pilot API | `medilift-backend/` |
+| Mobile app | `shaasthi-app/` |
+| Sync API | `shaasthi-api/` |
+| Legacy pilot API | `shaasthi-backend/` |
 | API contracts | `contracts/` |
-| Reference PDFs | `medilift-app/docs/reference/` |
+| Reference PDFs | `shaasthi-app/docs/reference/` |
 
 ## Cursor settings (manual)
 
@@ -20,15 +20,15 @@ In Cursor → Settings, enable Agent, YOLO mode, Iterate on Lints, Memories, Cod
 
 **Suggested memory to paste:**
 
-> MEDILIFT: Offline-first Expo SDK 50 ASHA app. WatermelonDB + Redux. Primary #003087, accent #FF6600. Bilingual Hindi 14px / English 11px. Min tap 52px. Write Watermelon first; `scorePatient()` after survey; `medilift-api` for sync.
+> SHAASTHI: Offline-first Expo SDK 50 ASHA app. WatermelonDB + Redux. Primary #003087, accent #FF6600. Bilingual Hindi 14px / English 11px. Min tap 52px. Write Watermelon first; `scorePatient()` after survey; `shaasthi-api` for sync.
 
 ## @-mentions for sessions
 
 - `@.cursor/rules/001-always-project-context.mdc`
-- `@medilift-app/src/database/schema.js`
-- `@medilift-app/src/database/sync.js`
-- `@medilift-app/src/ml/riskScorer.js`
-- `@medilift-app/src/constants/colors.js`
+- `@shaasthi-app/src/database/schema.js`
+- `@shaasthi-app/src/database/sync.js`
+- `@shaasthi-app/src/ml/riskScorer.js`
+- `@shaasthi-app/src/constants/colors.js`
 
 ## Build order (remaining work)
 
@@ -36,13 +36,13 @@ In Cursor → Settings, enable Agent, YOLO mode, Iterate on Lints, Memories, Cod
 2. **Prompt 7** — MCP ANC/PNC/immunization/growth depth
 3. **Prompt 8** — 25 risk rules + `mcpRiskRules` wired
 4. **Prompt 9** — Earnings badges, follow-up calendar, sync breakdown
-5. **Prompt 10** — Extend `medilift-api` (accounts models, flagging, Celery, Faker mock, sklearn)
+5. **Prompt 10** — Extend `shaasthi-api` (accounts models, flagging, Celery, Faker mock, sklearn)
 
 ## Verify app
 
 ```bash
-cd medilift-api && . .venv/bin/activate && python manage.py runserver
-cd medilift-app && npm start
+cd shaasthi-api && . .venv/bin/activate && python manage.py runserver
+cd shaasthi-app && npm start
 ```
 
-Branch: `cursor/medilift-phased-build`
+Branch: `cursor/shaasthi-phased-build`

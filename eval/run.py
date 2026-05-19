@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""MEDILIFT eval orchestrator — runs T1–T5 and writes eval/report.json."""
+"""SHAASTHI eval orchestrator — runs T1–T5 and writes eval/report.json."""
 
 from __future__ import annotations
 
@@ -49,13 +49,13 @@ def run_cmd(name: str, cmd: list[str], cwd: Path | None = None, env: dict | None
 
 
 def tier_jest() -> dict:
-    return run_cmd("T1_jest", ["npm", "test"], cwd=ROOT / "medilift-app")
+    return run_cmd("T1_jest", ["npm", "test"], cwd=ROOT / "shaasthi-app")
 
 
 def tier_django() -> dict:
-    venv_python = ROOT / "medilift-api" / ".venv" / "bin" / "python"
+    venv_python = ROOT / "shaasthi-api" / ".venv" / "bin" / "python"
     python = str(venv_python) if venv_python.exists() else sys.executable
-    return run_cmd("T2_django", [python, "manage.py", "test", "tests"], cwd=ROOT / "medilift-api")
+    return run_cmd("T2_django", [python, "manage.py", "test", "tests"], cwd=ROOT / "shaasthi-api")
 
 
 def tier_contracts(offline: bool) -> dict:
@@ -66,7 +66,7 @@ def tier_contracts(offline: bool) -> dict:
 
 
 def _api_python() -> str:
-    venv_python = ROOT / "medilift-api" / ".venv" / "bin" / "python"
+    venv_python = ROOT / "shaasthi-api" / ".venv" / "bin" / "python"
     return str(venv_python) if venv_python.exists() else sys.executable
 
 
@@ -84,7 +84,7 @@ def tier_scenarios(offline: bool) -> list[dict]:
                 f"T4_{script.stem}",
                 [python, str(script)],
                 cwd=ROOT,
-                env={"MEDILIFT_API_URL": os.getenv("MEDILIFT_API_URL", "http://127.0.0.1:8000")},
+                env={"SHAASTHI_API_URL": os.getenv("SHAASTHI_API_URL", "http://127.0.0.1:8000")},
             )
         )
     return results
@@ -95,7 +95,7 @@ def tier_compliance() -> dict:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="MEDILIFT eval suite")
+    parser = argparse.ArgumentParser(description="SHAASTHI eval suite")
     parser.add_argument("--offline", action="store_true", help="Skip live API tiers (T3 live, T4)")
     parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4, 5], help="Run single tier only")
     parser.add_argument("--verbose", action="store_true")

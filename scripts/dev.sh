@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Start MEDILIFT API + instructions for Expo (run in second terminal).
+# Start SHAASTHI API + instructions for Expo (run in second terminal).
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
-echo "==> MEDILIFT dev bootstrap"
-cd "$ROOT/medilift-api"
+echo "==> SHAASTHI dev bootstrap"
+cd "$ROOT/shaasthi-api"
 if [ ! -d .venv ]; then
   python3 -m venv .venv
 fi

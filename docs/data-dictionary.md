@@ -1,4 +1,4 @@
-# MEDILIFT Data Dictionary
+# SHAASTHI Data Dictionary
 
 ## Shared Sync Metadata
 
