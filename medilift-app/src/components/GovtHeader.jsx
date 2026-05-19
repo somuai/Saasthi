@@ -45,8 +45,8 @@ export function GovtHeader({
             </Pressable>
           ) : null}
           <View style={styles.brandRow}>
-            <Image source={require("../../assets/saasthi-logo.png")} style={styles.brandLogo} resizeMode="contain" />
-            <Text style={styles.brand}>SAASTHI</Text>
+            <Image source={require("../../assets/shaasthi-logo.png")} style={styles.brandLogo} resizeMode="contain" />
+            <Text style={styles.brand}>SHAASTHI</Text>
           </View>
         </View>
         <View style={styles.center}>

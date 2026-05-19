@@ -15,7 +15,7 @@ export function NativeBuildRequired() {
         <Text style={styles.titleHi}>डेवलपमेंट बिल्ड आवश्यक</Text>
         <Text style={styles.titleEn}>Development build required</Text>
         <Text style={styles.body}>
-          SAASTHI uses offline SQLite (WatermelonDB). Expo Go does not include the native database module.
+          SHAASTHI uses offline SQLite (WatermelonDB). Expo Go does not include the native database module.
         </Text>
         <Text style={styles.bodyHi}>
           एक बार नेटिव ऐप बनाएँ, फिर Metro से खोलें:

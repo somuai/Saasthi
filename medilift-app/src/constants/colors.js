@@ -1,4 +1,4 @@
-/** NIC / UMANG aligned palette — SAASTHI master context */
+/** NIC / UMANG aligned palette — SHAASTHI master context */
 export const COLORS = {
   primary: "#003087",
   accent: "#FF6600",

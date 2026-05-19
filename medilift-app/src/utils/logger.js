@@ -2,15 +2,15 @@ const isDev = typeof __DEV__ !== "undefined" ? __DEV__ : process.env.NODE_ENV !=
 
 export const logger = {
   debug(...args) {
-    if (isDev) console.log("[SAASTHI]", ...args);
+    if (isDev) console.log("[SHAASTHI]", ...args);
   },
   info(...args) {
-    if (isDev) console.info("[SAASTHI]", ...args);
+    if (isDev) console.info("[SHAASTHI]", ...args);
   },
   warn(...args) {
-    console.warn("[SAASTHI]", ...args);
+    console.warn("[SHAASTHI]", ...args);
   },
   error(...args) {
-    console.error("[SAASTHI]", ...args);
+    console.error("[SHAASTHI]", ...args);
   },
 };

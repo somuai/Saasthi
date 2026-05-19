@@ -1,6 +1,6 @@
-# Saasthi Backend Pilot
+# Shaasthi Backend Pilot
 
-Django/DRF backend skeleton for the Saasthi Pilot MVP. It includes OTP auth, JWT refresh, RBAC/geography-aware APIs, registry and survey models, rule-based risk scoring, flag dedupe, sync pull/push, audit/sync event logging, config endpoints, and a small supervisor dashboard/export surface.
+Django/DRF backend skeleton for the Shaasthi Pilot MVP. It includes OTP auth, JWT refresh, RBAC/geography-aware APIs, registry and survey models, rule-based risk scoring, flag dedupe, sync pull/push, audit/sync event logging, config endpoints, and a small supervisor dashboard/export surface.
 
 ## Local setup
 

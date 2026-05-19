@@ -45,7 +45,7 @@ export default function RiskResultScreen() {
 
   async function onShare() {
     await Share.share({
-      message: `Saasthi assessment: ${patientName} — ${pct}% (${riskLevel}). De-identified summary for ASHA follow-up.`,
+      message: `Shaasthi assessment: ${patientName} — ${pct}% (${riskLevel}). De-identified summary for ASHA follow-up.`,
     });
   }
 

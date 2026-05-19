@@ -59,8 +59,8 @@ export default function AuthSplashScreen() {
       <TricolorStripe />
       <SafeAreaView style={styles.safe}>
         <View style={styles.center}>
-          <Image source={require("../../assets/saasthi-logo.png")} style={styles.logoImg} resizeMode="contain" />
-          <Text style={styles.title}>SAASTHI</Text>
+          <Image source={require("../../assets/shaasthi-logo.png")} style={styles.logoImg} resizeMode="contain" />
+          <Text style={styles.title}>SHAASTHI</Text>
           <Text style={styles.titleHi}>सास्थी — ASHA संगिनी</Text>
           <Text style={styles.nhm}>राष्ट्रीय स्वास्थ्य मिशन | National Health Mission</Text>
         </View>

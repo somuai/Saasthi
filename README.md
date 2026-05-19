@@ -55,8 +55,8 @@ flowchart LR
 ### 1. Clone & Setup
 
 ```bash
-git clone https://github.com/Luciferai04/Saasthi.git
-cd Saasthi
+git clone https://github.com/Luciferai04/Shaasthi.git
+cd Shaasthi
 ```
 
 ### 2. Start the Backend API
@@ -134,7 +134,7 @@ The mobile app displays the dev OTP as a tappable green banner. For production, 
 ## Project Structure
 
 ```
-Saasthi/
+Shaasthi/
 ├── medilift-app/                 # 📱 Expo React Native mobile app
 │   ├── app/                      #    File-based routing (expo-router)
 │   │   ├── (auth)/               #    Login, OTP, splash screens

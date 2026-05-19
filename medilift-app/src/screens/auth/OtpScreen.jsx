@@ -175,7 +175,7 @@ export default function OtpScreen() {
       <View style={styles.top}>
         <TricolorStripe />
         <SafeAreaView style={styles.topInner}>
-          <Text style={styles.logo}>SAASTHI</Text>
+          <Text style={styles.logo}>SHAASTHI</Text>
         </SafeAreaView>
       </View>
       <View style={styles.card}>

@@ -75,8 +75,8 @@ export default function LoginScreen() {
       <View style={styles.top}>
         <TricolorStripe />
         <SafeAreaView style={styles.topInner}>
-          <Image source={require("../../../assets/saasthi-logo.png")} style={styles.logoImg} resizeMode="contain" />
-          <Text style={styles.logo}>SAASTHI</Text>
+          <Image source={require("../../../assets/shaasthi-logo.png")} style={styles.logoImg} resizeMode="contain" />
+          <Text style={styles.logo}>SHAASTHI</Text>
           <Text style={styles.logoHi}>सास्थी</Text>
           <Text style={styles.sub}>ASHA Healthcare Platform</Text>
           <Text style={styles.nhm}>राष्ट्रीय स्वास्थ्य मिशन | National Health Mission</Text>

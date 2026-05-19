@@ -121,8 +121,8 @@ SIMPLE_JWT = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Saasthi Pilot API",
-    "DESCRIPTION": "Backend API for the Saasthi pilot MVP.",
+    "TITLE": "Shaasthi Pilot API",
+    "DESCRIPTION": "Backend API for the Shaasthi pilot MVP.",
     "VERSION": "0.1.0",
 }
 

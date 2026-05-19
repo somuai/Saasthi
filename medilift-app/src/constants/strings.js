@@ -1,6 +1,6 @@
 /** Bilingual string map: Hindi primary, English secondary */
 export const STRINGS = {
-  APP_NAME: { hi: "सास्थी", en: "SAASTHI" },
+  APP_NAME: { hi: "सास्थी", en: "SHAASTHI" },
   LOGIN: { hi: "लॉग इन", en: "Login" },
   VERIFY_OTP: { hi: "OTP सत्यापन", en: "Verify OTP" },
   SEND_OTP: { hi: "OTP भेजें", en: "Send OTP" },

@@ -124,7 +124,7 @@ export class LocalDatabase {
 
   assertCollection(collection) {
     if (!modelSchemas[collection]) {
-      throw new Error(`Unknown SAASTHI collection: ${collection}`);
+      throw new Error(`Unknown SHAASTHI collection: ${collection}`);
     }
   }
 }

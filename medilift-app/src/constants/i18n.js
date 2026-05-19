@@ -1,5 +1,5 @@
 export const labels = {
-  appName: { en: "Saasthi Pilot", hi: "सास्थी पायलट" },
+  appName: { en: "Shaasthi Pilot", hi: "सास्थी पायलट" },
   phone: { en: "Mobile number", hi: "मोबाइल नंबर" },
   otp: { en: "One-time password", hi: "ओटीपी" },
   consent: { en: "Consent recorded", hi: "सहमति दर्ज" },

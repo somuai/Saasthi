@@ -1,6 +1,6 @@
 # MEDILIFT — Runbook (senior dev)
 
-**Repo:** https://github.com/Luciferai04/Saasthi  
+**Repo:** https://github.com/Luciferai04/Shaasthi  
 **Branch:** `main` (pilot MVP)
 
 ## Prerequisites

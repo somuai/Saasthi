@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Saasthi Pilot",
-    "slug": "saasthi-pilot",
+    "name": "Shaasthi Pilot",
+    "slug": "shaasthi-pilot",
     "version": "0.1.0",
     "orientation": "portrait",
-    "scheme": "saasthi",
+    "scheme": "shaasthi",
     "userInterfaceStyle": "light",
     "assetBundlePatterns": [
       "**/*"
