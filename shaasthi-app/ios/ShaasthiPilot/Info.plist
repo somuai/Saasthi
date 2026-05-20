@@ -7,7 +7,7 @@
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
     <key>CFBundleDisplayName</key>
-    <string>SHAASTHI Pilot</string>
+    <string>Shaasthi Pilot</string>
     <key>CFBundleExecutable</key>
     <string>$(EXECUTABLE_NAME)</string>
     <key>CFBundleIdentifier</key>
@@ -29,6 +29,12 @@
         <array>
           <string>shaasthi</string>
           <string>in.shaasthi.pilot</string>
+        </array>
+      </dict>
+      <dict>
+        <key>CFBundleURLSchemes</key>
+        <array>
+          <string>exp+shaasthi-pilot</string>
         </array>
       </dict>
     </array>
