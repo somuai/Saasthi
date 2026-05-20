@@ -85,6 +85,10 @@ def database_from_url(url):
             "PASSWORD": parsed.password,
             "HOST": parsed.hostname,
             "PORT": parsed.port or 5432,
+            "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "60")),
+            "OPTIONS": {
+                "connect_timeout": int(os.getenv("DB_CONNECT_TIMEOUT", "10")),
+            },
         }
     return {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}
 
@@ -113,6 +117,11 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ("rest_framework.permissions.IsAuthenticated",),
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_THROTTLE_RATES": {
+        "sync_push": os.getenv("THROTTLE_SYNC_PUSH", "30/min"),
+        "survey_write": os.getenv("THROTTLE_SURVEY_WRITE", "120/hour"),
+        "risk_assess": os.getenv("THROTTLE_RISK_ASSESS", "200/hour"),
+    },
 }
 
 SIMPLE_JWT = {
@@ -132,3 +141,17 @@ EXPOSE_DEBUG_OTP = os.getenv("EXPOSE_DEBUG_OTP", "true" if DEBUG else "false").l
 # MSG91 SMS Provider Settings
 MSG91_AUTH_KEY = os.getenv("MSG91_AUTH_KEY")
 MSG91_TEMPLATE_ID = os.getenv("MSG91_TEMPLATE_ID")
+
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
+CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
+CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER", "false").lower() in {"1", "true", "yes"}
+CELERY_TIMEZONE = "Asia/Kolkata"
+CELERY_TASK_ROUTES = {
+    "risk_engine.run_risk_assessment": {"queue": "risk_assessment"},
+}
+CELERY_TASK_ANNOTATIONS = {
+    "risk_engine.run_risk_assessment": {"rate_limit": "100/s"},
+}
+CELERY_TASK_ACKS_LATE = True
+CELERY_WORKER_PREFETCH_MULTIPLIER = 1

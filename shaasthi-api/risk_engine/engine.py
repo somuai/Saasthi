@@ -1,34 +1,110 @@
-from .models import RiskRule
+"""Dynamic rule-based risk classification engine (v2)."""
+
+from __future__ import annotations
+
+from collections import defaultdict
+from dataclasses import dataclass
+from typing import Any
+
+from django.db.models import Q, Sum
+from django.utils import timezone
+
+from .models import RiskAssessment, RiskRule
 
 
-def resolve_path(patient, survey_response, field_path):
-    root, *parts = field_path.split(".")
-    current = {"patient": patient, "survey": survey_response}.get(root)
-    for part in parts:
-        if current is None:
-            return None
-        if isinstance(current, dict):
-            current = current.get(part)
-        else:
-            current = getattr(current, part, None)
-    return current
+def resolve_path(patient, survey_response, field_path: str) -> Any:
+    """Resolve dot-notation paths; never raises."""
+    if not field_path:
+        return None
+    parts = field_path.split(".")
+    root = parts[0]
+
+    try:
+        if root == "patient":
+            obj = patient
+            for part in parts[1:]:
+                if obj is None:
+                    return None
+                if isinstance(obj, dict):
+                    obj = obj.get(part)
+                elif part == "metadata" and hasattr(obj, "metadata"):
+                    obj = obj.metadata or {}
+                else:
+                    obj = getattr(obj, part, None)
+            return obj
+
+        if root == "survey":
+            if survey_response is None:
+                return None
+            if len(parts) >= 2 and parts[1] == "answers":
+                answers = getattr(survey_response, "answers", None) or {}
+                if not isinstance(answers, dict):
+                    return None
+                key = ".".join(parts[2:]) if len(parts) > 2 else None
+                if not key:
+                    return answers
+                if key in answers:
+                    return answers[key]
+                cur = answers
+                for segment in parts[2:]:
+                    if not isinstance(cur, dict):
+                        return None
+                    cur = cur.get(segment)
+                return cur
+            obj = survey_response
+            for part in parts[1:]:
+                if obj is None:
+                    return None
+                if isinstance(obj, dict):
+                    obj = obj.get(part)
+                else:
+                    obj = getattr(obj, part, None)
+            return obj
+    except Exception:
+        return None
+    return None
 
 
-def compare(actual, operator, expected):
-    if operator == RiskRule.Operator.EQ:
-        return actual == expected
-    if operator == RiskRule.Operator.GTE:
-        return actual is not None and actual >= expected
-    if operator == RiskRule.Operator.LTE:
-        return actual is not None and actual <= expected
-    if operator == RiskRule.Operator.CONTAINS:
-        return actual is not None and expected in actual
-    if operator == RiskRule.Operator.TRUTHY:
-        return bool(actual)
+def expected_value_from_rule(rule: RiskRule) -> Any:
+    raw = rule.value
+    if isinstance(raw, dict) and "value" in raw:
+        return raw["value"]
+    return raw
+
+
+def compare(actual: Any, operator: str, expected: Any) -> bool:
+    """Pure operator evaluation; None actual is non-matching except falsy."""
+    if actual is None and operator not in (RiskRule.Operator.FALSY,):
+        return False
+
+    try:
+        if operator == RiskRule.Operator.TRUTHY:
+            return bool(actual)
+        if operator == RiskRule.Operator.FALSY:
+            return not bool(actual)
+        if operator == RiskRule.Operator.EQ:
+            return str(actual).lower() == str(expected).lower()
+        if operator == RiskRule.Operator.NOT_EQ:
+            return str(actual).lower() != str(expected).lower()
+        if operator == RiskRule.Operator.GTE:
+            return float(actual) >= float(expected)
+        if operator == RiskRule.Operator.GT:
+            return float(actual) > float(expected)
+        if operator == RiskRule.Operator.LTE:
+            return float(actual) <= float(expected)
+        if operator == RiskRule.Operator.LT:
+            return float(actual) < float(expected)
+        if operator == RiskRule.Operator.CONTAINS:
+            return str(expected).lower() in str(actual).lower()
+        if operator == RiskRule.Operator.IN:
+            items = expected if isinstance(expected, list) else [expected]
+            return str(actual).lower() in [str(item).lower() for item in items]
+    except (TypeError, ValueError):
+        return False
     return False
 
 
-def level_for_score(score):
+def level_for_score(score: int) -> str:
     if score >= 8:
         return "high"
     if score >= 4:
@@ -36,29 +112,285 @@ def level_for_score(score):
     return "low"
 
 
-def assess(patient, survey_response=None):
-    explanations = []
-    score = 0
-    matched_rules = []
-    for rule in RiskRule.objects.filter(is_active=True).order_by("code"):
-        actual = resolve_path(patient, survey_response, rule.field_path)
-        expected = rule.value.get("value") if isinstance(rule.value, dict) and "value" in rule.value else rule.value
-        matched = compare(actual, rule.operator, expected)
-        if matched:
-            score += rule.weight
-            matched_rules.append(rule)
+RECOMMENDATION_TEMPLATES = {
+    ("high", "communicable"): {
+        "en": "Refer to PHC within 24 hours. Possible infectious disease.",
+        "hi": "24 घंटे के अंदर PHC में भेजें। संभावित संक्रामक रोग।",
+        "urgency": "within_24h",
+    },
+    ("high", "chronic"): {
+        "en": "Refer to PHC within 24 hours. Chronic condition needs clinical review.",
+        "hi": "24 घंटे के अंदर PHC में भेजें। दीर्घकालिक स्थिति की जांच ज़रूरी।",
+        "urgency": "within_24h",
+    },
+    ("high", "critical"): {
+        "en": "EMERGENCY — refer to hospital immediately. Do not delay.",
+        "hi": "आपातकाल — तुरंत अस्पताल भेजें। देरी न करें।",
+        "urgency": "immediate",
+    },
+    ("high", "maternal"): {
+        "en": "Refer to PHC/CHC immediately. High-risk pregnancy.",
+        "hi": "PHC/CHC में तुरंत भेजें। उच्च जोखिम गर्भावस्था।",
+        "urgency": "immediate",
+    },
+    ("medium", "general"): {
+        "en": "Schedule PHC visit within 3 days. Monitor symptoms daily.",
+        "hi": "3 दिनों में PHC विजिट शेड्यूल करें। रोज़ लक्षण देखें।",
+        "urgency": "within_3_days",
+    },
+    ("low", "general"): {
+        "en": "Continue monitoring. Follow up in 2 weeks.",
+        "hi": "निगरानी जारी रखें। 2 हफ्ते में फिर मिलें।",
+        "urgency": "routine",
+    },
+}
+
+
+@dataclass
+class AssessmentResult:
+    total_score: int
+    level: str
+    explanations: list
+    rules_version: str
+    rules_snapshot: list
+    triggered_by_hard_flag: bool
+    hard_flag_rule_id: int | None
+    normalized_score: int | None
+    primary_category: str
+    secondary_categories: list
+    recommended_action_en: str
+    recommended_action_hi: str
+    recommended_urgency: str
+
+
+class RiskEngine:
+    """Evaluate patient + survey against active rules with optional as-of timestamp."""
+
+    def _as_of(self, surveyed_at=None):
+        return surveyed_at or timezone.now()
+
+    def _active_rules_queryset(self, as_of):
+        # Temporal filter only — supports offline as-of replay via deactivated_at.
+        # is_active is kept for admin UI; do not filter it here (breaks historical replay).
+        return (
+            RiskRule.objects.filter(created_at__lte=as_of)
+            .filter(Q(deactivated_at__isnull=True) | Q(deactivated_at__gt=as_of))
+            .order_by("-is_hard_flag", "code")
+        )
+
+    def get_active_rules(self, as_of=None):
+        return list(self._active_rules_queryset(self._as_of(as_of)))
+
+    def get_max_theoretical_score(self, as_of=None) -> int:
+        as_of = self._as_of(as_of)
+        total = (
+            self._active_rules_queryset(as_of)
+            .filter(is_hard_flag=False)
+            .aggregate(total=Sum("weight"))["total"]
+        )
+        return total or 1
+
+    def build_rules_snapshot(self, rules) -> list:
+        return [
+            {
+                "id": rule.id,
+                "code": rule.code,
+                "field_path": rule.field_path,
+                "operator": rule.operator,
+                "expected_value": rule.value,
+                "weight": rule.weight,
+                "category": rule.category,
+                "is_hard_flag": rule.is_hard_flag,
+                "rule_label_en": rule.rule_label_en,
+                "rule_label_hi": rule.rule_label_hi,
+            }
+            for rule in rules
+        ]
+
+    def derive_categories(self, matched_rules) -> dict:
+        category_scores = defaultdict(int)
+        for rule, _ in matched_rules:
+            category_scores[rule.category] += rule.weight
+        if not category_scores:
+            return {"primary": RiskRule.Category.GENERAL, "secondary": []}
+        sorted_cats = sorted(category_scores.items(), key=lambda item: item[1], reverse=True)
+        return {
+            "primary": sorted_cats[0][0],
+            "secondary": [cat for cat, score in sorted_cats[1:] if score > 0],
+        }
+
+    def build_explanations(self, matched_rules) -> list:
+        explanations = []
+        for rule, actual_value in matched_rules:
             explanations.append(
                 {
                     "code": rule.code,
                     "name": rule.name,
+                    "rule_id": rule.id,
+                    "rule_label_en": rule.rule_label_en or rule.name,
+                    "rule_label_hi": rule.rule_label_hi or rule.name,
                     "field_path": rule.field_path,
                     "operator": rule.operator,
-                    "expected": expected,
-                    "actual": actual,
+                    "expected": expected_value_from_rule(rule),
+                    "expected_value": expected_value_from_rule(rule),
+                    "actual": actual_value,
+                    "actual_value": actual_value,
                     "weight": rule.weight,
+                    "weight_contributed": rule.weight,
                     "severity": rule.severity,
                     "flag_type": rule.flag_type,
+                    "category": rule.category,
                 }
             )
-    versions = ",".join(f"{rule.code}:{rule.version}" for rule in matched_rules)
-    return {"total_score": score, "level": level_for_score(score), "explanations": explanations, "rules_version": versions}
+        return explanations
+
+    def get_recommendation(self, risk_level: str, primary_category: str) -> dict:
+        key = (risk_level, primary_category)
+        fallback = (risk_level, RiskRule.Category.GENERAL)
+        return RECOMMENDATION_TEMPLATES.get(
+            key,
+            RECOMMENDATION_TEMPLATES.get(
+                fallback,
+                {
+                    "en": "Consult supervisor for guidance.",
+                    "hi": "मार्गदर्शन के लिए पर्यवेक्षक से सलाह लें।",
+                    "urgency": "routine",
+                },
+            ),
+        )
+
+    def evaluate(self, patient, survey_response=None, surveyed_at=None) -> AssessmentResult:
+        as_of = self._as_of(surveyed_at)
+        active_rules = self.get_active_rules(as_of=as_of)
+        snapshot = self.build_rules_snapshot(active_rules)
+
+        for rule in active_rules:
+            if not rule.is_hard_flag:
+                continue
+            actual = resolve_path(patient, survey_response, rule.field_path)
+            expected = expected_value_from_rule(rule)
+            if compare(actual, rule.operator, expected):
+                rec_en = rule.hard_flag_message_en or "Emergency referral required"
+                rec_hi = rule.hard_flag_message_hi or "आपातकालीन रेफरल आवश्यक"
+                explanations = [
+                    {
+                        "code": rule.code,
+                        "name": rule.name,
+                        "rule_id": rule.id,
+                        "rule_label_en": rule.rule_label_en or "Critical condition detected",
+                        "rule_label_hi": rule.rule_label_hi or "गंभीर स्थिति पाई गई",
+                        "field_path": rule.field_path,
+                        "operator": rule.operator,
+                        "expected": expected,
+                        "expected_value": expected,
+                        "actual": actual,
+                        "actual_value": actual,
+                        "weight": rule.weight,
+                        "weight_contributed": rule.weight,
+                        "severity": "high",
+                        "flag_type": rule.flag_type,
+                        "category": rule.category or RiskRule.Category.CRITICAL,
+                    }
+                ]
+                return AssessmentResult(
+                    total_score=0,
+                    level="high",
+                    explanations=explanations,
+                    rules_version=f"{rule.code}:{rule.version}",
+                    rules_snapshot=snapshot,
+                    triggered_by_hard_flag=True,
+                    hard_flag_rule_id=rule.id,
+                    normalized_score=100,
+                    primary_category=rule.category or RiskRule.Category.CRITICAL,
+                    secondary_categories=[],
+                    recommended_action_en=rec_en,
+                    recommended_action_hi=rec_hi,
+                    recommended_urgency="immediate",
+                )
+
+        total_score = 0
+        matched_rules = []
+        for rule in active_rules:
+            if rule.is_hard_flag:
+                continue
+            actual = resolve_path(patient, survey_response, rule.field_path)
+            expected = expected_value_from_rule(rule)
+            if compare(actual, rule.operator, expected):
+                total_score += rule.weight
+                matched_rules.append((rule, actual))
+
+        risk_level = level_for_score(total_score)
+        max_score = self.get_max_theoretical_score(as_of=as_of)
+        normalized_score = min(round((total_score / max_score) * 100), 100)
+        categories = self.derive_categories(matched_rules)
+        explanations = self.build_explanations(matched_rules)
+        recommendation = self.get_recommendation(risk_level, categories["primary"])
+        versions = ",".join(f"{rule.code}:{rule.version}" for rule, _ in matched_rules)
+
+        return AssessmentResult(
+            total_score=total_score,
+            level=risk_level,
+            explanations=explanations,
+            rules_version=versions,
+            rules_snapshot=snapshot,
+            triggered_by_hard_flag=False,
+            hard_flag_rule_id=None,
+            normalized_score=normalized_score,
+            primary_category=categories["primary"],
+            secondary_categories=categories["secondary"],
+            recommended_action_en=recommendation["en"],
+            recommended_action_hi=recommendation["hi"],
+            recommended_urgency=recommendation["urgency"],
+        )
+
+    def create_assessment(
+        self,
+        patient,
+        survey_response=None,
+        surveyed_at=None,
+        *,
+        save: bool = True,
+    ) -> RiskAssessment:
+        result = self.evaluate(patient, survey_response, surveyed_at=surveyed_at)
+        assessment = RiskAssessment(
+            patient=patient,
+            survey_response=survey_response,
+            total_score=result.total_score,
+            level=result.level,
+            explanations=result.explanations,
+            rules_version=result.rules_version,
+            rules_snapshot=result.rules_snapshot,
+            triggered_by_hard_flag=result.triggered_by_hard_flag,
+            hard_flag_rule_id=result.hard_flag_rule_id,
+            normalized_score=result.normalized_score,
+            primary_category=result.primary_category,
+            secondary_categories=result.secondary_categories,
+            surveyed_at=surveyed_at,
+            recommended_action_en=result.recommended_action_en,
+            recommended_action_hi=result.recommended_action_hi,
+            recommended_urgency=result.recommended_urgency,
+        )
+        if save:
+            assessment.save()
+        return assessment
+
+
+def assess(patient, survey_response=None, surveyed_at=None):
+    """Backward-compatible dict return for tests and legacy callers."""
+    engine = RiskEngine()
+    result = engine.evaluate(patient, survey_response, surveyed_at=surveyed_at)
+    return {
+        "total_score": result.total_score,
+        "level": result.level,
+        "explanations": result.explanations,
+        "rules_version": result.rules_version,
+        "rules_snapshot": result.rules_snapshot,
+        "triggered_by_hard_flag": result.triggered_by_hard_flag,
+        "hard_flag_rule_id": result.hard_flag_rule_id,
+        "normalized_score": result.normalized_score,
+        "primary_category": result.primary_category,
+        "secondary_categories": result.secondary_categories,
+        "recommended_action_en": result.recommended_action_en,
+        "recommended_action_hi": result.recommended_action_hi,
+        "recommended_urgency": result.recommended_urgency,
+    }

@@ -1,7 +1,7 @@
 def for_user_geography(queryset, user):
     if not user or not user.is_authenticated:
         return queryset.none()
-    if user.is_superuser or user.role in {"admin", "auditor"}:
+    if user.is_superuser or user.role in {"admin", "auditor", "supervisor"}:
         return queryset
 
     filters = {}

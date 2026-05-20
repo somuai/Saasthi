@@ -1,39 +1,175 @@
+from django.utils import timezone
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
 from accounts.views import audit
 from flagging.services import create_flags_for_assessment
-from shaasthi_backend.querysets import for_user_geography
 from registry.models import Patient
+from shaasthi_backend.permissions import AdminOnlyPermission
+from shaasthi_backend.throttling import RiskAssessmentThrottle
+from shaasthi_backend.querysets import for_user_geography
+from surveys.models import SurveyResponse
 
+from .engine import RiskEngine
 from .models import RiskAssessment, RiskRule
+from .rule_validator import RuleValidator
+from .schemas_serializers import RiskAssessmentResponseSerializer, RiskRuleCreateSerializer, build_assessment_response
 from .serializers import RiskAssessmentSerializer, RiskRuleSerializer
 
 
 class RiskRuleViewSet(viewsets.ModelViewSet):
     queryset = RiskRule.objects.all().order_by("code")
     serializer_class = RiskRuleSerializer
-    filterset_fields = ["is_active", "severity", "flag_type"]
+    filterset_fields = ["is_active", "severity", "flag_type", "category", "is_hard_flag"]
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ("list", "retrieve", "simulate"):
+            return [IsAuthenticated()]
+        return [IsAuthenticated(), AdminOnlyPermission()]
+
+    def create(self, request, *args, **kwargs):
+        force = request.query_params.get("force", "").lower() in {"1", "true", "yes"}
+        create_serializer = RiskRuleCreateSerializer(data=request.data)
+        create_serializer.is_valid(raise_exception=True)
+        data = create_serializer.validated_data
+
+        validator = RuleValidator()
+        validation = validator.validate(data)
+        if validation.warnings and not force:
+            return Response(
+                {
+                    "detail": "Rule has conflicts. Review warnings or use ?force=true",
+                    "warnings": [w.to_dict() for w in validation.warnings],
+                },
+                status=status.HTTP_409_CONFLICT,
+            )
+
+        rule = RiskRule.objects.create(
+            code=data["code"],
+            name=data.get("name") or data["code"],
+            description=data.get("description", ""),
+            field_path=data["field_path"],
+            operator=data["operator"],
+            value=data.get("value") or {},
+            weight=data["weight"],
+            category=data.get("category", RiskRule.Category.GENERAL),
+            is_hard_flag=data.get("is_hard_flag", False),
+            hard_flag_message_en=data.get("hard_flag_message_en", ""),
+            hard_flag_message_hi=data.get("hard_flag_message_hi", ""),
+            rule_label_en=data.get("rule_label_en", ""),
+            rule_label_hi=data.get("rule_label_hi", ""),
+            severity=data.get("severity", "medium"),
+            flag_type=data.get("flag_type", "clinical_risk"),
+        )
+        audit(request, "risk.rule.create", "RiskRule", rule.code)
+        return Response(RiskRuleSerializer(rule).data, status=status.HTTP_201_CREATED)
+
+    def destroy(self, request, *args, **kwargs):
+        rule = self.get_object()
+        rule.is_active = False
+        rule.deactivated_at = timezone.now()
+        rule.deactivated_by = getattr(request.user, "email", None) or str(request.user)
+        rule.save(update_fields=["is_active", "deactivated_at", "deactivated_by", "updated_at"])
+        audit(request, "risk.rule.deactivate", "RiskRule", rule.code)
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @action(detail=False, methods=["post"], url_path="simulate")
+    def simulate(self, request):
+        create_serializer = RiskRuleCreateSerializer(data=request.data)
+        create_serializer.is_valid(raise_exception=True)
+        data = create_serializer.validated_data
+        sample_size = min(int(request.query_params.get("sample_size", 100)), 500)
+
+        from .engine import compare, resolve_path
+
+        surveys = list(
+            SurveyResponse.objects.select_related("patient").order_by("-created_at")[:sample_size]
+        )
+        would_fire_count = 0
+        sample_matches = []
+
+        for survey in surveys:
+            patient = survey.patient
+            actual_value = resolve_path(patient, survey, data["field_path"])
+            expected = data.get("value") or {}
+            if isinstance(expected, dict) and "value" in expected:
+                expected_scalar = expected["value"]
+            else:
+                expected_scalar = expected
+            if compare(actual_value, data["operator"], expected_scalar):
+                would_fire_count += 1
+                if len(sample_matches) < 5:
+                    sample_matches.append(
+                        {
+                            "patient_id": str(patient.local_uuid),
+                            "actual_value": actual_value,
+                        }
+                    )
+
+        total = len(surveys)
+        return Response(
+            {
+                "sample_size": total,
+                "would_fire_count": would_fire_count,
+                "fire_rate_percent": round((would_fire_count / max(total, 1)) * 100, 1),
+                "sample_matches": sample_matches,
+            }
+        )
 
 
 class RiskAssessmentViewSet(viewsets.ModelViewSet):
     serializer_class = RiskAssessmentSerializer
     http_method_names = ["get", "post", "head", "options"]
+    permission_classes = [IsAuthenticated]
+    throttle_classes = [RiskAssessmentThrottle]
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")
-        return RiskAssessment.objects.select_related("patient", "survey_response").filter(patient_id__in=patient_ids)
+        return RiskAssessment.objects.select_related(
+            "patient", "patient__household", "survey_response", "hard_flag_rule"
+        ).filter(patient_id__in=patient_ids)
+
+    def get_serializer_class(self):
+        if self.action in ("retrieve", "latest"):
+            return RiskAssessmentResponseSerializer
+        return RiskAssessmentSerializer
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
+        patient = serializer.validated_data.get("patient")
+        if patient and not for_user_geography(Patient.objects.filter(pk=patient.pk), request.user).exists():
+            raise PermissionDenied("No access to this patient")
         assessment = serializer.save()
         flags = create_flags_for_assessment(assessment, request.user)
         audit(request, "risk.assess", "RiskAssessment", assessment.local_uuid, {"flags_created": len(flags)})
-        output = self.get_serializer(assessment).data
+        output = build_assessment_response(assessment)
         output["flags_created"] = len(flags)
         return Response(output, status=status.HTTP_201_CREATED)
+
+    def retrieve(self, request, *args, **kwargs):
+        assessment = self.get_object()
+        return Response(build_assessment_response(assessment))
+
+    @action(detail=False, methods=["get"], url_path=r"latest/(?P<patient_local_uuid>[^/.]+)")
+    def latest(self, request, patient_local_uuid=None):
+        try:
+            patient = Patient.objects.get(local_uuid=patient_local_uuid)
+        except Patient.DoesNotExist as exc:
+            raise NotFound("Patient not found") from exc
+
+        if not for_user_geography(Patient.objects.filter(pk=patient.pk), request.user).exists():
+            raise PermissionDenied("No access to this patient")
+
+        assessment = (
+            self.get_queryset().filter(patient=patient).order_by("-created_at").first()
+        )
+        if not assessment:
+            raise NotFound("No assessment found for this patient")
+        return Response(build_assessment_response(assessment))
 
     @action(detail=True, methods=["post"])
     def flags(self, request, pk=None):

@@ -5,25 +5,74 @@ services:
       POSTGRES_DB: shaasthi
       POSTGRES_USER: shaasthi
       POSTGRES_PASSWORD: shaasthi
+    command:
+      - postgres
+      - -c
+      - shared_buffers=128MB
+      - -c
+      - work_mem=16MB
+      - -c
+      - max_connections=100
     ports:
       - "5432:5432"
     volumes:
       - shaasthi_postgres:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    command: redis-server --maxmemory 256mb --maxmemory-policy allkeys-lru
+
   api:
     build: .
-    command: sh -c "python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py seed_risk_rules &&
+             if [ \"$$USE_GUNICORN\" = \"true\" ]; then
+               gunicorn shaasthi_backend.wsgi:application -c gunicorn.conf.py;
+             else
+               python manage.py runserver 0.0.0.0:8000;
+             fi"
     environment:
       DJANGO_SECRET_KEY: dev-secret
       DJANGO_DEBUG: "true"
       DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,api
       DATABASE_URL: postgres://shaasthi:shaasthi@db:5432/shaasthi
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      DB_CONN_MAX_AGE: "60"
+      USE_GUNICORN: ${USE_GUNICORN:-false}
     ports:
       - "8000:8000"
     depends_on:
       - db
+      - redis
     volumes:
       - .:/app
+
+  celery_worker:
+    build: .
+    command: celery -A shaasthi_backend worker -Q risk_assessment,celery -l info --concurrency=4
+    environment:
+      DJANGO_SECRET_KEY: dev-secret
+      DJANGO_DEBUG: "true"
+      DATABASE_URL: postgres://shaasthi:shaasthi@db:5432/shaasthi
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - .:/app
+
+  nginx:
+    profiles: ["prod"]
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - api
 
 volumes:
   shaasthi_postgres:

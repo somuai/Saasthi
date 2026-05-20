@@ -20,3 +20,12 @@ class ReadOnlyOrSupervisor(RolePermission):
         if not request.user or not request.user.is_authenticated:
             return False
         return request.user.is_superuser or request.user.role in {"admin", "supervisor"}
+
+
+class AdminOnlyPermission(BasePermission):
+    """Rule management and other destructive admin operations."""
+
+    def has_permission(self, request, view):
+        if not request.user or not request.user.is_authenticated:
+            return False
+        return request.user.is_superuser or request.user.role == "admin"

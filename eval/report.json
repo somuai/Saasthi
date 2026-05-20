@@ -1,5 +1,5 @@
 {
-  "started_at": "2026-05-19T08:51:16Z",
+  "started_at": "2026-05-19T12:29:51Z",
   "tiers": [
     {
       "tier": "T1",
@@ -8,9 +8,9 @@
           "name": "T1_jest",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.76,
+          "duration_sec": 1.04,
           "stdout_tail": "\n> shaasthi-app@0.1.0 test\n> jest --watchAll=false\n\n",
-          "stderr_tail": "watchman warning:  Recrawled this watch 1 time, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/workerId.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       37 passed, 37 total\nSnapshots:   0 total\nTime:        0.394 s, estimated 1 s\nRan all test suites.\n"
+          "stderr_tail": "watchman warning:  Recrawled this watch 1 time, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/syncJitter.test.js\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/workerId.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/scorePatient.test.js\n\nTest Suites: 14 passed, 14 total\nTests:       39 passed, 39 total\nSnapshots:   0 total\nTime:        0.654 s, estimated 1 s\nRan all test suites.\n"
         }
       ]
     },
@@ -21,7 +21,7 @@
           "name": "T2_django",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.5,
+          "duration_sec": 0.38,
           "stdout_tail": "Found 0 test(s).\nSystem check identified no issues (0 silenced).\n",
           "stderr_tail": "\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nNO TESTS RAN\n"
         }
@@ -66,5 +66,5 @@
     }
   ],
   "ok": true,
-  "finished_at": "2026-05-19T08:51:17Z"
+  "finished_at": "2026-05-19T12:29:53Z"
 }

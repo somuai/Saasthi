@@ -11,6 +11,7 @@ import { isWatermelonNativeAvailable } from "./isNativeAvailable";
 import { getDeviceId } from "../utils/deviceId";
 import { formatSyncPushErrors } from "../utils/syncErrors";
 import { registerBackgroundSync } from "./backgroundSync";
+import { sleep, syncJitterMs } from "../utils/syncJitter";
 import Constants from "expo-constants";
 
 const LAST_PULLED_KEY = "shaasthi_last_pulled_at";
@@ -73,6 +74,7 @@ export function initAutoSync() {
     store.dispatch(setOnlineStatus(online));
     if (online && !syncInFlight) {
       try {
+        await sleep(syncJitterMs());
         await syncWithServer();
       } catch {
         /* best-effort background sync */
@@ -84,6 +86,7 @@ export function initAutoSync() {
     store.dispatch(setOnlineStatus(online));
     if (online) {
       try {
+        await sleep(syncJitterMs());
         await syncWithServer();
       } catch {
         /* ignore */

@@ -3,6 +3,10 @@ from rest_framework.test import APIClient
 
 from accounts.models import User
 
+@pytest.fixture(autouse=True)
+def _celery_eager(settings):
+    settings.CELERY_TASK_ALWAYS_EAGER = True
+
 
 @pytest.fixture
 def api_client():
@@ -17,6 +21,17 @@ def worker():
 @pytest.fixture
 def supervisor():
     return User.objects.create_user(username="supervisor", phone="+15550000002", role=User.Role.SUPERVISOR)
+
+
+@pytest.fixture
+def admin_user():
+    return User.objects.create_user(username="admin", phone="+15550000099", role=User.Role.ADMIN)
+
+
+@pytest.fixture
+def admin_client(api_client, admin_user):
+    api_client.force_authenticate(admin_user)
+    return api_client
 
 
 @pytest.fixture

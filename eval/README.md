@@ -36,6 +36,11 @@ open eval/report.json
 - `SHAASTHI_API_URL` — default `http://127.0.0.1:8000`
 - `pip install -r eval/requirements.txt` for T4
 
+## Risk scoring contract (server vs mobile)
+
+- **Server (Django):** `shaasthi-api/risk_engine/` — weighted rules, hard flags → `normalized_score=100`, levels `low` / `medium` / `high` from raw score thresholds (4 and 8).
+- **Mobile (offline):** `shaasthi-app/src/ml/riskScorer.js` — keep aligned on level thresholds and critical symptoms over time; server assessments are authoritative after sync.
+
 ## Manual smoke (not in CI)
 
 - `cd shaasthi-app && npm start` — login `+919876543210`, OTP from API `dev_otp`

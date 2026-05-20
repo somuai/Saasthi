@@ -27,6 +27,57 @@ python manage.py runserver 127.0.0.1:8000
 
 **Physical device:** set `EXPO_PUBLIC_API_URL` to your machine LAN IP, e.g. `http://192.168.1.10:8000/api/v1`.
 
+### Risk engine (v2)
+
+After migrations:
+
+```bash
+cd shaasthi-api && source .venv/bin/activate
+python manage.py migrate
+python manage.py seed_risk_rules
+```
+
+- **Assess:** `POST /api/v1/risk/assessments/` with `patient_local_uuid` (optional `survey_response_local_uuid`, `surveyed_at`).
+- **Latest:** `GET /api/v1/risk/assessments/latest/{patient_local_uuid}/`
+- **Rules (admin/supervisor):** `POST /api/v1/risk/rules/?force=true` after reviewing `409` warnings; `DELETE` soft-deactivates; `POST /api/v1/risk/rules/simulate/`
+- **Health:** `GET /health/` — DB + optional Redis ping
+- **Background:** survey create enqueues Celery `run_risk_assessment` when Redis is up
+
+Docker (API + Postgres + Redis + worker):
+
+```bash
+cd shaasthi-api && docker compose up --build
+```
+
+Production profile (Gunicorn + nginx rate limits on port 8080):
+
+```bash
+cd shaasthi-api
+USE_GUNICORN=true docker compose --profile prod up --build
+# API behind nginx: http://127.0.0.1:8080/api/v1/
+```
+
+Set `CELERY_TASK_ALWAYS_EAGER=true` in dev to run tasks inline without Redis.
+
+**Smoke:** `python manage.py verify_risk_engine`
+
+Clinical paths in seeded rules use `patient.metadata.*` (no dedicated diabetes columns on `Patient`).
+
+**`InconsistentMigrationHistory` or `no such column: …is_hard_flag`**
+
+Your local `shaasthi-api/db.sqlite3` is out of date (often from an older project that never ran `accounts` migrations). Reset dev DB:
+
+```bash
+cd shaasthi-api
+.venv/bin/python3.14 manage.py reset_dev_database --yes --seed-risk
+```
+
+Or manually: `rm db.sqlite3 && .venv/bin/python3.14 manage.py migrate && .venv/bin/python3.14 manage.py seed_risk_rules`
+
+**Docker `Cannot connect to the Docker daemon`**
+
+Start Docker Desktop first, then `docker compose up --build`. For API-only dev, skip Docker and use `runserver` with `CELERY_TASK_ALWAYS_EAGER=true` (no Redis required).
+
 ## 2. Mobile
 
 **First time (install native app on simulator):**
@@ -99,7 +150,7 @@ Report: `eval/report.json`
 | Suite | Command | Expected |
 |-------|---------|----------|
 | Mobile | `cd shaasthi-app && npm test` | 37 passed (13 suites) |
-| API | `cd shaasthi-api && python manage.py test tests` | 12 passed |
+| API | `cd shaasthi-api && .venv/bin/python3.14 -m pytest tests/` | 11 passed |
 | Eval | `make eval-offline` | OVERALL: PASS |
 | Eval (live) | `make eval` | OVERALL: PASS (requires API :8000) |
 

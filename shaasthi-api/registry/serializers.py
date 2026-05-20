@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from accounts.models import User
+
 from .models import Household, Patient
 
 
@@ -23,4 +25,12 @@ class PatientSerializer(serializers.ModelSerializer):
         household_local_uuid = attrs.pop("household_local_uuid", None)
         if household_local_uuid:
             attrs["household"] = Household.objects.get(local_uuid=household_local_uuid)
+
+        request = self.context.get("request")
+        if request and request.user.is_authenticated and request.user.role == User.Role.HEALTH_WORKER:
+            user = request.user
+            if not any(getattr(user, field, "") for field in ("village", "block", "district", "region")):
+                raise serializers.ValidationError(
+                    "ASHA worker geography (village/block/district) must be set before registering patients."
+                )
         return attrs
