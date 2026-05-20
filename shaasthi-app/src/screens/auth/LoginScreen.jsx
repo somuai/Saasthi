@@ -138,16 +138,20 @@ export default function LoginScreen() {
               </View>
             )}
           </Pressable>
-          <View style={{ height: 20 }} />
-          <View style={styles.orRow}>
-            <View style={styles.line} />
-            <Text style={styles.or}>या / OR</Text>
-            <View style={styles.line} />
-          </View>
-          <View style={{ height: 16 }} />
-          <Pressable style={styles.outlineBtn} onPress={pilotLogin}>
-            <Text style={styles.outlineText}>Pilot login (no server) / पायलट</Text>
-          </Pressable>
+          {process.env.EXPO_PUBLIC_ENV !== "production" && (
+            <>
+              <View style={{ height: 20 }} />
+              <View style={styles.orRow}>
+                <View style={styles.line} />
+                <Text style={styles.or}>या / OR</Text>
+                <View style={styles.line} />
+              </View>
+              <View style={{ height: 16 }} />
+              <Pressable style={styles.outlineBtn} onPress={pilotLogin}>
+                <Text style={styles.outlineText}>Pilot login (no server) / पायलट</Text>
+              </Pressable>
+            </>
+          )}
           <Text style={styles.aadhaarHint}>आधार OTP — जल्द उपलब्ध / Aadhaar OTP — coming soon</Text>
           <View style={{ flex: 1, minHeight: 16 }} />
           <View style={styles.footer}>
