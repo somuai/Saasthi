@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useDispatch } from "react-redux";
+import { ErrorState } from "../../components/ErrorState";
 import { GovtHeader } from "../../components/GovtHeader";
 import { GovtButton } from "../../components/GovtButton";
 import { GovtInput } from "../../components/GovtInput";
@@ -31,28 +32,44 @@ export default function ChildDevelopmentScreen() {
   const [ageMonths, setAgeMonths] = useState("12");
   const [referralNeeded, setReferralNeeded] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    if (patientId) return undefined;
-    const q = database.collections.get("patients").query(Q.where("is_deleted", false));
-    const sub = q.observe().subscribe(setPatients);
-    return () => sub.unsubscribe();
+    try {
+      if (patientId) return undefined;
+      const q = database.collections.get("patients").query(Q.where("is_deleted", false));
+      const sub = q.observe().subscribe(setPatients);
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setLoadError(e?.message || "Failed to load patients");
+      return undefined;
+    }
   }, [database, patientId]);
 
   useEffect(() => {
-    if (!patientId) return undefined;
-    const pq = database.collections.get("patients").query(Q.where("id", patientId));
-    const sub = pq.observe().subscribe((recs) => setPatient(recs[0] || null));
-    return () => sub.unsubscribe();
+    try {
+      if (!patientId) return undefined;
+      const pq = database.collections.get("patients").query(Q.where("id", patientId));
+      const sub = pq.observe().subscribe((recs) => setPatient(recs[0] || null));
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setLoadError(e?.message || "Failed to load patient");
+      return undefined;
+    }
   }, [database, patientId]);
 
   useEffect(() => {
-    if (!patient?.id) return undefined;
-    const cq = database.collections
-      .get("child_development")
-      .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false), Q.sortBy("assessment_date", Q.desc));
-    const sub = cq.observe().subscribe(setRecords);
-    return () => sub.unsubscribe();
+    try {
+      if (!patient?.id) return undefined;
+      const cq = database.collections
+        .get("child_development")
+        .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false), Q.sortBy("assessment_date", Q.desc));
+      const sub = cq.observe().subscribe(setRecords);
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setLoadError(e?.message || "Failed to load child development records");
+      return undefined;
+    }
   }, [database, patient]);
 
   async function saveAssessment() {
@@ -82,6 +99,14 @@ export default function ChildDevelopmentScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (loadError) {
+    return (
+      <View style={styles.page}>
+        <ErrorState message={loadError} onRetry={() => setLoadError(null)} />
+      </View>
+    );
   }
 
   if (!patientId) {

@@ -15,7 +15,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { ShaasthiTopBar } from "../../components/ShaasthiTopBar";
 import { GovtButton } from "../../components/GovtButton";
 import { GovtInput } from "../../components/GovtInput";
+import { LoadingState } from "../../components/LoadingState";
+import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
+import { FEATURES } from "../../constants/featureFlags";
 import { PHC_FACILITIES } from "../../constants/phcFacilities";
 import { todayYmd } from "../../utils/dateHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
@@ -43,6 +46,7 @@ export default function VisitRecordScreen() {
   const [gps, setGps] = useState(null);
   const [timestamp] = useState(() => new Date().toISOString());
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
 
   useEffect(() => {
     if (!patientId) return undefined;
@@ -52,6 +56,7 @@ export default function VisitRecordScreen() {
   }, [database, patientId]);
 
   useEffect(() => {
+    if (!FEATURES.GPS_TRACKING) return;
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") return;
@@ -62,6 +67,10 @@ export default function VisitRecordScreen() {
 
   async function saveVisit() {
     if (!patient) return;
+    if (FEATURES.GPS_TRACKING && !gps) {
+      setSaveError("GPS स्थान उपलब्ध नहीं है / GPS location not available. Please wait or disable location.");
+      return;
+    }
     setSaving(true);
     const now = Date.now();
     const day = todayYmd();
@@ -99,6 +108,8 @@ export default function VisitRecordScreen() {
       });
       dispatch(incrementPendingCount(1));
       router.back();
+    } catch (e) {
+      setSaveError(e?.message || "Failed to save visit");
     } finally {
       setSaving(false);
     }
@@ -108,7 +119,7 @@ export default function VisitRecordScreen() {
     return (
       <View style={styles.page}>
         <ShaasthiTopBar titleHi="भेंट रिकॉर्ड" titleEn="Visit record" showBack />
-        <Text style={styles.muted}>Loading…</Text>
+        <LoadingState />
       </View>
     );
   }
@@ -172,6 +183,7 @@ export default function VisitRecordScreen() {
         />
 
         <GovtButton titleHi="सहेजें" titleEn="Save visit offline" onPress={saveVisit} loading={saving} />
+        {saveError ? <Text style={styles.errorTxt}>{saveError}</Text> : null}
       </ScrollView>
     </View>
   );
@@ -239,4 +251,5 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   gpsTxt: { flex: 1, fontSize: 12, color: COLORS.textPrimary },
+  errorTxt: { color: COLORS.danger, fontSize: 13, textAlign: "center", marginTop: 8 },
 });

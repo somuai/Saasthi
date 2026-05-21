@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { Ionicons } from "@expo/vector-icons";
+import { ErrorState } from "../../components/ErrorState";
 import { GovtHeader } from "../../components/GovtHeader";
 import { GovtButton } from "../../components/GovtButton";
 import { RiskBadge } from "../../components/RiskBadge";
@@ -24,22 +25,33 @@ export default function PatientProfileScreen() {
   const router = useRouter();
   const [patient, setPatient] = useState(null);
   const [surveys, setSurveys] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     if (!id) return undefined;
-    const query = database.collections.get("patients").query(Q.where("id", id));
-    const sub = query.observe().subscribe((recs) => setPatient(recs[0] || null));
-    return () => sub.unsubscribe();
+    try {
+      const query = database.collections.get("patients").query(Q.where("id", id));
+      const sub = query.observe().subscribe((recs) => setPatient(recs[0] || null));
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setError(e?.message || "Failed to load patient");
+      return undefined;
+    }
   }, [database, id]);
 
   useEffect(() => {
     if (!id) return undefined;
-    const sub = database.collections
-      .get("survey_responses")
-      .query(Q.where("patient_id", id), Q.where("is_deleted", false), Q.sortBy("created_at", Q.desc))
-      .observe()
-      .subscribe(setSurveys);
-    return () => sub.unsubscribe();
+    try {
+      const sub = database.collections
+        .get("survey_responses")
+        .query(Q.where("patient_id", id), Q.where("is_deleted", false), Q.sortBy("created_at", Q.desc))
+        .observe()
+        .subscribe(setSurveys);
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setError(e?.message || "Failed to load surveys");
+      return undefined;
+    }
   }, [database, id]);
 
   const deleteSurvey = useCallback(
@@ -53,9 +65,13 @@ export default function PatientProfileScreen() {
             text: "Delete",
             style: "destructive",
             onPress: async () => {
-              await database.write(async () => {
-                await survey.markAsDeleted();
-              });
+              try {
+                await database.write(async () => {
+                  await survey.markAsDeleted();
+                });
+              } catch (e) {
+                Alert.alert("Error", e?.message || "Failed to delete survey");
+              }
             },
           },
         ],
@@ -78,6 +94,14 @@ export default function PatientProfileScreen() {
     },
     [router],
   );
+
+  if (error) {
+    return (
+      <View style={{ flex: 1, backgroundColor: COLORS.background, justifyContent: "center" }}>
+        <ErrorState message={error} onRetry={() => setError(null)} />
+      </View>
+    );
+  }
 
   if (!patient) {
     return (
@@ -188,4 +212,34 @@ const styles = StyleSheet.create({
   name: { fontSize: 20, fontWeight: "800", color: COLORS.textPrimary },
   link: { minHeight: tapTargetMin, justifyContent: "center" },
   linkTxt: { color: COLORS.accent, fontWeight: "700", fontSize: 15 },
+  sectionHi: { fontSize: 14, fontWeight: "800", color: COLORS.textPrimary, marginTop: 8 },
+  sectionEn: { fontSize: 11, color: COLORS.textSecondary, marginBottom: 8 },
+  muted: { color: COLORS.textSecondary, fontSize: 13 },
+  historyCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    backgroundColor: COLORS.card,
+    borderRadius: 10,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  historyLeft: { flexDirection: "row", alignItems: "center", flex: 1, gap: 10 },
+  riskDot: { width: 10, height: 10, borderRadius: 5 },
+  historyInfo: { flex: 1 },
+  historyDate: { fontSize: 13, fontWeight: "700", color: COLORS.textPrimary },
+  historyMeta: { fontSize: 11, color: COLORS.textSecondary },
+  historyActions: { flexDirection: "row", gap: 4 },
+  actionBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    minHeight: tapTargetMin,
+  },
+  deleteBtn: { marginLeft: 4 },
+  actionText: { fontSize: 11, fontWeight: "700", color: COLORS.accent },
 });

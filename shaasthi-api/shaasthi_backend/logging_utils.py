@@ -1,8 +1,10 @@
-"""Redact PHI/PII before writing structured logs."""
+"""Redact PHI/PII before writing structured logs + logging filters/formatters."""
 
 from __future__ import annotations
 
 import copy
+import json
+import logging
 import re
 
 SENSITIVE_KEYS = frozenset(
@@ -52,3 +54,40 @@ def redact_for_log(payload, *, max_depth: int = 6):
     if payload is None:
         return None
     return walk(copy.deepcopy(payload), 0)
+
+
+class PHIRedactionFilter(logging.Filter):
+    """Filter that redacts PHI/PII from log record messages and args."""
+
+    def filter(self, record):
+        if isinstance(record.msg, str):
+            record.msg = _PHONE_RE.sub("[redacted]", record.msg)
+        if record.args:
+            redacted = []
+            for arg in record.args:
+                if isinstance(arg, dict):
+                    redacted.append(redact_for_log(arg))
+                elif isinstance(arg, str) and _PHONE_RE.search(arg):
+                    redacted.append("[redacted]")
+                else:
+                    redacted.append(arg)
+            record.args = tuple(redacted)
+        return True
+
+
+class JsonLogFormatter(logging.Formatter):
+    """Output structured JSON logs for production log aggregation."""
+
+    def format(self, record):
+        log_entry = {
+            "timestamp": self.formatTime(record),
+            "name": record.name,
+            "level": record.levelname,
+            "message": record.getMessage(),
+            "module": record.module,
+            "func": record.funcName,
+            "line": record.lineno,
+        }
+        if record.exc_info and record.exc_info[0]:
+            log_entry["exception"] = self.formatException(record.exc_info)
+        return json.dumps(log_entry, default=str)

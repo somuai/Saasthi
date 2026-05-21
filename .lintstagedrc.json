@@ -1,0 +1,6 @@
+{
+  "*.{js,jsx,mjs}": ["npx eslint --fix", "npx prettier --write"],
+  "*.py": ["python3 -m ruff check --fix", "python3 -m ruff format"],
+  "*.json": ["npx prettier --write"],
+  "*.md": ["npx prettier --write"]
+}

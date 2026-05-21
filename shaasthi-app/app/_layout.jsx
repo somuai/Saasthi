@@ -6,6 +6,7 @@ import { useSelector } from "react-redux";
 import { AppProvider } from "../src/store/AppProvider";
 import { COLORS } from "../src/constants/colors";
 import { isWatermelonNativeAvailable } from "../src/database/isNativeAvailable";
+import { ErrorBoundary } from "../src/components/ErrorBoundary";
 
 function AuthGuard({ children }) {
   const user = useSelector((s) => s.auth.user);
@@ -59,6 +60,7 @@ export default function RootLayout() {
 
   return (
     <AppProvider>
+      <ErrorBoundary>
       <AuthGuard>
         <StatusBar style="light" />
         <Stack
@@ -72,6 +74,7 @@ export default function RootLayout() {
           <Stack.Screen name="(tabs)" />
         </Stack>
       </AuthGuard>
+      </ErrorBoundary>
     </AppProvider>
   );
 }

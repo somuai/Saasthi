@@ -15,6 +15,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { GovtHeader } from "../../components/GovtHeader";
 import { BentoStatGrid } from "../../components/BentoStatGrid";
 import { SyncPendingBanner } from "../../components/SyncPendingBanner";
+import { LoadingState } from "../../components/LoadingState";
+import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
 import { todayYmd, timeAgo, firstDayOfMonthYmd } from "../../utils/dateHelpers";
 import { syncWithServer, countPendingRecords } from "../../database/sync";
@@ -27,14 +29,16 @@ export default function HomeScreen() {
   const worker = useSelector((s) => s.auth.workerData);
   const { pendingCount, lastSyncedAt, isSyncing, isOnline } = useSelector((s) => s.sync);
 
-  const [surveysToday, setSurveysToday] = useState(0);
-  const [householdCount, setHouseholdCount] = useState(0);
-  const [overdueFu, setOverdueFu] = useState(0);
-  const [criticalN, setCriticalN] = useState(0);
+  const [surveysToday, setSurveysToday] = useState(null);
+  const [householdCount, setHouseholdCount] = useState(null);
+  const [overdueFu, setOverdueFu] = useState(null);
+  const [criticalN, setCriticalN] = useState(null);
+  const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
 
   const reload = useCallback(async () => {
     const t = todayYmd();
+    setError(null);
     try {
       const s1 = await database.collections
         .get("survey_responses")
@@ -58,8 +62,8 @@ export default function HomeScreen() {
       setHouseholdCount(hh);
       const pend = await countPendingRecords();
       dispatch(setPendingCount(pend));
-    } catch {
-      /* ignore */
+    } catch (e) {
+      setError(e);
     }
   }, [database, dispatch]);
 
@@ -89,23 +93,45 @@ export default function HomeScreen() {
   const greetEn = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
   const greetHi = hour < 12 ? "सुप्रभात" : hour < 17 ? "नमस्ते" : "शुभ संध्या";
 
+  const homeHeader = (
+    <GovtHeader
+      titleHi="होम"
+      title="Home"
+      showSync
+      rightComponent={
+        <Pressable onPress={() => router.push("/(tabs)/sync")} style={styles.notifBtn}>
+          <Ionicons name="notifications-outline" size={24} color="#fff" />
+          {pendingCount > 0 ? (
+            <View style={styles.notifBadge}>
+              <Text style={styles.notifBadgeTxt}>{pendingCount > 9 ? "9+" : pendingCount}</Text>
+            </View>
+          ) : null}
+        </Pressable>
+      }
+    />
+  );
+
+  if (error) {
+    return (
+      <View style={styles.page}>
+        {homeHeader}
+        <ErrorState message="Failed to load dashboard." onRetry={reload} />
+      </View>
+    );
+  }
+
+  if (surveysToday === null || householdCount === null || overdueFu === null || criticalN === null) {
+    return (
+      <View style={styles.page}>
+        {homeHeader}
+        <LoadingState />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.page}>
-      <GovtHeader
-        titleHi="होम"
-        title="Home"
-        showSync
-        rightComponent={
-          <Pressable onPress={() => router.push("/(tabs)/sync")} style={styles.notifBtn}>
-            <Ionicons name="notifications-outline" size={24} color="#fff" />
-            {pendingCount > 0 ? (
-              <View style={styles.notifBadge}>
-                <Text style={styles.notifBadgeTxt}>{pendingCount > 9 ? "9+" : pendingCount}</Text>
-              </View>
-            ) : null}
-          </Pressable>
-        }
-      />
+      {homeHeader}
       <ScrollView
         style={styles.scrollContainer}
         contentContainerStyle={styles.scroll}

@@ -5,6 +5,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useDispatch } from "react-redux";
+import { ErrorState } from "../../components/ErrorState";
 import { GovtHeader } from "../../components/GovtHeader";
 import { GovtInput } from "../../components/GovtInput";
 import { GovtButton } from "../../components/GovtButton";
@@ -27,28 +28,44 @@ export default function GrowthScreen() {
   const [height, setHeight] = useState("");
   const [ageMonths, setAgeMonths] = useState("");
   const [saving, setSaving] = useState(false);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    if (patientId) return undefined;
-    const q = database.collections.get("patients").query(Q.where("is_deleted", false));
-    const sub = q.observe().subscribe(setPatients);
-    return () => sub.unsubscribe();
+    try {
+      if (patientId) return undefined;
+      const q = database.collections.get("patients").query(Q.where("is_deleted", false));
+      const sub = q.observe().subscribe(setPatients);
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setLoadError(e?.message || "Failed to load patients");
+      return undefined;
+    }
   }, [database, patientId]);
 
   useEffect(() => {
-    if (!patientId) return undefined;
-    const pq = database.collections.get("patients").query(Q.where("id", patientId));
-    const sub = pq.observe().subscribe((recs) => setPatient(recs[0] || null));
-    return () => sub.unsubscribe();
+    try {
+      if (!patientId) return undefined;
+      const pq = database.collections.get("patients").query(Q.where("id", patientId));
+      const sub = pq.observe().subscribe((recs) => setPatient(recs[0] || null));
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setLoadError(e?.message || "Failed to load patient");
+      return undefined;
+    }
   }, [database, patientId]);
 
   useEffect(() => {
-    if (!patient?.id) return undefined;
-    const gq = database.collections
-      .get("growth_records")
-      .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false), Q.sortBy("recorded_date", Q.asc));
-    const sub = gq.observe().subscribe(setRecords);
-    return () => sub.unsubscribe();
+    try {
+      if (!patient?.id) return undefined;
+      const gq = database.collections
+        .get("growth_records")
+        .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false), Q.sortBy("recorded_date", Q.asc));
+      const sub = gq.observe().subscribe(setRecords);
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setLoadError(e?.message || "Failed to load growth records");
+      return undefined;
+    }
   }, [database, patient]);
 
   const bands = useMemo(() => whoChartBandLines(W, 120), []);
@@ -103,6 +120,14 @@ export default function GrowthScreen() {
     } finally {
       setSaving(false);
     }
+  }
+
+  if (loadError) {
+    return (
+      <View style={styles.page}>
+        <ErrorState message={loadError} onRetry={() => setLoadError(null)} />
+      </View>
+    );
   }
 
   if (!patientId) {

@@ -6,6 +6,7 @@ import { Q } from "@nozbe/watermelondb";
 import { Ionicons } from "@expo/vector-icons";
 import { GovtHeader } from "../../components/GovtHeader";
 import { PatientCard } from "../../components/PatientCard";
+import { LoadingState } from "../../components/LoadingState";
 import { COLORS } from "../../constants/colors";
 
 const FILTERS = [
@@ -18,7 +19,7 @@ const FILTERS = [
 export default function PatientsListScreen() {
   const database = useDatabase();
   const router = useRouter();
-  const [patients, setPatients] = useState([]);
+  const [patients, setPatients] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState("all");
 
@@ -39,6 +40,10 @@ export default function PatientsListScreen() {
     const sub = query.observe().subscribe(setPatients);
     return () => sub.unsubscribe();
   }, [buildQuery]);
+
+  if (patients === null) {
+    return <LoadingState />;
+  }
 
   const criticalCount = useMemo(
     () => patients.filter((p) => p.riskLevel === "critical").length,

@@ -6,7 +6,8 @@
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Expo SDK](https://img.shields.io/badge/Expo-SDK%2050-000020?logo=expo)
 ![Django](https://img.shields.io/badge/Django-4.x-092E20?logo=django)
-![Tests](https://img.shields.io/badge/tests-9%2F9%20passing-brightgreen)
+![Backend Tests](https://img.shields.io/badge/backend-79%20tests%20passing-brightgreen)
+![Frontend Tests](https://img.shields.io/badge/frontend-39%20tests%20passing-brightgreen)
 
 ---
 
@@ -266,11 +267,33 @@ With the API running, visit:
 
 ---
 
+## Code Quality
+
+- **Backend:** `ruff` linting + formatting, pytest (79 tests)
+- **Frontend:** ESLint + Prettier (14 suites, 39 tests), `npm test`
+- **E2E eval:** `make eval` (9 tiers: T1–T5)
+- **Pre-commit:** `.husky/pre-commit` runs lint-staged on staged files
+- Run `npm run lint` for JS/JSON formatting, `npm run format:api` for Python
+
+## Production Safety
+
+| Check | Mechanism |
+|---|---|
+| SECRET_KEY validation | Hard crash if `DJANGO_SECRET_KEY` is default when `DJANGO_DEBUG=false` |
+| DEBUG guard | `settings.py` reads `DJANGO_DEBUG` env var; production must be `false` |
+| ALLOWED_HOSTS validation | Hard crash if only default hosts (`localhost`, `127.0.0.1`) in production |
+| CORS | `django-cors-headers` configured; origins via `CORS_ALLOWED_ORIGINS` env |
+| Sentry | Initialized only when `SENTRY_DSN` set AND `DEBUG=false` |
+| Rate limiting | OTP endpoint throttled at 5/min via DRF `ScopedRateThrottle` |
+| PHI redaction | `PHIRedactionFilter` + `JsonLogFormatter` strip PII from structured logs |
+| React Error Boundary | `ErrorBoundary` wraps root layout; bilingual fallback UI |
+| Feature flags | All experimental features gated behind `FEATURES` in `featureFlags.js` (all `false`) |
+
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Run tests: `make eval-offline && cd shaasthi-app && npm test`
+3. Run tests: `npm run lint && make eval --offline && cd shaasthi-app && npm test`
 4. Commit with clear messages: `git commit -m "feat: add immunization reminder"`
 5. Push and open a PR
 

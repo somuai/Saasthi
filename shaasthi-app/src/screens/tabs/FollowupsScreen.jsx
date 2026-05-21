@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useDispatch } from "react-redux";
 import { GovtHeader } from "../../components/GovtHeader";
 import { GovtButton } from "../../components/GovtButton";
+import { LoadingState } from "../../components/LoadingState";
+import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
 import { todayYmd } from "../../utils/dateHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
@@ -23,31 +25,49 @@ function calendarDays(centerDate = new Date(), span = 35) {
 export default function FollowupsScreen() {
   const database = useDatabase();
   const dispatch = useDispatch();
-  const [rows, setRows] = useState([]);
-  const [patients, setPatients] = useState({});
+  const [rows, setRows] = useState(null);
+  const [patients, setPatients] = useState(null);
   const [completingId, setCompletingId] = useState(null);
+  const [error, setError] = useState(null);
   const [selectedDay, setSelectedDay] = useState(todayYmd());
   const days = useMemo(() => calendarDays(new Date(), 35), []);
 
-  useEffect(() => {
-    const q = database.collections
-      .get("follow_ups")
-      .query(Q.where("is_completed", false), Q.where("is_deleted", false), Q.sortBy("due_date", Q.asc));
-    const sub = q.observe().subscribe(setRows);
-    return () => sub.unsubscribe();
+  const setupObservers = useCallback(() => {
+    let subs = [];
+    setError(null);
+    try {
+      const q = database.collections
+        .get("follow_ups")
+        .query(Q.where("is_completed", false), Q.where("is_deleted", false), Q.sortBy("due_date", Q.asc));
+      const sub1 = q.observe().subscribe(setRows);
+      subs.push(sub1);
+
+      const pq = database.collections.get("patients").query(Q.where("is_deleted", false));
+      const sub2 = pq.observe().subscribe((list) => {
+        const map = {};
+        list.forEach((p) => {
+          map[p.id] = p;
+        });
+        setPatients(map);
+      });
+      subs.push(sub2);
+    } catch (e) {
+      setError(e);
+    }
+    return () => subs.forEach((s) => s.unsubscribe());
   }, [database]);
 
   useEffect(() => {
-    const pq = database.collections.get("patients").query(Q.where("is_deleted", false));
-    const sub = pq.observe().subscribe((list) => {
-      const map = {};
-      list.forEach((p) => {
-        map[p.id] = p;
-      });
-      setPatients(map);
-    });
-    return () => sub.unsubscribe();
-  }, [database]);
+    return setupObservers();
+  }, [setupObservers]);
+
+  if (error) {
+    return <ErrorState message="Failed to load follow-ups." onRetry={setupObservers} />;
+  }
+
+  if (rows === null || patients === null) {
+    return <LoadingState />;
+  }
 
   const filtered = useMemo(() => rows.filter((r) => r.dueDate === selectedDay), [rows, selectedDay]);
   const today = todayYmd();

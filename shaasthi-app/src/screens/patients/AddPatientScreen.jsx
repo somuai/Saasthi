@@ -3,6 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { useDispatch, useSelector } from "react-redux";
+import { ErrorState } from "../../components/ErrorState";
 import { GovtHeader } from "../../components/GovtHeader";
 import { GovtInput } from "../../components/GovtInput";
 import { ToggleRow } from "../../components/ToggleRow";
@@ -22,6 +23,7 @@ export default function AddPatientScreen() {
   const workerServerId = getWorkerServerId(auth);
   const [step, setStep] = useState(0);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
   const [form, setForm] = useState({
     name: "",
     age: "",
@@ -118,9 +120,19 @@ export default function AddPatientScreen() {
       });
       dispatch(incrementPendingCount(3));
       router.replace(`/(tabs)/patients/${newPatientId}`);
+    } catch (e) {
+      setError(e?.message || "Failed to save patient");
     } finally {
       setSaving(false);
     }
+  }
+
+  if (error) {
+    return (
+      <View style={styles.page}>
+        <ErrorState message={error} onRetry={() => setError(null)} />
+      </View>
+    );
   }
 
   return (

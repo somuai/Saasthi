@@ -4,6 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useDispatch } from "react-redux";
+import { ErrorState } from "../../components/ErrorState";
 import { GovtHeader } from "../../components/GovtHeader";
 import { ImmunizationRow } from "../../components/ImmunizationRow";
 import { COLORS } from "../../constants/colors";
@@ -32,28 +33,44 @@ export default function ImmunizationScreen() {
   const [records, setRecords] = useState([]);
   const [sheet, setSheet] = useState(null);
   const [ficToast, setFicToast] = useState(null);
+  const [loadError, setLoadError] = useState(null);
 
   useEffect(() => {
-    if (patientId) return undefined;
-    const q = database.collections.get("patients").query(Q.where("is_deleted", false));
-    const sub = q.observe().subscribe(setPatients);
-    return () => sub.unsubscribe();
+    try {
+      if (patientId) return undefined;
+      const q = database.collections.get("patients").query(Q.where("is_deleted", false));
+      const sub = q.observe().subscribe(setPatients);
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setLoadError(e?.message || "Failed to load patients");
+      return undefined;
+    }
   }, [database, patientId]);
 
   useEffect(() => {
-    if (!patientId) return undefined;
-    const pq = database.collections.get("patients").query(Q.where("id", patientId));
-    const sub = pq.observe().subscribe((recs) => setPatient(recs[0] || null));
-    return () => sub.unsubscribe();
+    try {
+      if (!patientId) return undefined;
+      const pq = database.collections.get("patients").query(Q.where("id", patientId));
+      const sub = pq.observe().subscribe((recs) => setPatient(recs[0] || null));
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setLoadError(e?.message || "Failed to load patient");
+      return undefined;
+    }
   }, [database, patientId]);
 
   useEffect(() => {
-    if (!patient?.id) return undefined;
-    const rq = database.collections
-      .get("immunization_records")
-      .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
-    const sub = rq.observe().subscribe(setRecords);
-    return () => sub.unsubscribe();
+    try {
+      if (!patient?.id) return undefined;
+      const rq = database.collections
+        .get("immunization_records")
+        .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
+      const sub = rq.observe().subscribe(setRecords);
+      return () => sub.unsubscribe();
+    } catch (e) {
+      setLoadError(e?.message || "Failed to load immunization records");
+      return undefined;
+    }
   }, [database, patient]);
 
   const schedule = useMemo(() => {
@@ -165,6 +182,14 @@ export default function ImmunizationScreen() {
       setFicToast("FIC पूर्ण / Fully immunized — ₹50 incentive recorded");
       setTimeout(() => setFicToast(null), 4000);
     }
+  }
+
+  if (loadError) {
+    return (
+      <View style={styles.page}>
+        <ErrorState message={loadError} onRetry={() => setLoadError(null)} />
+      </View>
+    );
   }
 
   if (!patientId) {

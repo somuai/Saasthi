@@ -1,4 +1,5 @@
 import os
+import sys
 from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
@@ -8,9 +9,34 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
-SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "shaasthi-dev-secret")
-DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() in {"1", "true", "yes"}
-ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver").split(",") if host.strip()]
+# ── Production safety checks ────────────────────────────────────────────
+_SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "shaasthi-dev-secret")
+_DEBUG_VALUE = os.getenv("DJANGO_DEBUG", "true").lower() in {"1", "true", "yes"}
+if _DEBUG_VALUE is False and _SECRET_KEY == "shaasthi-dev-secret":
+    print("FATAL: DJANGO_SECRET_KEY must be set to a unique value in production.", file=sys.stderr)
+    sys.exit(1)
+if _SECRET_KEY != "shaasthi-dev-secret" and _DEBUG_VALUE:
+    print("WARNING: DJANGO_DEBUG is enabled with a custom SECRET_KEY. Disable in production.", file=sys.stderr)
+
+SECRET_KEY = _SECRET_KEY
+DEBUG = _DEBUG_VALUE
+_ALLOWED_HOSTS_RAW = os.getenv("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,testserver")
+ALLOWED_HOSTS = [host.strip() for host in _ALLOWED_HOSTS_RAW.split(",") if host.strip()]
+_DEFAULT_HOSTS = {"localhost", "127.0.0.1", "testserver", "*"}
+if _DEBUG_VALUE is False and set(ALLOWED_HOSTS) <= _DEFAULT_HOSTS:
+    print("FATAL: DJANGO_ALLOWED_HOSTS must be set to production domains.", file=sys.stderr)
+    sys.exit(1)
+
+# ── Sentry (production only) ────────────────────────────────────────────
+_SENTRY_DSN = os.getenv("SENTRY_DSN")
+if _SENTRY_DSN and not DEBUG:
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=_SENTRY_DSN,
+        environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
+        traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
+        send_default_pii=False,
+    )
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -23,6 +49,7 @@ INSTALLED_APPS = [
     "rest_framework_simplejwt",
     "django_filters",
     "drf_spectacular",
+    "corsheaders",
     "accounts",
     "registry",
     "surveys",
@@ -39,6 +66,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -98,6 +126,14 @@ DATABASES = {
     "default": database_from_url(os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"))
 }
 
+# ── CORS ────────────────────────────────────────────────────────────────
+CORS_ALLOWED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:8081,http://127.0.0.1:8081").split(",")
+    if origin.strip()
+]
+CORS_ALLOW_CREDENTIALS = True
+
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -119,6 +155,7 @@ REST_FRAMEWORK = {
     "DEFAULT_FILTER_BACKENDS": ("django_filters.rest_framework.DjangoFilterBackend",),
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_RATES": {
+        "otp": os.getenv("THROTTLE_OTP", "5/min"),
         "sync_push": os.getenv("THROTTLE_SYNC_PUSH", "30/min"),
         "survey_write": os.getenv("THROTTLE_SURVEY_WRITE", "120/hour"),
         "risk_assess": os.getenv("THROTTLE_RISK_ASSESS", "200/hour"),
@@ -156,3 +193,56 @@ CELERY_TASK_ANNOTATIONS = {
 }
 CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+
+# ── Logging ─────────────────────────────────────────────────────────────
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "json": {
+            "()": "shaasthi_backend.logging_utils.JsonLogFormatter",
+            "format": "%(asctime)s %(name)s %(levelname)s %(message)s",
+        },
+        "verbose": {
+            "format": "[{asctime}] {levelname} {name} {message}",
+            "style": "{",
+        },
+    },
+    "filters": {
+        "phi_redaction": {
+            "()": "shaasthi_backend.logging_utils.PHIRedactionFilter",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "verbose" if DEBUG else "json",
+            "filters": ["phi_redaction"],
+        },
+    },
+    "root": {
+        "handlers": ["console"],
+        "level": "DEBUG" if DEBUG else "INFO",
+    },
+    "loggers": {
+        "django": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+        "celery": {
+            "handlers": ["console"],
+            "level": "WARNING",
+            "propagate": False,
+        },
+        "risk_engine": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+        },
+    },
+}

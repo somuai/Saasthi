@@ -2,6 +2,7 @@ from django.conf import settings
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .models import AuditLog, User
@@ -22,6 +23,8 @@ def audit(request, action, resource="", resource_id="", metadata=None):
 class OTPRequestView(APIView):
     authentication_classes = []
     permission_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "otp"
 
     def post(self, request):
         serializer = OTPRequestSerializer(data=request.data)
@@ -36,6 +39,8 @@ class OTPRequestView(APIView):
 class OTPVerifyView(APIView):
     authentication_classes = []
     permission_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "otp"
 
     def post(self, request):
         serializer = OTPVerifySerializer(data=request.data)

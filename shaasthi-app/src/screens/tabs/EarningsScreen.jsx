@@ -4,7 +4,10 @@ import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useSelector } from "react-redux";
 import { GovtHeader } from "../../components/GovtHeader";
+import { LoadingState } from "../../components/LoadingState";
+import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
+import { FEATURES } from "../../constants/featureFlags";
 import { firstDayOfMonthYmd, lastDayOfMonthYmd } from "../../utils/dateHelpers";
 import { tapTargetMin } from "../../constants/typography";
 
@@ -30,15 +33,26 @@ export default function EarningsScreen() {
   const database = useDatabase();
   const worker = useSelector((s) => s.auth.workerData);
   const [rows, setRows] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const start = firstDayOfMonthYmd();
-    const end = lastDayOfMonthYmd();
-    const q = database.collections
-      .get("incentive_records")
-      .query(Q.where("period_date", Q.gte(start)), Q.where("period_date", Q.lte(end)), Q.sortBy("created_at", Q.desc));
-    const sub = q.observe().subscribe(setRows);
-    return () => sub.unsubscribe();
+    let sub;
+    try {
+      const start = firstDayOfMonthYmd();
+      const end = lastDayOfMonthYmd();
+      const q = database.collections
+        .get("incentive_records")
+        .query(Q.where("period_date", Q.gte(start)), Q.where("period_date", Q.lte(end)), Q.sortBy("created_at", Q.desc));
+      sub = q.observe().subscribe((data) => {
+        setRows(data);
+        setLoaded(true);
+      });
+    } catch (e) {
+      setError(e);
+      setLoaded(true);
+    }
+    return () => sub?.unsubscribe();
   }, [database]);
 
   const totalPts = rows.reduce((a, r) => a + (r.points || 0), 0);
@@ -62,6 +76,14 @@ export default function EarningsScreen() {
     return "pending";
   }
 
+  if (error) {
+    return <ErrorState message="Failed to load earnings." />;
+  }
+
+  if (!loaded && rows.length === 0) {
+    return <LoadingState />;
+  }
+
   return (
     <View style={styles.page}>
       <GovtHeader titleHi="मेरा प्रोत्साहन" title="Incentive Ledger" showSync />
@@ -76,9 +98,11 @@ export default function EarningsScreen() {
         <Text style={styles.target}>
           लक्ष्य {MONTH_TARGET_PTS} अंक — {progress}% / Target {MONTH_TARGET_PTS} pts
         </Text>
-        <Pressable style={styles.pdfBtn} onPress={() => {}} disabled>
-          <Text style={styles.pdfTxt}>PDF — जल्द उपलब्ध / Coming soon</Text>
-        </Pressable>
+        {FEATURES.PDF_PAYSLIP && (
+          <Pressable style={styles.pdfBtn} onPress={() => {}} disabled>
+            <Text style={styles.pdfTxt}>PDF — जल्द उपलब्ध / Coming soon</Text>
+          </Pressable>
+        )}
       </View>
 
       {stats.length > 0 ? (

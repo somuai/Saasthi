@@ -3,6 +3,8 @@ import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useDispatch, useSelector } from "react-redux";
 import { GovtHeader } from "../../components/GovtHeader";
+import { LoadingState } from "../../components/LoadingState";
+import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
 import { timeAgo } from "../../utils/dateHelpers";
 import { countPendingByTable, countPendingRecords, syncWithServer } from "../../database/sync";
@@ -33,7 +35,7 @@ const ESTIMATED_TOTAL = 50;
 export default function SyncScreen() {
   const dispatch = useDispatch();
   const router = useRouter();
-  const { isSyncing, lastSyncedAt, lastError, isOnline, pendingCount: reduxPending } = useSelector((s) => s.sync);
+  const { isSyncing, lastSyncedAt, lastError, isOnline, pendingCount: reduxPending, status } = useSelector((s) => s.sync);
   const isOfflinePilot = useSelector((s) => s.auth.isOfflinePilotSession);
   const [localPending, setLocalPending] = useState(0);
   const [breakdown, setBreakdown] = useState([]);
@@ -68,6 +70,24 @@ export default function SyncScreen() {
     await clearAuthSession();
     dispatch(signOut());
     router.replace("/(auth)/splash");
+  }
+
+  if (status === "idle" && lastSyncedAt === null && localPending === 0) {
+    return (
+      <View style={styles.page}>
+        <GovtHeader titleHi="सिंक और सेटिंग" title="Sync & Settings" showBack showSync={false} />
+        <LoadingState />
+      </View>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <View style={styles.page}>
+        <GovtHeader titleHi="सिंक और सेटिंग" title="Sync & Settings" showBack showSync={false} />
+        <ErrorState message="Sync failed." onRetry={runSync} />
+      </View>
+    );
   }
 
   const syncedPct = Math.max(0, Math.min(100, Math.round(((ESTIMATED_TOTAL - localPending) / ESTIMATED_TOTAL) * 100)));

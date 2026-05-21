@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  Alert,
   Linking,
   Modal,
   Pressable,
@@ -20,6 +21,7 @@ import { ToggleRow } from "../../components/ToggleRow";
 import { RiskBadge } from "../../components/RiskBadge";
 import { GovtInput } from "../../components/GovtInput";
 import { COLORS } from "../../constants/colors";
+import { FEATURES } from "../../constants/featureFlags";
 import { scorePatient } from "../../ml/riskScorer";
 import { todayYmd } from "../../utils/dateHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
@@ -272,9 +274,11 @@ export default function SurveyScreen() {
           recEn: r.recommendation.en,
           recHi: r.recommendation.hi,
           recUrgency: r.recommendation.urgency,
-          recommendationSource: "rule_template",
+          recommendationSource: FEATURES.TFLITE_SCORING ? "tflite" : "rule_template",
         },
       });
+    } catch (e) {
+      Alert.alert("Save failed", e?.message || "Could not save survey. Please try again.");
     } finally {
       setSaving(false);
     }

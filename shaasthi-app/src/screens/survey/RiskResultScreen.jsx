@@ -6,6 +6,7 @@ import { ShaasthiTopBar } from "../../components/ShaasthiTopBar";
 import { FactorChip } from "../../components/FactorChip";
 import { GovtButton } from "../../components/GovtButton";
 import { COLORS } from "../../constants/colors";
+import { FEATURES } from "../../constants/featureFlags";
 import { RISK_LEVEL_COLORS } from "../../ml/riskConstants";
 import { getRecommendation } from "../../ml/riskScorer";
 import { tapTargetMin } from "../../constants/typography";
@@ -113,7 +114,7 @@ export default function RiskResultScreen() {
             <Text style={styles.recTextEn}>{recEn}</Text>
             <View style={styles.sourceRow}>
               <View style={[styles.sourceBadge, { backgroundColor: sourceInfo.color + "20", borderColor: sourceInfo.color }]}>
-                <Ionicons name={recommendationSource === "gemma4_api" ? "sparkles" : "settings"} size={12} color={sourceInfo.color} />
+                <Ionicons name={recommendationSource === "gemma4_api" ? "sparkles" : recommendationSource === "tflite" ? "phone-portrait" : "settings"} size={12} color={sourceInfo.color} />
                 <Text style={[styles.sourceText, { color: sourceInfo.color }]}>{sourceInfo.en}</Text>
               </View>
             </View>
