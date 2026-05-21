@@ -1,4 +1,4 @@
 import { FEATURES, INCENTIVE_RATES } from "../constants/featureFlags";
-export function useAllFeatureFlags() {
+export function getAllFeatureFlags() {
   return { flags: FEATURES, rates: INCENTIVE_RATES };
 }

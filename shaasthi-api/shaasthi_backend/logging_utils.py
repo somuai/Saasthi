@@ -62,7 +62,11 @@ class PHIRedactionFilter(logging.Filter):
     def filter(self, record):
         if isinstance(record.msg, str):
             record.msg = _PHONE_RE.sub("[redacted]", record.msg)
-        if record.args:
+        if not record.args:
+            return True
+        if isinstance(record.args, dict):
+            record.args = {k: _redact_value(k, v) for k, v in record.args.items()}
+        else:
             redacted = []
             for arg in record.args:
                 if isinstance(arg, dict):

@@ -1,3 +1,4 @@
+import logging
 import os
 import sys
 from datetime import timedelta
@@ -31,11 +32,18 @@ if _DEBUG_VALUE is False and set(ALLOWED_HOSTS) <= _DEFAULT_HOSTS:
 _SENTRY_DSN = os.getenv("SENTRY_DSN")
 if _SENTRY_DSN and not DEBUG:
     import sentry_sdk
+    from sentry_sdk.integrations.django import DjangoIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+
     sentry_sdk.init(
         dsn=_SENTRY_DSN,
         environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
         send_default_pii=False,
+        integrations=[
+            DjangoIntegration(),
+            LoggingIntegration(level=logging.WARNING, event_level=logging.ERROR),
+        ],
     )
 
 INSTALLED_APPS = [
@@ -133,6 +141,7 @@ CORS_ALLOWED_ORIGINS = [
     if origin.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
+CORS_URLS_REGEX = r"^/api/.*$"
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
@@ -156,10 +165,8 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_RATES": {
         "otp": os.getenv("THROTTLE_OTP", "5/min"),
-        "sync_push": os.getenv("THROTTLE_SYNC_PUSH", "30/min"),
-        "survey_write": os.getenv("THROTTLE_SURVEY_WRITE", "120/hour"),
-        "risk_assess": os.getenv("THROTTLE_RISK_ASSESS", "200/hour"),
     },
+    "DEFAULT_THROTTLE_CLASSES": (),
 }
 
 SIMPLE_JWT = {
