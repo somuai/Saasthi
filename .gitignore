@@ -1,4 +1,4 @@
-# MEDILIFT monorepo
+# SHAASTHI monorepo
 
 .DS_Store
 .env
@@ -8,8 +8,8 @@
 # Node / Expo
 node_modules/
 .expo/
-medilift-app/ios/
-medilift-app/android/
+shaasthi-app/ios/
+shaasthi-app/android/
 .cursor/
 dist/
 web-build/
@@ -40,7 +40,7 @@ tmp/
 logs/
 
 # Xcode / CocoaPods
-medilift-app/ios/Pods/
+shaasthi-app/ios/Pods/
 *.xcworkspace
 *.pbxuser
 *.mode1v3
@@ -49,7 +49,7 @@ medilift-app/ios/Pods/
 xcuserdata/
 
 # EAS / build artifacts
-medilift-app/.easignore
+shaasthi-app/.easignore
 *.ipa
 *.apk
 *.aab

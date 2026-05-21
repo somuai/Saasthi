@@ -88,7 +88,7 @@ cp .env.example .env   # optional
 npm install
 npm run native:ios     # iOS — builds in.shaasthi.pilot — ~5–15 min first run
 # or:
-npm run native:android # Android — emulator MediLift_API_34 or ANDROID_AVD
+npm run native:android # Android — emulator Shaasthi_API_34 or ANDROID_AVD
 ```
 
 **Daily dev (Metro only, after native app is installed):**
