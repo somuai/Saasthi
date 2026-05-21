@@ -61,7 +61,7 @@ export default function RiskResultScreen() {
           </Pressable>
         }
       />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <View style={[styles.hero, { borderColor: riskColor }]}>
           <View style={[styles.ring, { borderColor: riskColor, backgroundColor: riskColor }]}>
             <Text style={styles.pct}>{pct}%</Text>
@@ -115,7 +115,8 @@ export default function RiskResultScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { padding: 16, paddingBottom: 40 },
+  scrollContainer: { flex: 1 },
+  scroll: { flexGrow: 1, padding: 16, paddingBottom: 40 },
   iconBtn: { minWidth: tapTargetMin, minHeight: tapTargetMin, alignItems: "center", justifyContent: "center" },
   hero: {
     backgroundColor: COLORS.card,

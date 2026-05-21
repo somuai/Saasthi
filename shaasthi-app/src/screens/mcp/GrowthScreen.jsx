@@ -126,7 +126,7 @@ export default function GrowthScreen() {
   return (
     <View style={styles.page}>
       <GovtHeader titleHi="वृद्धि" title={patient?.name || "Growth"} showBack showSync />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <Text style={styles.h}>Weight trend / वजन प्रवृत्ति</Text>
         <Svg width={W} height={140} style={styles.chart}>
           <Line x1={20} y1={120} x2={W - 20} y2={120} stroke={COLORS.border} strokeWidth={1} />
@@ -165,6 +165,8 @@ export default function GrowthScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  scrollContainer: { flex: 1 },
+  scroll: { flexGrow: 1, padding: 16, paddingBottom: 40 },
   pick: {
     padding: 14,
     backgroundColor: COLORS.card,

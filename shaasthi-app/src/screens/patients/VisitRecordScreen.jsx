@@ -116,7 +116,7 @@ export default function VisitRecordScreen() {
   return (
     <View style={styles.page}>
       <ShaasthiTopBar titleHi="भेंट रिकॉर्ड" titleEn="Visit record" showBack />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
           <View style={styles.avatar}>
             <Ionicons name="person" size={32} color="#fff" />
@@ -179,7 +179,8 @@ export default function VisitRecordScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { padding: 16, paddingBottom: 40 },
+  scrollContainer: { flex: 1 },
+  scroll: { flexGrow: 1, padding: 16, paddingBottom: 40 },
   muted: { padding: 16, color: COLORS.textSecondary },
   header: {
     flexDirection: "row",

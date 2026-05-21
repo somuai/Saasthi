@@ -128,7 +128,8 @@ export default function FollowupsScreen() {
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+        style={styles.flatList}
+        contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={
           <Text style={styles.empty}>इस दिन कोई फॉलो-अप नहीं / No follow-ups on {selectedDay}</Text>
         }
@@ -162,6 +163,8 @@ export default function FollowupsScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  flatList: { flex: 1 },
+  flatListContent: { flexGrow: 1, padding: 16, paddingBottom: 100 },
   statsRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingTop: 8 },
   statBox: {
     flex: 1,

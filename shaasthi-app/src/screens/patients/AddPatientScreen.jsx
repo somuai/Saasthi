@@ -136,8 +136,7 @@ export default function AddPatientScreen() {
           </View>
         ))}
       </View>
-      <Text style={styles.stepLabel}>{steps[step]}</Text>
-      <ScrollView contentContainerStyle={{ padding: 16 }}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         {step === 0 ? (
           <>
             <GovtInput labelHi="पूरा नाम" labelEn="Full Name" required value={form.name} onChangeText={(t) => setForm((f) => ({ ...f, name: t }))} />
@@ -169,7 +168,7 @@ export default function AddPatientScreen() {
           <>
             <GovtInput labelHi="गांव" labelEn="Village" value={form.village} onChangeText={(t) => setForm((f) => ({ ...f, village: t }))} />
             <GovtInput labelHi="परिवार प्रमुख" labelEn="Head of family" value={form.headOfFamily} onChangeText={(t) => setForm((f) => ({ ...f, headOfFamily: t }))} />
-            <ToggleRow labelHi="सहमति" labelEn="Consent to record" value={form.consent} onChange={(v) => setForm((f) => ({ ...f, consent: v }))} />
+            <ToggleRow labelHi="सहमতি" labelEn="Consent to record" value={form.consent} onChange={(v) => setForm((f) => ({ ...f, consent: v }))} />
           </>
         ) : null}
       </ScrollView>
@@ -187,6 +186,8 @@ export default function AddPatientScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  scrollContainer: { flex: 1 },
+  scroll: { flexGrow: 1, padding: 16 },
   steps: { flexDirection: "row", justifyContent: "center", paddingVertical: 12 },
   stepDotRow: { flexDirection: "row", alignItems: "center" },
   circle: {
@@ -228,3 +229,4 @@ const styles = StyleSheet.create({
   nextBtn: { flex: 1, minHeight: 52, borderRadius: 8, backgroundColor: COLORS.accent, alignItems: "center", justifyContent: "center" },
   nextTxt: { color: "#fff", fontWeight: "800", fontSize: 16 },
 });
+

@@ -99,7 +99,8 @@ export default function EarningsScreen() {
       <FlatList
         data={rows}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+        style={styles.flatList}
+        contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={<Text style={styles.empty}>इस माह कोई रिकॉर्ड नहीं</Text>}
         renderItem={({ item }) => {
           const lbl = ACTION_LABELS[item.actionType] || { hi: item.actionType, en: item.actionType };
@@ -124,6 +125,8 @@ export default function EarningsScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  flatList: { flex: 1 },
+  flatListContent: { flexGrow: 1, paddingHorizontal: 16, paddingBottom: 100 },
   wallet: {
     margin: 16,
     padding: 20,

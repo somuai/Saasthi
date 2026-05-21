@@ -298,7 +298,7 @@ export default function SurveyScreen() {
           </Pressable>
         }
       />
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.stepRow}>
           {STEPS.map((_, i) => (
             <View key={i} style={[styles.stepDot, i <= stepIndex && styles.stepDotOn]} />
@@ -483,7 +483,8 @@ export default function SurveyScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { padding: 16, paddingBottom: 48 },
+  scrollContainer: { flex: 1 },
+  scroll: { flexGrow: 1, padding: 16, paddingBottom: 48 },
   step: { fontWeight: "800", fontSize: 15, marginBottom: 12, color: COLORS.textPrimary },
   muted: { padding: 16, color: COLORS.textSecondary },
   label: { fontSize: 12, fontWeight: "700", color: COLORS.textSecondary, marginBottom: 6 },

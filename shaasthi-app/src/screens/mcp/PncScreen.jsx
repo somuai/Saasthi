@@ -172,7 +172,7 @@ export default function PncScreen() {
   return (
     <View style={styles.page}>
       <GovtHeader titleHi="PNC" title={`PNC — ${patient.name}`} showBack showSync />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <View style={styles.tabs}>
           {PNC_DAYS.map((d) => {
             const done = mother?.[d.field] && String(mother[d.field]).length > 2;
@@ -206,6 +206,8 @@ export default function PncScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  scrollContainer: { flex: 1 },
+  scroll: { flexGrow: 1, padding: 16, paddingBottom: 40 },
   muted: { color: COLORS.textSecondary, padding: 16 },
   pick: {
     padding: 14,

@@ -82,7 +82,8 @@ export default function PatientsListScreen() {
       <FlatList
         data={patients}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingBottom: 100 }}
+        style={styles.flatList}
+        contentContainerStyle={styles.flatListContent}
         ListEmptyComponent={
           <Text style={styles.empty}>कोई मरीज नहीं / No patients yet — Add from +</Text>
         }
@@ -97,6 +98,8 @@ export default function PatientsListScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  flatList: { flex: 1 },
+  flatListContent: { flexGrow: 1, paddingBottom: 100 },
   searchWrap: {
     flexDirection: "row",
     alignItems: "center",

@@ -83,7 +83,7 @@ export default function LoginScreen() {
         </SafeAreaView>
       </View>
       <View style={styles.card}>
-        <ScrollView contentContainerStyle={styles.cardInner} keyboardShouldPersistTaps="handled">
+        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.cardInner} keyboardShouldPersistTaps="handled">
           <Text style={styles.signHi}>साइन इन करें</Text>
           <Text style={styles.signEn}>Sign In — mobile OTP</Text>
           <View style={styles.langRow}>
@@ -166,6 +166,7 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
+  scrollContainer: { flex: 1 },
   top: { flex: 0.36, backgroundColor: COLORS.primary },
   topInner: { flex: 1, alignItems: "center", paddingHorizontal: 16 },
   logoImg: { width: 72, height: 72, marginTop: 16 },

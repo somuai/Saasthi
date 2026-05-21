@@ -105,7 +105,7 @@ export default function ChildDevelopmentScreen() {
   return (
     <View style={styles.page}>
       <GovtHeader titleHi="बाल विकास" title={patient?.name || "Child dev."} showBack showSync />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <Text style={styles.h}>मील के पत्थर / Milestones (WHO-IYCF aligned)</Text>
         {DEFAULT_MILESTONES.map((m) => (
           <Text key={m.key} style={styles.milestone}>
@@ -129,6 +129,8 @@ export default function ChildDevelopmentScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  scrollContainer: { flex: 1 },
+  scroll: { flexGrow: 1, padding: 16, paddingBottom: 40 },
   h: { fontWeight: "800", color: COLORS.textPrimary, marginBottom: 8 },
   milestone: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 4 },
   pick: {

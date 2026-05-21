@@ -103,7 +103,7 @@ export default function SyncScreen() {
             data={breakdown}
             keyExtractor={(item) => item.table}
             style={styles.list}
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+            contentContainerStyle={styles.listContent}
             renderItem={({ item }) => {
               const label = TABLE_LABELS[item.table] || { hi: item.table, en: item.table };
               return (
@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
   err: { color: COLORS.danger, marginTop: 8, textAlign: "center" },
   h: { paddingHorizontal: 16, fontWeight: "800", color: COLORS.textPrimary, marginBottom: 8 },
   list: { flexGrow: 0, maxHeight: 280 },
+  listContent: { flexGrow: 1, paddingHorizontal: 16, paddingBottom: 16 },
   row: {
     flexDirection: "row",
     alignItems: "center",

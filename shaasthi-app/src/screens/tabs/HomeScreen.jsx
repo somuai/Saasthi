@@ -107,6 +107,7 @@ export default function HomeScreen() {
         }
       />
       <ScrollView
+        style={styles.scrollContainer}
         contentContainerStyle={styles.scroll}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
@@ -174,7 +175,8 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
-  scroll: { paddingBottom: 32 },
+  scrollContainer: { flex: 1 },
+  scroll: { flexGrow: 1, paddingBottom: 32 },
   notifBtn: { minWidth: 52, minHeight: 52, alignItems: "center", justifyContent: "center" },
   notifBadge: {
     position: "absolute",

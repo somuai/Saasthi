@@ -174,7 +174,8 @@ export default function ImmunizationScreen() {
         <FlatList
           data={patients.filter((p) => p.dateOfBirth)}
           keyExtractor={(p) => p.id}
-          contentContainerStyle={{ padding: 16 }}
+          style={styles.flatList}
+          contentContainerStyle={styles.flatListContent}
           ListEmptyComponent={<Text style={styles.muted}>DOB वाले बच्चे चुनें / Select child with DOB</Text>}
           renderItem={({ item }) => (
             <Pressable style={styles.pick} onPress={() => router.setParams({ patientId: item.id })}>
@@ -209,7 +210,8 @@ export default function ImmunizationScreen() {
       <FlatList
         data={schedule}
         keyExtractor={(item) => item.code}
-        contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
+        style={styles.flatList}
+        contentContainerStyle={styles.flatListContent2}
         ListEmptyComponent={<Text style={styles.muted}>DOB सेट करें / Set date of birth on patient</Text>}
         renderItem={({ item }) => <ImmunizationRow vaccine={item} onGive={markGiven} />}
       />
@@ -233,6 +235,9 @@ export default function ImmunizationScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  flatList: { flex: 1 },
+  flatListContent: { flexGrow: 1, padding: 16 },
+  flatListContent2: { flexGrow: 1, padding: 16, paddingBottom: 40 },
   muted: { color: COLORS.textSecondary, padding: 16 },
   pick: {
     padding: 14,

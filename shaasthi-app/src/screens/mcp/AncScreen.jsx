@@ -254,7 +254,7 @@ export default function AncScreen() {
   return (
     <View style={styles.page}>
       <GovtHeader titleHi="एएनसी" title={`ANC — ${patient.name}`} showBack showSync />
-      <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <Text style={styles.meta}>POG {pog}w · EDD {edd}</Text>
         <View style={styles.tabs}>
           {VISITS.map((n) => {
@@ -294,6 +294,8 @@ export default function AncScreen() {
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  scrollContainer: { flex: 1 },
+  scroll: { flexGrow: 1, padding: 16, paddingBottom: 40 },
   muted: { color: COLORS.textSecondary, padding: 16 },
   pick: {
     padding: 14,

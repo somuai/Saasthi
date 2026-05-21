@@ -3,16 +3,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, spacing } from "../constants/design";
 
 export function Screen({ children, scroll = true, style }) {
-  const content = <View style={[styles.content, style]}>{children}</View>;
-
   return (
     <SafeAreaView style={styles.safe}>
       {scroll ? (
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
-          {content}
+        <ScrollView style={styles.scrollContainer} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.scroll}>
+          <View style={[styles.contentScroll, style]}>{children}</View>
         </ScrollView>
       ) : (
-        content
+        <View style={[styles.contentNoScroll, style]}>{children}</View>
       )}
     </SafeAreaView>
   );
@@ -20,6 +18,8 @@ export function Screen({ children, scroll = true, style }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
+  scrollContainer: { flex: 1 },
   scroll: { flexGrow: 1 },
-  content: { flex: 1, gap: spacing.lg, padding: spacing.lg },
+  contentScroll: { gap: spacing.lg, padding: spacing.lg },
+  contentNoScroll: { flex: 1, gap: spacing.lg, padding: spacing.lg },
 });
