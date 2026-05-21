@@ -16,6 +16,7 @@ export const endpoints = {
   surveys: "/surveys/responses/",
   legacyRequestOtp: "/auth/request-otp/",
   legacyVerifyOtp: "/auth/verify-otp/",
+  appVersion: "/config/version/",
 };
 
 export function apiUrl(path) {

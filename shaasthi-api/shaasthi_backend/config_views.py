@@ -1,9 +1,27 @@
+import os
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from accounts.models import User
 from risk_engine.serializers import RiskRuleSerializer
 from risk_engine.models import RiskRule
+
+
+class AppVersionView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        return Response(
+            {
+                "min_version": os.environ.get("APP_MIN_VERSION", "1.0.0"),
+                "current_version": os.environ.get("APP_CURRENT_VERSION", "1.0.0"),
+                "update_url": os.environ.get("APP_UPDATE_URL", None),
+                "force_update": os.environ.get("APP_FORCE_UPDATE", "false").lower()
+                in ("true", "1", "yes"),
+            }
+        )
 
 
 class BootstrapConfigView(APIView):

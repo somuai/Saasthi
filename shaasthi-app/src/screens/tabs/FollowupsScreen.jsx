@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useDispatch } from "react-redux";
@@ -29,6 +29,7 @@ export default function FollowupsScreen() {
   const [patients, setPatients] = useState(null);
   const [completingId, setCompletingId] = useState(null);
   const [error, setError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
   const [selectedDay, setSelectedDay] = useState(todayYmd());
   const days = useMemo(() => calendarDays(new Date(), 35), []);
 
@@ -73,6 +74,14 @@ export default function FollowupsScreen() {
   const today = todayYmd();
   const overdueTotal = rows.filter((r) => r.dueDate < today).length;
   const todayTotal = rows.filter((r) => r.dueDate === today).length;
+
+  async function onRefresh() {
+    setRefreshing(true);
+    const cleanup = setupObservers();
+    await new Promise((r) => setTimeout(r, 300));
+    setRefreshing(false);
+    return cleanup;
+  }
 
   async function markDone(item) {
     setCompletingId(item.id);
@@ -150,6 +159,7 @@ export default function FollowupsScreen() {
         keyExtractor={(item) => item.id}
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
           <Text style={styles.empty}>इस दिन कोई फॉलो-अप नहीं / No follow-ups on {selectedDay}</Text>
         }

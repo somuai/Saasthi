@@ -7,6 +7,9 @@ import { AppProvider } from "../src/store/AppProvider";
 import { COLORS } from "../src/constants/colors";
 import { isWatermelonNativeAvailable } from "../src/database/isNativeAvailable";
 import { ErrorBoundary } from "../src/components/ErrorBoundary";
+import { SplashScreen } from "../src/components/SplashScreen";
+import { UpdateRequiredScreen } from "../src/components/UpdateRequiredScreen";
+import { useAppVersion } from "../src/hooks/useAppVersion";
 
 function AuthGuard({ children }) {
   const user = useSelector((s) => s.auth.user);
@@ -53,9 +56,14 @@ function AuthGuard({ children }) {
 
 export default function RootLayout() {
   const [fontsLoaded] = useShaasthiFonts();
+  const { loading: versionLoading, blocked, updateUrl } = useAppVersion();
 
-  if (!fontsLoaded) {
-    return null;
+  if (!fontsLoaded || versionLoading) {
+    return <SplashScreen />;
+  }
+
+  if (blocked) {
+    return <UpdateRequiredScreen updateUrl={updateUrl} />;
   }
 
   return (

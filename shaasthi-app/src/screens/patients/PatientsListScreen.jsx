@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -22,6 +22,7 @@ export default function PatientsListScreen() {
   const [patients, setPatients] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState("all");
+  const [refreshing, setRefreshing] = useState(false);
 
   const buildQuery = useCallback(() => {
     const conditions = [Q.where("is_deleted", false)];
@@ -40,6 +41,14 @@ export default function PatientsListScreen() {
     const sub = query.observe().subscribe(setPatients);
     return () => sub.unsubscribe();
   }, [buildQuery]);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    const query = buildQuery();
+    const list = await query.fetch();
+    setPatients(list);
+    setRefreshing(false);
+  }
 
   if (patients === null) {
     return <LoadingState />;
@@ -89,6 +98,7 @@ export default function PatientsListScreen() {
         keyExtractor={(item) => item.id}
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         ListEmptyComponent={
           <Text style={styles.empty}>कोई मरीज नहीं / No patients yet — Add from +</Text>
         }

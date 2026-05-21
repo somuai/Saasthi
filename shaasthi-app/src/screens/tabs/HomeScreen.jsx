@@ -21,6 +21,8 @@ import { COLORS } from "../../constants/colors";
 import { todayYmd, timeAgo, firstDayOfMonthYmd } from "../../utils/dateHelpers";
 import { syncWithServer, countPendingRecords } from "../../database/sync";
 import { setPendingCount, syncStarted, syncSucceeded, syncFailed } from "../../features/sync/syncSlice";
+import { signOut } from "../../features/auth/authSlice";
+import { clearAuthSession } from "../../features/auth/authSession";
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -86,6 +88,11 @@ export default function HomeScreen() {
     }
     await reload();
     setRefreshing(false);
+  }
+
+  async function logout() {
+    await clearAuthSession();
+    dispatch(signOut());
   }
 
   const initials = (worker?.name || "A").slice(0, 2);
@@ -158,6 +165,16 @@ export default function HomeScreen() {
 
         <SyncPendingBanner onSyncPress={onRefresh} />
 
+        {lastSyncedAt && Date.now() - new Date(lastSyncedAt).getTime() > 3600000 && pendingCount > 0 ? (
+          <View style={styles.staleBanner}>
+            <Ionicons name="warning-outline" size={16} color="#fff" />
+            <Text style={styles.staleTxt}>सिंक नहीं हुआ / Not synced — {timeAgo(lastSyncedAt)}</Text>
+            <Pressable onPress={onRefresh} style={styles.staleBtn}>
+              <Text style={styles.staleBtnTxt}>Sync</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
         <Text style={styles.syncMeta}>
           Last sync / आखरी सिंक: {timeAgo(lastSyncedAt)} · {isOnline ? "Online" : "Offline"}
         </Text>
@@ -185,6 +202,11 @@ export default function HomeScreen() {
             </Pressable>
           ))}
         </View>
+
+        <Pressable style={styles.logoutRow} onPress={logout}>
+          <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
+          <Text style={styles.logoutTxt}>साइन आउट / Sign Out</Text>
+        </Pressable>
 
         <Pressable style={styles.syncRow} onPress={onRefresh} disabled={isSyncing}>
           <Ionicons name="refresh" size={22} color={COLORS.primary} />
@@ -269,5 +291,39 @@ const styles = StyleSheet.create({
     minHeight: 52,
   },
   syncRowTxt: { fontWeight: "700", color: COLORS.primary },
+  staleBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COLORS.danger,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 4,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    gap: 8,
+  },
+  staleTxt: { color: "#fff", fontSize: 12, fontWeight: "700", flex: 1 },
+  staleBtn: {
+    backgroundColor: "rgba(255,255,255,0.25)",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  staleBtnTxt: { color: "#fff", fontWeight: "800", fontSize: 12 },
+  logoutRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 14,
+    backgroundColor: COLORS.card,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    minHeight: 52,
+  },
+  logoutTxt: { fontWeight: "700", color: COLORS.danger },
   disclaimer: { margin: 16, fontSize: 11, color: COLORS.textSecondary, lineHeight: 16 },
 });

@@ -1,301 +1,406 @@
-# SHAASTHI — Digital ASHA Healthcare Platform
+# SHAASTHI — Digital Health Platform for India's ASHA Workers
 
 > **Offline-first mobile platform for India's 10 lakh+ ASHA health workers.**
 > Digitize household surveys, MCP Card workflows, explainable risk scoring, and supervisor dashboards — all working without internet.
 
-![License](https://img.shields.io/badge/license-MIT-blue)
-![Expo SDK](https://img.shields.io/badge/Expo-SDK%2050-000020?logo=expo)
-![Django](https://img.shields.io/badge/Django-4.x-092E20?logo=django)
-![Backend Tests](https://img.shields.io/badge/backend-79%20tests%20passing-brightgreen)
+![Backend Tests](https://img.shields.io/badge/backend-89%20tests%20passing-brightgreen)
 ![Frontend Tests](https://img.shields.io/badge/frontend-39%20tests%20passing-brightgreen)
-
----
-
-## Why SHAASTHI?
-
-ASHA (Accredited Social Health Activist) workers serve as the first point of contact for healthcare in rural India. They still use paper registers and manual MCP cards, leading to missed follow-ups, delayed risk detection, and lost data. SHAASTHI solves this with:
-
-- **Offline-first data capture** — register households, record surveys, and track patients with zero connectivity
-- **Explainable risk scoring** — 24-rule weighted engine flags high-risk patients with human-readable reasons in Hindi + English
-- **MCP Card digitization** — ANC visits, immunization tracking, growth monitoring, and entitlement management
-- **Auto-sync** — WatermelonDB queued sync pushes data when connectivity returns
-- **Supervisor dashboards** — aggregated views, flag management, and CSV exports (PII-safe)
-- **Incentive ledger** — activity and quality based rewards, never referral-volume commissions
+![Eval](https://img.shields.io/badge/eval-8%2F9%20passing-yellow)
+![Expo SDK](https://img.shields.io/badge/Expo-SDK%2050-000020?logo=expo)
+![Django](https://img.shields.io/badge/Django-5.2-092E20?logo=django)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
 ---
 
 ## Architecture
 
-```mermaid
-flowchart LR
-  ASHA["📱 ASHA Mobile App<br/>Expo + WatermelonDB"] -->|queued sync| API["⚙️ Django API<br/>DRF + SimpleJWT"]
-  API --> DB["🗄️ Postgres / SQLite"]
-  API --> Risk["🧠 Rules Engine<br/>24 weighted rules"]
-  Risk --> Flags["🚩 Flags + Follow-ups"]
-  API --> Admin["👩‍💼 Supervisor Views"]
-  API --> Export["📊 Aggregated Reports"]
-  Config["⚙️ Forms, Rules,<br/>Facilities Config"] --> ASHA
-  Config --> API
 ```
-
----
+┌───────────────────────────────────────────────────────────┐
+│                    ASHA Worker Phone                       │
+│  ┌─────────────────────────────────────────────────────┐ │
+│  │  Expo React Native App (WatermelonDB + Redux)       │ │
+│  │                                                     │ │
+│  │  ┌──────────┐  ┌──────────┐  ┌───────────────────┐ │ │
+│  │  │ Patients │  │ Surveys  │  │ Risk Scorer (27   │ │ │
+│  │  │ Registry │  │ (7-step) │  │ rules, offline)   │ │ │
+│  │  ├──────────┤  ├──────────┤  ├───────────────────┤ │ │
+│  │  │ MCP Card │  │ Follow-  │  │ Sync Engine       │ │ │
+│  │  │ (ANC/PNC │  │ ups      │  │ (WatermelonDB     │ │ │
+│  │  │ /Immuniz)│  │ Calendar │  │  pull/push)       │ │ │
+│  │  └──────────┘  └──────────┘  └───────────────────┘ │ │
+│  └─────────────────────────────────────────────────────┘ │
+└──────────────────────────┬────────────────────────────────┘
+                           │ HTTPS (sync)
+                           ▼
+┌───────────────────────────────────────────────────────────┐
+│                    Server (Docker Compose)                 │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐ │
+│  │ Django   │  │ Celery   │  │ Redis    │  │PostgreSQL│ │
+│  │ REST API │  │ Workers  │  │ (broker) │  │ (16)     │ │
+│  │ (DRF)    │  │          │  │          │  │          │ │
+│  │ 18 apps  │  │ risk     │  │          │  │          │ │
+│  │          │  │ assess   │  │          │  │          │ │
+│  │          │  │ gemma-4  │  │          │  │          │ │
+│  └──────────┘  └──────────┘  └──────────┘  └──────────┘ │
+│  ┌──────────────────────────────────────────────────────┐ │
+│  │  Nginx (rate limiting, reverse proxy)               │ │
+│  └──────────────────────────────────────────────────────┘ │
+└───────────────────────────────────────────────────────────┘
+```
 
 ## Quick Start
 
 ### Prerequisites
+- Python 3.12+
+- Node 20+
+- Redis 7+ (for Celery)
+- PostgreSQL 16+ (or SQLite for development)
+- Expo CLI (`npm install -g expo-cli`)
+- EAS CLI (`npm install -g eas-cli`)
 
-| Tool | Version | Notes |
-|------|---------|-------|
-| Node.js | 20+ | `node -v` |
-| Python | 3.9+ | `python3 --version` |
-| Xcode | 15+ | iOS Simulator (macOS only) |
-| Android Studio | Latest | Android Emulator (optional) |
-
-> **⚠️ Expo Go is NOT supported.** WatermelonDB requires a native build. Use `npm run native:ios` or `npm run native:android`.
-
-### 1. Clone & Setup
-
-```bash
-git clone https://github.com/Luciferai04/Shaasthi.git
-cd Shaasthi
-```
-
-### 2. Start the Backend API
-
-```bash
-chmod +x scripts/dev.sh
-./scripts/dev.sh
-```
-
-This will:
-- Create a Python virtual environment
-- Install dependencies
-- Run migrations
-- Generate demo data (1 worker, 3 patients)
-- Start the API on `http://127.0.0.1:8000`
-
-<details>
-<summary>Manual backend setup</summary>
+### API Server (5 minutes)
 
 ```bash
 cd shaasthi-api
 python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements/dev.txt
+pip install -r requirements.txt -r requirements-dev.txt
+cp .env.example .env          # edit for your environment
 python manage.py migrate
-python manage.py generate_mock_data --workers 1 --patients 5
-python manage.py runserver 127.0.0.1:8000
+python manage.py seed_risk_rules
+python manage.py runserver
 ```
 
-</details>
-
-### 3. Build & Run the Mobile App
+### Mobile App (5 minutes)
 
 ```bash
 cd shaasthi-app
 npm install
-npm run native:ios       # First run: ~5-15 min (builds native modules)
+cp .env.example .env          # set EXPO_PUBLIC_API_URL
+npx expo start
 ```
 
-For Android:
+### Docker Deployment
+
 ```bash
-npm run native:android   # Requires Android Studio + emulator
+cd shaasthi-api
+cp .env.example .env          # set production values
+docker compose up -d
 ```
-
-**Daily development** (after first native build):
-```bash
-npm start                # Press 'i' for iOS simulator
-```
-
-### 4. Login
-
-1. Enter any 10-digit Indian mobile number (e.g. `9876543210`)
-2. Tap **Send OTP**
-3. The API returns a dev OTP — tap the green **Dev OTP** banner to auto-fill
-4. You're in! 🎉
-
-For offline/pilot mode: tap **"Pilot login (no server)"** — works without the API.
 
 ---
 
-## OTP Authentication
+## Production Deployment Checklist
 
-**No SMS provider is needed for development or pilot testing.**
+### Environment Variables (all required in production)
 
-The backend generates OTPs in-memory and returns them directly in the API response:
+| Variable | Description | Default |
+|---|---|---|
+| `DJANGO_SECRET_KEY` | Unique 50+ char random string | `shaasthi-dev-secret` |
+| `DJANGO_DEBUG` | Must be `false` in production | `true` |
+| `DJANGO_ALLOWED_HOSTS` | Comma-separated domain names | `localhost,127.0.0.1` |
+| `DATABASE_URL` | PostgreSQL connection string | `sqlite:///db.sqlite3` |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6379/0` |
+| `CELERY_BROKER_URL` | Redis URL for Celery | `redis://localhost:6379/0` |
+| `CORS_ALLOWED_ORIGINS` | Frontend origin(s) | `http://localhost:8081` |
+| `SENTRY_DSN` | Sentry project DSN | *(not set)* |
+| `MSG91_AUTH_KEY` | MSG91 SMS API key | *(not set)* |
+| `GEMMA_API_KEY` | Google AI API key | *(not set)* |
 
+### Production Safety (enforced at import time)
+
+- **SECRET_KEY**: Hard crash if default when `DJANGO_DEBUG=false`
+- **DEBUG**: Must be explicitly `false` in production
+- **ALLOWED_HOSTS**: Hard crash if only localhost/127.0.0.1 in production
+- **Sentry**: Initialized only when `SENTRY_DSN` set AND `DEBUG=false`; includes `DjangoIntegration` + `LoggingIntegration`
+
+### Building the APK
+
+```bash
+cd shaasthi-app
+# Development build (debug APK)
+eas build --profile development --platform android
+# Preview build (internal distribution)
+eas build --profile preview --platform android
+# Production build (Play Store)
+eas build --profile production --platform android
 ```
-POST /api/v1/auth/otp/request/  →  { "dev_otp": "482916" }
-POST /api/v1/auth/otp/verify/   →  { "access": "...", "refresh": "..." }
-```
-
-The mobile app displays the dev OTP as a tappable green banner. For production, integrate [MSG91](https://msg91.com/) or [Twilio](https://twilio.com/) — the `.env.example` already has the `SMS_PROVIDER_API_KEY` placeholder.
 
 ---
 
 ## Project Structure
 
 ```
-Shaasthi/
-├── shaasthi-app/                 # 📱 Expo React Native mobile app
-│   ├── app/                      #    File-based routing (expo-router)
-│   │   ├── (auth)/               #    Login, OTP, splash screens
-│   │   └── (tabs)/               #    Home, patients, follow-ups, earnings, MCP, sync
-│   ├── src/
-│   │   ├── api/                  #    Axios client + JWT interceptors
-│   │   ├── components/           #    27 reusable UI components
-│   │   ├── constants/            #    Colors, typography, i18n, API config
-│   │   ├── database/             #    WatermelonDB schema, sync, background sync
-│   │   ├── features/             #    Redux slices (auth, patients, survey, sync, earnings)
-│   │   ├── ml/                   #    On-device risk scoring engine (24 rules)
-│   │   ├── screens/              #    Screen implementations
-│   │   └── store/                #    Redux store + AppProvider
-│   └── __tests__/                #    Jest test suites (17 specs)
-│
-├── shaasthi-api/                 # ⚙️ Django API (primary backend)
-│   ├── apps/
-│   │   ├── accounts/             #    OTP auth + JWT
-│   │   ├── patients/             #    Patient CRUD
-│   │   ├── sync_api/             #    WatermelonDB pull/push endpoints
-│   │   ├── flagging/             #    Auto-flagging engine
-│   │   └── risk_engine/          #    Server-side risk scoring
-│   ├── config/                   #    Django settings (dev/prod)
-│   └── tests/                    #    Django test suites (12 specs)
-│
-├── shaasthi-backend/             # ⚙️ Extended backend (RBAC, surveys, audit)
-│   ├── accounts/                 #    Custom User model with roles
-│   ├── registry/                 #    Household + patient registry
-│   ├── surveys/                  #    Survey definitions + responses
-│   ├── risk_engine/              #    Server-side risk rules
-│   ├── flagging/                 #    Flag deduplication
-│   ├── sync/                     #    Sync event logging
-│   ├── referrals/                #    Referral management
-│   ├── incentives/               #    Quality-based incentive ledger
-│   └── analytics/                #    Aggregated exports
-│
-├── docs/                         # 📚 Architecture & contracts
-│   ├── architecture.md           #    System design + bounded contexts
-│   ├── data-dictionary.md        #    Field definitions
-│   ├── sync-contract.md          #    Sync protocol spec
-│   ├── risk-rule-contract.md     #    Risk rule definitions
-│   └── compliance-checklist.md   #    Privacy & safety compliance
-│
-├── contracts/                    # 📋 Machine-readable API examples
-├── eval/                         # ✅ Automated test harness (9 suites)
-└── scripts/                      # 🔧 Dev bootstrap scripts
+shaasthi-api/                  # Django REST API
+├── accounts/                  # Auth (OTP, JWT, User mgmt)
+├── analytics/                 # Dashboard + CSV export
+├── flagging/                  # Flag management
+├── followups/                 # FollowUp + VisitRecord
+├── incentives/                # Incentive ledger
+├── mcp/                       # MCP Card (ANC/PNC/Growth/Immunization)
+├── notifications/             # In-app + SMS notifications
+├── referrals/                 # Referral tracking
+├── registry/                  # Patient + Household models
+├── risk_engine/               # Risk scoring + Gemma 4 AI
+├── shaasthi_backend/          # Settings, URLs, Celery
+├── surveys/                   # Survey response models
+├── sync/                      # WatermelonDB sync
+└── tests/                     # Integration + E2E tests
+
+shaasthi-app/                  # Expo React Native
+├── app/                       # Expo Router routes
+│   ├── (auth)/                # Splash, Login, OTP
+│   └── (tabs)/                # Home, Patients, Surveys, MCP
+├── src/
+│   ├── api/                   # Axios client, endpoints
+│   ├── components/            # Shared UI components
+│   ├── constants/             # Colors, design, feature flags
+│   ├── database/              # WatermelonDB schema, sync
+│   ├── features/              # Redux slices (auth, sync)
+│   ├── hooks/                 # Custom hooks
+│   ├── ml/                    # Offline risk scorer (27 rules)
+│   ├── screens/               # Screen implementations
+│   ├── services/              # Sync client
+│   ├── store/                 # Redux store + AppProvider
+│   └── utils/                 # Date helpers, worker ID, etc.
+├── __tests__/                 # 14 test suites, 39 tests
+└── assets/                    # Images, fonts
+
+eval/                          # Automated eval harness (T1–T5)
+docs/                          # Architecture, sync contract, compliance
+contracts/                     # WatermelonDB pull fixture
 ```
 
 ---
 
-## Environment Variables
+## API Reference
 
-Copy `.env.example` to `.env` and adjust:
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/api/v1/auth/otp/request/` | Request OTP (rate limited: 5/min) |
+| `POST` | `/api/v1/auth/otp/verify/` | Verify OTP → JWT tokens |
+| `POST` | `/api/v1/auth/token/refresh/` | Refresh JWT access token |
+| `GET` | `/api/v1/config/version/` | App version check |
+| `GET` | `/api/v1/config/bootstrap/` | Bootstrap config for new installs |
+| `GET` | `/api/v1/config/rules/` | Risk rules config |
+| `GET/POST` | `/api/v1/registry/patients/` | Patient CRUD |
+| `GET/POST` | `/api/v1/registry/households/` | Household CRUD |
+| `GET/POST` | `/api/v1/surveys/responses/` | Survey responses |
+| `POST` | `/api/v1/risk/rules/simulate/` | Simulate a rule against historical data |
+| `GET/POST` | `/api/v1/risk/assessments/` | Risk assessments |
+| `GET` | `/api/v1/risk/assessments/latest/{uuid}/` | Latest assessment for patient |
+| `GET` | `/api/v1/sync/pull/` | WatermelonDB pull |
+| `POST` | `/api/v1/sync/push/` | WatermelonDB push |
+| `GET` | `/api/v1/dashboard/summary/` | Supervisor dashboard |
+| `GET` | `/api/v1/dashboard/export/flags.csv` | Flag CSV export |
+| `GET` | `/api/api/docs/` | Swagger UI |
+| `GET` | `/api/schema/` | OpenAPI schema |
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `EXPO_PUBLIC_API_URL` | `http://127.0.0.1:8000/api/v1` | Mobile app → API base URL |
-| `DJANGO_SECRET_KEY` | `change-me-in-production` | Django secret key |
-| `DJANGO_DEBUG` | `true` | Enables debug mode + dev OTP in responses |
-| `DATABASE_URL` | `sqlite:///db.sqlite3` | Database connection (Postgres supported) |
-| `CORS_ALLOWED_ORIGINS` | `http://localhost:8081` | CORS whitelist for Expo |
-| `SMS_PROVIDER_API_KEY` | *(empty)* | MSG91/Twilio key (production only) |
+---
 
-**Physical device:** set `EXPO_PUBLIC_API_URL` to your LAN IP, e.g. `http://192.168.1.10:8000/api/v1`.
+## Risk Engine
+
+The risk engine powers explainable, offline-first health risk assessment:
+
+- **27 rules** across 5 categories: communicable, chronic, critical, maternal, general
+- **10 operators**: eq, not_equals, gte, gt, lte, lt, contains, in, truthy, falsy
+- **Hard flags**: Any matched hard flag immediately produces "high" risk (bypasses scoring)
+- **Weighted scoring**: `score >= 8 → high`, `>= 4 → medium`, else `low`
+- **Normalization**: `(total_score / max_theoretical) * 100` capped at 100
+- **Bilingual output**: All recommendations in Hindi + English
+- **AI enhancement**: Celery task calls Gemma 4 API for natural-language recommendations
+- **Temporal rules**: Rules can be versioned and deactivated without data loss
+
+### Scoring Flow
+
+```
+Survey → scorePatient() → rule matching (27 rules)
+                        → hard flag check (short-circuit)
+                        → weighted score calculation
+                        → level assignment (low/medium/high)
+                        → category inference
+                        → recommendation selection
+                        → [optional] Gemma 4 AI enhancement
+                        → RiskAssessment persisted + flags created
+                        → auto-schedule follow-up if high risk
+```
+
+---
+
+## Sync Architecture (WatermelonDB)
+
+### Offline-First Design
+- 12 local tables mirror the server schema
+- Every write is queued locally with `is_synced = false`
+- Background sync every 15 minutes + on connectivity restore
+- Pull/Push via WatermelonDB's `synchronize()` function
+
+### Sync Flow
+```
+Device writes → marked as unsynced
+     ↓ (on sync trigger)
+Push pending → POST /api/v1/sync/push/ → deduplication via SyncEvent
+     ↓
+Pull changes → GET /api/v1/sync/pull/ → returns changes since last_pulled_at
+     ↓
+Risk assessment enqueued → Celery worker processes
+     ↓
+Flags + follow-ups created automatically
+```
+
+### Tables Tracked
+patients, households, survey_responses, follow_ups, flags, referrals, mother_records, immunization_records, growth_records, incentive_records, anc_visit_records, child_development
+
+---
+
+## Security
+
+| Layer | Mechanism |
+|---|---|
+| **Auth** | OTP + JWT (access 6h, refresh 30d) |
+| **Rate limiting** | OTP: 5/min (DRF), API: 20r/s (nginx), Sync: 5r/s (nginx) |
+| **CORS** | Restricted to `/api/` paths via `CORS_URLS_REGEX` |
+| **PHI** | `PHIRedactionFilter` strips phone numbers + 14 sensitive keys from all logs |
+| **Error tracking** | Sentry (production only, PII disabled) |
+| **Data isolation** | Geography-scoped queries by worker region/district/block/village |
+| **Audit trail** | All user/patient mutations logged via `AuditLog` |
+| **App version** | Backend-enforced minimum version check; blocks outdated clients |
 
 ---
 
 ## Testing
 
+### Backend (89 tests)
 ```bash
-# All 9 evaluation suites (requires API on :8000)
-make eval
-
-# Offline-only tests (no server needed)
-make eval-offline
-
-# Mobile unit tests (17 specs)
-cd shaasthi-app && npm test
-
-# Backend unit tests (12 specs)
-cd shaasthi-api && source .venv/bin/activate && python manage.py test tests
+cd shaasthi-api && .venv/bin/python -m pytest
 ```
 
-**Current status:** All 9/9 eval suites passing ✅
+| Suite | Tests | What it covers |
+|---|---|---|
+| test_e2e_pipeline | 25 | Model integrity, risk boundaries, seed idempotency, API auth, feature flags contract |
+| test_gemma_integration | 10 | Mock fallback, Celery task, source field assertions |
+| test_otp_auth | 1 | OTP request + verify flow |
+| test_risk_and_flags | 11 | Risk assessment <-> flag integration |
+| test_risk_engine_comprehensive | 31 | Hard flags, weighted scoring, temporal rules, edge cases, seed data |
+| test_sync | 1 | Sync push/pull roundtrip |
+| followups/tests | 10 | FollowUp + VisitRecord defaults, cascade, linking, ordering |
+
+### Frontend (39 tests)
+```bash
+cd shaasthi-app && npm test
+```
+
+| Suite | Tests | What it covers |
+|---|---|---|
+| authSession | 5 | Token persistence, session expiry |
+| ficIncentive | 4 | Incentive calculation rules |
+| locale | 2 | Hindi locale formatting |
+| mcpCalculators | 3 | MCP age/weight calculations |
+| riskGolden | 3 | Golden path risk outputs |
+| riskScorer | 5 | Rule matching, scoring |
+| scorePatient | 4 | End-to-end patient scoring |
+| surveyDraft | 2 | AsyncStorage draft persistence |
+| surveySubmit | 3 | Survey payload building |
+| syncContract | 2 | WatermelonDB sync shape |
+| syncErrors | 2 | Error formatting |
+| syncJitter | 1 | Sync jitter calculation |
+| userInputStorage | 1 | User input persistence |
+| workerId | 2 | Worker ID resolution |
+
+### Eval Harness (T1–T5)
+```bash
+make eval              # Full suite (requires running API)
+make eval-offline      # Offline-only tiers
+make eval-tier1        # Frontend only
+make eval-tier2        # Backend only
+```
 
 ---
 
-## Key Design Decisions
+## Feature Flags
 
-| Decision | Rationale |
-|----------|-----------|
-| **WatermelonDB** over AsyncStorage | Proper relational queries for patient-survey joins, observable queries for reactive UI, built-in sync protocol |
-| **On-device risk scoring** | Works offline; server mirrors the same rules for validation |
-| **Bilingual UI (Hindi + English)** | ASHA workers are primarily Hindi-speaking; supervisors may use English |
-| **No Expo Go** | WatermelonDB requires native SQLite bridge — Expo Go doesn't link native modules |
-| **JWT + OTP (no passwords)** | ASHA workers in the field shouldn't manage passwords; phone OTP is the standard |
-| **Incentives ≠ referral volume** | Ethical design — rewards quality visits and training, never per-patient brokerage |
+All experimental features are gated behind `FEATURES` in `shaasthi-app/src/constants/featureFlags.js`:
 
----
+| Flag | Default | Description |
+|---|---|---|
+| `VISIT_VERIFICATION_OTP` | `false` | OTP verification on field visits |
+| `OFFLINE_MAP` | `false` | Offline map support |
+| `GPS_TRACKING` | `false` | GPS capture on visit records |
+| `VOICE_INPUT` | `false` | Voice-to-text for survey fields |
+| `PDF_PAYSLIP` | `false` | PDF payslip generation |
+| `TFLITE_SCORING` | `false` | On-device TFLite model scoring |
+| `GEMMA_ONDEVICE` | `false` | On-device Gemma 4 model |
+| `ABDM_COMPLIANCE` | `false` | ABDM (Ayushman Bharat) compliance |
 
-## Troubleshooting
-
-| Problem | Solution |
-|---------|----------|
-| `WMDatabaseBridge is not defined` | You're on Expo Go — run `npm run native:ios` instead |
-| `No route named "patients"` | Ensure `app/(tabs)/patients/_layout.jsx` exists; restart Metro |
-| Port 8000 already in use | `lsof -i :8000` → `kill <PID>` |
-| iOS build fails | `cd shaasthi-app/ios && pod install` then retry |
-| "डेटाबेस लोड नहीं हुआ" | Reinstall the dev build; do not use Expo Go |
-| OTP not received | In dev, OTP is in the API response (`dev_otp`). No SMS provider needed |
+Toggle flags by changing `true`/`false` in `featureFlags.js` and rebuilding the app.
 
 ---
 
-## API Documentation
+## Monitoring & Operations
 
-With the API running, visit:
-- **Swagger UI:** http://127.0.0.1:8000/api/docs/
-- **OpenAPI Schema:** http://127.0.0.1:8000/api/schema/
+### Production Safety Guards (settings.py)
+- **SECRET_KEY**: Hard crash if default when `DJANGO_DEBUG=false`  
+- **DEBUG**: Must be explicitly `false` in production  
+- **ALLOWED_HOSTS**: Hard crash if only localhost/127.0.0.1 in production  
+- **Sentry**: Initialized only when `SENTRY_DSN` is set AND `DEBUG=false`; captures Django errors + WARNING+ log messages  
 
----
+### Logging
+- Development: human-readable verbose format  
+- Production: structured JSON via `JsonLogFormatter`  
+- All log output passes through `PHIRedactionFilter` (strips phone numbers, Aadhaar, names)  
 
-## Non-Negotiables
-
-- ✅ Every field workflow works **offline**
-- ✅ Every write records **sync and audit metadata**
-- ✅ Risk outputs always include **human-readable reasons**
-- ✅ Incentives reward **quality and outcomes**, never referral volume
-- ✅ Analytics exports are **aggregated/anonymized** unless authorized
+### Celery Workers
+```bash
+cd shaasthi-api
+celery -A shaasthi_backend worker -Q risk_assessment,celery -l info --concurrency=4
+```
 
 ---
 
 ## Code Quality
 
-- **Backend:** `ruff` linting + formatting, pytest (79 tests)
-- **Frontend:** ESLint + Prettier (14 suites, 39 tests), `npm test`
-- **E2E eval:** `make eval` (9 tiers: T1–T5)
-- **Pre-commit:** `.husky/pre-commit` runs lint-staged on staged files
-- Run `npm run lint` for JS/JSON formatting, `npm run format:api` for Python
+```bash
+# JavaScript/JSON
+npm run lint              # ESLint + Prettier check
+npm run format            # Prettier write
 
-## Production Safety
+# Python
+npm run lint:api           # ruff check
+npm run format:api         # ruff format
+```
 
-| Check | Mechanism |
+---
+
+## Architecture Decisions
+
+| Decision | Rationale |
 |---|---|
-| SECRET_KEY validation | Hard crash if `DJANGO_SECRET_KEY` is default when `DJANGO_DEBUG=false` |
-| DEBUG guard | `settings.py` reads `DJANGO_DEBUG` env var; production must be `false` |
-| ALLOWED_HOSTS validation | Hard crash if only default hosts (`localhost`, `127.0.0.1`) in production |
-| CORS | `django-cors-headers` configured; origins via `CORS_ALLOWED_ORIGINS` env |
-| Sentry | Initialized only when `SENTRY_DSN` set AND `DEBUG=false` |
-| Rate limiting | OTP endpoint throttled at 5/min via DRF `ScopedRateThrottle` |
-| PHI redaction | `PHIRedactionFilter` + `JsonLogFormatter` strip PII from structured logs |
-| React Error Boundary | `ErrorBoundary` wraps root layout; bilingual fallback UI |
-| Feature flags | All experimental features gated behind `FEATURES` in `featureFlags.js` (all `false`) |
+| **WatermelonDB** | Offline-first SQLite with sync primitives; 12 tables, no risk_assessments table (embedded in survey_responses) |
+| **Dual risk scoring** | 27 frontend rules for offline speed; backend ML + Gemma 4 for server-side enhancement |
+| **OTP + JWT** | Phone-based auth (ASHA workers have feature phones with SMS); JWT for stateless API access |
+| **Hindi + English** | All patient-facing UI strings bilingual; ASHA workers and patients |
+| **Hard flags** | Safety-critical symptoms (severe breathing, chest pain) must never be missed — hard flag bypasses all scoring |
+| **No referral commissions** | `INCENTIVE_RATES` pays Rs. 0 for missed follow-ups; rewards quality actions, never referral volume |
+| **Feature flags** | All experimental features default off; toggle without code change |
+| **Geography scoping** | Health workers only see their assigned region/district/block/village |
+
+---
 
 ## Contributing
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Run tests: `npm run lint && make eval --offline && cd shaasthi-app && npm test`
-4. Commit with clear messages: `git commit -m "feat: add immunization reminder"`
+3. Run tests: `npm run lint && make eval-offline && cd shaasthi-app && npm test`
+4. Commit: `git commit -m "feat: add feature description"`
 5. Push and open a PR
+
+### Commit Convention
+- `feat:` — new feature
+- `fix:` — bug fix
+- `refactor:` — code change without feature/bug
+- `docs:` — documentation only
+- `test:` — test additions/fixes
+- `perf:` — performance improvement
+- `sec:` — security fix
 
 ---
 
