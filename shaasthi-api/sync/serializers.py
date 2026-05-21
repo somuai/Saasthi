@@ -10,9 +10,15 @@ class SyncEventSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "received_at"]
 
 
+MODEL_CHOICES = [
+    "patient", "household", "survey_response", "follow_up",
+    "flag", "referral", "care_interaction", "incentive_ledger_entry",
+]
+
+
 class SyncChangeSerializer(serializers.Serializer):
     event_uuid = serializers.UUIDField(required=False, allow_null=True)
-    model = serializers.ChoiceField(choices=["patient", "survey_response", "flag", "referral"])
+    model = serializers.ChoiceField(choices=MODEL_CHOICES)
     local_uuid = serializers.UUIDField()
     deleted = serializers.BooleanField(default=False, required=False)
     data = serializers.DictField(default=dict, required=False)

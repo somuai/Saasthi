@@ -165,6 +165,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_THROTTLE_RATES": {
         "otp": os.getenv("THROTTLE_OTP", "5/min"),
+        "sync_push": os.getenv("THROTTLE_SYNC_PUSH", "60/min"),
     },
     "DEFAULT_THROTTLE_CLASSES": (),
 }

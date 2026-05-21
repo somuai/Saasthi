@@ -140,13 +140,20 @@ export async function syncWithServer() {
           device_id: await getDeviceId(),
           app_version: Constants.expoConfig?.version || "0.1.0",
         });
-        const errors = data?.errors;
-        if (errors?.length) {
-          const msg = formatSyncPushErrors(errors) || "sync_push_failed";
+        const pushErrors = (data?.results || []).filter(
+          (r) => r.status === "error"
+        );
+        if (pushErrors.length > 0) {
+          const errorList = pushErrors.map((r) => ({
+            id: r.local_uuid,
+            table: r.model,
+            error: r.message || "unknown_error",
+          }));
+          const msg = formatSyncPushErrors(errorList) || "sync_push_failed";
           const err = new Error(msg);
           err.code = "SYNC_PUSH_ERRORS";
-          err.pushErrors = errors;
-          err.processed = data?.processed;
+          err.pushErrors = errorList;
+          err.processed = data?.results;
           throw err;
         }
       },

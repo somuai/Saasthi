@@ -2,6 +2,7 @@ import pytest
 from rest_framework.test import APIClient
 
 from accounts.models import User
+from registry.models import Patient
 
 @pytest.fixture(autouse=True)
 def _celery_eager(settings):
@@ -38,3 +39,8 @@ def admin_client(api_client, admin_user):
 def auth_client(api_client, supervisor):
     api_client.force_authenticate(supervisor)
     return api_client
+
+
+@pytest.fixture
+def sample_patient():
+    return Patient.objects.create(full_name="Test Patient", gender="female", village="Central Village")
