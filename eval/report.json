@@ -1,5 +1,5 @@
 {
-  "started_at": "2026-05-21T07:27:48Z",
+  "started_at": "2026-05-21T11:55:50Z",
   "tiers": [
     {
       "tier": "T1",
@@ -8,9 +8,9 @@
           "name": "T1_jest",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 1.26,
+          "duration_sec": 0.87,
           "stdout_tail": "\n> shaasthi-app@0.1.0 test\n> jest --watchAll=false\n\n",
-          "stderr_tail": "watchman warning:  Recrawled this watch 1 time, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/syncJitter.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/workerId.test.js\nPASS __tests__/syncErrors.test.js\n\nTest Suites: 14 passed, 14 total\nTests:       39 passed, 39 total\nSnapshots:   0 total\nTime:        0.517 s, estimated 1 s\nRan all test suites.\n"
+          "stderr_tail": "watchman warning:  Recrawled this watch 3 times, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/riskGolden.test.js\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/syncJitter.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/workerId.test.js\n\nTest Suites: 14 passed, 14 total\nTests:       39 passed, 39 total\nSnapshots:   0 total\nTime:        0.414 s, estimated 1 s\nRan all test suites.\n"
         }
       ]
     },
@@ -21,7 +21,7 @@
           "name": "T2_django",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.62,
+          "duration_sec": 0.83,
           "stdout_tail": "Found 0 test(s).\nSystem check identified no issues (0 silenced).\n",
           "stderr_tail": "\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nNO TESTS RAN\n"
         }
@@ -47,7 +47,7 @@
           "name": "T4_auth_otp",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.18,
+          "duration_sec": 1.19,
           "stdout_tail": "PASS auth_otp\n",
           "stderr_tail": ""
         },
@@ -55,8 +55,8 @@
           "name": "T4_flagging_pipeline",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.24,
-          "stdout_tail": "ry': 'communicable', 'is_hard_flag': False, 'rule_label_en': 'Cough >= 2 weeks (TB indicator)', 'rule_label_hi': '2 \u0938\u092a\u094d\u0924\u093e\u0939 \u0938\u0947 \u0905\u0927\u093f\u0915 \u0916\u093e\u0902\u0938\u0940 (TB \u0938\u0902\u0915\u0947\u0924\u0915)'}, {'id': 6, 'code': 'DIABETES_KNOWN', 'field_path': 'patient.metadata.diabetes', 'operator': 'truthy', 'expected_value': {}, 'weight': 3, 'category': 'chronic', 'is_hard_flag': False, 'rule_label_en': 'Known diabetes', 'rule_label_hi': '\u092e\u0927\u0941\u092e\u0947\u0939'}, {'id': 4, 'code': 'FEVER_ACTIVE', 'field_path': 'survey.answers.fever', 'operator': 'truthy', 'expected_value': {}, 'weight': 3, 'category': 'communicable', 'is_hard_flag': False, 'rule_label_en': 'Active fever', 'rule_label_hi': '\u0938\u0915\u094d\u0930\u093f\u092f \u092c\u0941\u0916\u093e\u0930'}, {'id': 7, 'code': 'HYPERTENSION_KNOWN', 'field_path': 'patient.metadata.hypertension', 'operator': 'truthy', 'expected_value': {}, 'weight': 3, 'category': 'chronic', 'is_hard_flag': False, 'rule_label_en': 'Known hypertension', 'rule_label_hi': '\u0909\u091a\u094d\u091a \u0930\u0915\u094d\u0924\u091a\u093e\u092a'}, {'id': 11, 'code': 'PREGNANT', 'field_path': 'patient.metadata.pregnancy_status', 'operator': 'truthy', 'expected_value': {}, 'weight': 2, 'category': 'maternal', 'is_hard_flag': False, 'rule_label_en': 'Currently pregnant', 'rule_label_hi': '\u0917\u0930\u094d\u092d\u0935\u0924\u0940'}, {'id': 14, 'code': 'TB_COUGH_RISK', 'field_path': 'survey.answers.comm_cough_2weeks', 'operator': 'eq', 'expected_value': True, 'weight': 5, 'category': 'general', 'is_hard_flag': False, 'rule_label_en': '', 'rule_label_hi': ''}, {'id': 13, 'code': 'WEAKNESS_GENERAL', 'field_path': 'survey.answers.weakness', 'operator': 'truthy', 'expected_value': {}, 'weight': 1, 'category': 'general', 'is_hard_flag': False, 'rule_label_en': 'General weakness', 'rule_label_hi': '\u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0915\u092e\u091c\u093c\u094b\u0930\u0940'}], 'triggered_by_hard_flag': False, 'hard_flag_rule_id': None, 'normalized_score': 18, 'primary_category': 'general', 'secondary_categories': [], 'recommended_action_en': 'Schedule PHC visit within 3 days. Monitor symptoms daily.', 'recommended_action_hi': '3 \u0926\u093f\u0928\u094b\u0902 \u092e\u0947\u0902 PHC \u0935\u093f\u091c\u093f\u091f \u0936\u0947\u0921\u094d\u092f\u0942\u0932 \u0915\u0930\u0947\u0902\u0964 \u0930\u094b\u091c\u093c \u0932\u0915\u094d\u0937\u0923 \u0926\u0947\u0916\u0947\u0902\u0964', 'recommended_urgency': 'within_3_days'}\n",
+          "duration_sec": 0.64,
+          "stdout_tail": "'expected_value': {}, 'weight': 3, 'category': 'communicable', 'is_hard_flag': False, 'rule_label_en': 'Active infection / non-healing wounds', 'rule_label_hi': '\u0938\u0915\u094d\u0930\u093f\u092f \u0938\u0902\u0915\u094d\u0930\u092e\u0923 / \u0928 \u092d\u0930\u0928\u0947 \u0935\u093e\u0932\u0947 \u0918\u093e\u0935'}, {'id': 25, 'code': 'MISSED_ANC', 'field_path': 'patient.metadata.anc_visit_count', 'operator': 'less_than', 'expected_value': {'value': 4}, 'weight': 3, 'category': 'maternal', 'is_hard_flag': False, 'rule_label_en': 'Missed ANC visits (< 4)', 'rule_label_hi': 'ANC \u0935\u093f\u091c\u093f\u091f \u091b\u0942\u091f\u0940 (< 4)'}, {'id': 26, 'code': 'PERSISTENT_VOMITING', 'field_path': 'survey.answers.vomiting', 'operator': 'truthy', 'expected_value': {}, 'weight': 2, 'category': 'general', 'is_hard_flag': False, 'rule_label_en': 'Persistent vomiting', 'rule_label_hi': '\u0932\u0917\u093e\u0924\u093e\u0930 \u0909\u0932\u094d\u091f\u0940'}, {'id': 11, 'code': 'PREGNANT', 'field_path': 'patient.metadata.pregnancy_status', 'operator': 'truthy', 'expected_value': {}, 'weight': 2, 'category': 'maternal', 'is_hard_flag': False, 'rule_label_en': 'Currently pregnant', 'rule_label_hi': '\u0917\u0930\u094d\u092d\u0935\u0924\u0940'}, {'id': 14, 'code': 'TB_COUGH_RISK', 'field_path': 'survey.answers.comm_cough_2weeks', 'operator': 'eq', 'expected_value': True, 'weight': 5, 'category': 'general', 'is_hard_flag': False, 'rule_label_en': '', 'rule_label_hi': ''}, {'id': 13, 'code': 'WEAKNESS_GENERAL', 'field_path': 'survey.answers.weakness', 'operator': 'truthy', 'expected_value': {}, 'weight': 1, 'category': 'general', 'is_hard_flag': False, 'rule_label_en': 'General weakness', 'rule_label_hi': '\u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0915\u092e\u091c\u093c\u094b\u0930\u0940'}], 'triggered_by_hard_flag': False, 'hard_flag_rule_id': None, 'normalized_score': 9, 'primary_category': 'general', 'secondary_categories': [], 'recommended_action_en': 'Schedule PHC visit within 3 days. Monitor symptoms daily.', 'recommended_action_hi': '3 \u0926\u093f\u0928\u094b\u0902 \u092e\u0947\u0902 PHC \u0935\u093f\u091c\u093f\u091f \u0936\u0947\u0921\u094d\u092f\u0942\u0932 \u0915\u0930\u0947\u0902\u0964 \u0930\u094b\u091c\u093c \u0932\u0915\u094d\u0937\u0923 \u0926\u0947\u0916\u0947\u0902\u0964', 'recommended_urgency': 'within_3_days', 'recommendation_source': 'rule_template', 'score_source': 'rule_engine', 'rule_engine_score': 5, 'ml_score': None, 'ml_confidence': None, 'ml_model_version': None}\n",
           "stderr_tail": ""
         },
         {
@@ -71,15 +71,15 @@
           "name": "T4_sync_roundtrip",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.18,
-          "stdout_tail": "Push Resp: {'results': [{'event_uuid': 'e7cef115-8d66-4afd-a7ea-0819abb4820f', 'status': 'applied', 'model': 'patient', 'local_uuid': 'c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f'}, {'event_uuid': '2e7eb8b8-6efc-46ee-8a6b-b0b4fc4742d7', 'status': 'applied', 'model': 'survey_response', 'local_uuid': 'd3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a'}], 'status': 'synced', 'risk_assessment': 'processing'}\nPASS sync_roundtrip\n",
+          "duration_sec": 0.22,
+          "stdout_tail": "Push Resp: {'results': [{'event_uuid': 'b57878c3-d74c-4da3-a273-b6d315f9bd68', 'status': 'applied', 'model': 'patient', 'local_uuid': 'c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f'}, {'event_uuid': '61ca0f9e-40d1-4e18-98ac-81432089f04d', 'status': 'applied', 'model': 'survey_response', 'local_uuid': 'd3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a'}], 'status': 'synced', 'risk_assessment': 'processing'}\nPASS sync_roundtrip\n",
           "stderr_tail": ""
         },
         {
           "name": "T4_worker_scope",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.17,
+          "duration_sec": 0.18,
           "stdout_tail": "PASS worker_scope\n",
           "stderr_tail": ""
         }
@@ -100,5 +100,5 @@
     }
   ],
   "ok": true,
-  "finished_at": "2026-05-21T07:27:51Z"
+  "finished_at": "2026-05-21T11:55:55Z"
 }

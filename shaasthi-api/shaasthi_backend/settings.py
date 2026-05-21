@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "incentives",
     "analytics",
     "notifications",
+    "followups",
 ]
 
 MIDDLEWARE = [

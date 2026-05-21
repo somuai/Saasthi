@@ -303,6 +303,8 @@ export function scorePatient(patient, survey = null, mcpData = null) {
   }
   const score = Math.min(Math.round(totalScore), 100);
   const riskLevel = getRiskLevel(score);
+  const primaryCategory = getPrimaryCategory(triggeredFactors);
+  const recommendation = getRecommendation(riskLevel, primaryCategory);
   return {
     score,
     riskLevel,
@@ -310,12 +312,74 @@ export function scorePatient(patient, survey = null, mcpData = null) {
     riskColor: RISK_LEVEL_COLORS[riskLevel],
     triggeredFactors,
     triggeredByCategory: groupByCategory(triggeredFactors),
+    primaryCategory,
+    recommendation,
+    recommendationSource: "rule_template",
     modelVersion: MODEL_VERSION,
     computedAt: new Date().toISOString(),
     totalFactorsChecked: RISK_RULES.length,
     factorsTriggered: triggeredFactors.length,
     skippedFactors,
   };
+}
+
+/**
+ * Mirror of backend RECOMMENDATION_TEMPLATES from risk_engine/engine.py.
+ * Maps (riskLevel, primaryCategory) to bilingual recommendation text + urgency.
+ */
+export const RECOMMENDATIONS = {
+  high_communicable: {
+    en: "Refer to PHC within 24 hours. Possible infectious disease.",
+    hi: "24 घंटे के अंदर PHC में भेजें। संभावित संक्रामक रोग।",
+    urgency: "within_24h",
+  },
+  high_chronic: {
+    en: "Refer to PHC within 24 hours. Chronic condition needs clinical review.",
+    hi: "24 घंटे के अंदर PHC में भेजें। दीर्घकालिक स्थिति की जांच ज़रूरी।",
+    urgency: "within_24h",
+  },
+  high_critical: {
+    en: "EMERGENCY — refer to hospital immediately. Do not delay.",
+    hi: "आपातकाल — तुरंत अस्पताल भेजें। देरी न करें।",
+    urgency: "immediate",
+  },
+  high_maternal: {
+    en: "Refer to PHC/CHC immediately. High-risk pregnancy.",
+    hi: "PHC/CHC में तुरंत भेजें। उच्च जोखिम गर्भावस्था।",
+    urgency: "immediate",
+  },
+  medium_general: {
+    en: "Schedule PHC visit within 3 days. Monitor symptoms daily.",
+    hi: "3 दिनों में PHC विजिट शेड्यूल करें। रोज़ लक्षण देखें।",
+    urgency: "within_3_days",
+  },
+  low_general: {
+    en: "Continue monitoring. Follow up in 2 weeks.",
+    hi: "निगरानी जारी रखें। 2 हफ्ते में फिर मिलें।",
+    urgency: "routine",
+  },
+};
+
+/** Derive primary category from triggered factors (mirrors backend derive_categories). */
+export function getPrimaryCategory(factors) {
+  if (!factors || factors.length === 0) return "general";
+  const weights = {};
+  for (const f of factors) {
+    const cat = f.category || "general";
+    weights[cat] = (weights[cat] || 0) + (f.weight || 1);
+  }
+  const sorted = Object.entries(weights).sort((a, b) => b[1] - a[1]);
+  return sorted[0][0];
+}
+
+/**
+ * Mirror of backend RiskEngine.get_recommendation().
+ * Returns { en, hi, urgency } matching the risk level + primary category.
+ */
+export function getRecommendation(riskLevel, primaryCategory) {
+  const key = `${riskLevel}_${primaryCategory}`;
+  const fallback = `${riskLevel}_general`;
+  return RECOMMENDATIONS[key] || RECOMMENDATIONS[fallback] || RECOMMENDATIONS.low_general;
 }
 
 export async function rescoreAllPatients(db) {

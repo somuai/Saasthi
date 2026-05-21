@@ -22,6 +22,7 @@ urlpatterns = [
     path("api/v1/incentives/", include("incentives.urls")),
     path("api/v1/analytics/", include("analytics.urls")),
     path("api/v1/notifications/", include("notifications.urls")),
+    path("api/v1/followups/", include("followups.urls")),
     path("api/v1/config/", include("shaasthi_backend.config_urls")),
     path("api/v1/dashboard/", include("analytics.dashboard_urls")),
 ]

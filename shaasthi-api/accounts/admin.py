@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import AuditLog, OTPChallenge, User
+from .models import AuditLog, AuthSession, OTPChallenge, User
 
 
 @admin.register(User)
@@ -18,6 +18,13 @@ class ShaasthiUserAdmin(UserAdmin):
 class OTPChallengeAdmin(admin.ModelAdmin):
     list_display = ("phone", "purpose", "expires_at", "consumed_at", "attempts", "created_at")
     search_fields = ("phone",)
+
+
+@admin.register(AuthSession)
+class AuthSessionAdmin(admin.ModelAdmin):
+    list_display = ("worker", "device_info", "expires_at", "revoked_at", "created_at")
+    list_filter = ("revoked_at",)
+    search_fields = ("worker__phone",)
 
 
 @admin.register(AuditLog)

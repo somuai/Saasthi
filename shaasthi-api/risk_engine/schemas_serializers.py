@@ -60,6 +60,8 @@ class RiskAssessmentResponseSerializer(serializers.Serializer):
     categories = serializers.SerializerMethodField()
     explanations = serializers.JSONField()
     recommended_action = serializers.SerializerMethodField()
+    recommendation_source = serializers.CharField()
+    score_source = serializers.CharField()
 
     def get_patient_id(self, obj):
         return str(obj.patient.local_uuid)

@@ -13,4 +13,4 @@ eval-tier1:
 	cd shaasthi-app && npm test
 
 eval-tier2:
-	cd shaasthi-api && . .venv/bin/activate && python manage.py test tests
+	cd shaasthi-api && . .venv/bin/activate && python -m pytest tests/ -v

@@ -38,6 +38,12 @@ class RiskAssessmentSerializer(serializers.ModelSerializer):
             "recommended_action_en",
             "recommended_action_hi",
             "recommended_urgency",
+            "recommendation_source",
+            "score_source",
+            "rule_engine_score",
+            "ml_score",
+            "ml_confidence",
+            "ml_model_version",
             "created_at",
         ]
         extra_kwargs = {"patient": {"required": False}, "survey_response": {"required": False}}

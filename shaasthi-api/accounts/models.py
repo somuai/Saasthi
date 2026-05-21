@@ -56,6 +56,29 @@ class OTPChallenge(models.Model):
         return self.consumed_at is None and self.expires_at > timezone.now() and self.attempts < 5
 
 
+class AuthSession(models.Model):
+    worker = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="auth_sessions", on_delete=models.CASCADE)
+    refresh_token_hash = models.CharField(max_length=128, db_index=True)
+    device_info = models.CharField(max_length=255, blank=True)
+    last_active_at = models.DateTimeField(auto_now=True)
+    expires_at = models.DateTimeField()
+    revoked_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["worker", "expires_at"], name="ix_auth_session_worker_expires"),
+        ]
+
+    @property
+    def is_valid(self):
+        return self.revoked_at is None and self.expires_at > __import__("django").utils.timezone.now()
+
+    def __str__(self):
+        return f"Session {self.pk or 'new'} for {self.worker_id}"
+
+
 class AuditLog(models.Model):
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     action = models.CharField(max_length=120)

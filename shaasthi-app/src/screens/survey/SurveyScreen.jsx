@@ -269,6 +269,10 @@ export default function SurveyScreen() {
           score: String(r.score),
           riskLevel: r.riskLevel,
           factors: JSON.stringify(r.triggeredFactors || []),
+          recEn: r.recommendation.en,
+          recHi: r.recommendation.hi,
+          recUrgency: r.recommendation.urgency,
+          recommendationSource: "rule_template",
         },
       });
     } finally {

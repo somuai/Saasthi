@@ -161,6 +161,12 @@ class AssessmentResult:
     recommended_action_en: str
     recommended_action_hi: str
     recommended_urgency: str
+    recommendation_source: str = "rule_template"
+    score_source: str = "rule_engine"
+    rule_engine_score: int | None = None
+    ml_score: float | None = None
+    ml_confidence: float | None = None
+    ml_model_version: int | None = None
 
 
 class RiskEngine:
@@ -303,9 +309,15 @@ class RiskEngine:
                     normalized_score=100,
                     primary_category=rule.category or RiskRule.Category.CRITICAL,
                     secondary_categories=[],
-                    recommended_action_en=rec_en,
-                    recommended_action_hi=rec_hi,
-                    recommended_urgency="immediate",
+            recommended_action_en=rec_en,
+            recommended_action_hi=rec_hi,
+            recommended_urgency="immediate",
+            recommendation_source=rule.flag_type if rule.is_hard_flag else "rule_template",
+            score_source="rule_engine",
+            rule_engine_score=0,
+            ml_score=None,
+            ml_confidence=None,
+            ml_model_version=None,
                 )
 
         total_score = 0
@@ -341,6 +353,12 @@ class RiskEngine:
             recommended_action_en=recommendation["en"],
             recommended_action_hi=recommendation["hi"],
             recommended_urgency=recommendation["urgency"],
+            recommendation_source="rule_template",
+            score_source="rule_engine",
+            rule_engine_score=total_score,
+            ml_score=None,
+            ml_confidence=None,
+            ml_model_version=None,
         )
 
     def create_assessment(
@@ -369,6 +387,12 @@ class RiskEngine:
             recommended_action_en=result.recommended_action_en,
             recommended_action_hi=result.recommended_action_hi,
             recommended_urgency=result.recommended_urgency,
+            recommendation_source=result.recommendation_source,
+            score_source=result.score_source,
+            rule_engine_score=result.rule_engine_score,
+            ml_score=result.ml_score,
+            ml_confidence=result.ml_confidence,
+            ml_model_version=result.ml_model_version,
         )
         if save:
             assessment.save()
@@ -393,4 +417,10 @@ def assess(patient, survey_response=None, surveyed_at=None):
         "recommended_action_en": result.recommended_action_en,
         "recommended_action_hi": result.recommended_action_hi,
         "recommended_urgency": result.recommended_urgency,
+        "recommendation_source": result.recommendation_source,
+        "score_source": result.score_source,
+        "rule_engine_score": result.rule_engine_score,
+        "ml_score": result.ml_score,
+        "ml_confidence": result.ml_confidence,
+        "ml_model_version": result.ml_model_version,
     }

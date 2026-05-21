@@ -3,6 +3,33 @@ import uuid
 from django.db import models
 
 
+class MLModelVersion(models.Model):
+    version = models.PositiveIntegerField(unique=True)
+    file_path = models.CharField(max_length=500, blank=True)
+    file_size_bytes = models.PositiveIntegerField(null=True, blank=True)
+    cv_f1_macro = models.FloatField(null=True, blank=True)
+    n_training_samples = models.PositiveIntegerField(null=True, blank=True)
+    schema_version = models.PositiveIntegerField(default=1)
+    is_active = models.BooleanField(default=False)
+    trained_at = models.DateTimeField(null=True, blank=True)
+    deployed_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-version"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["is_active"],
+                name="uq_ml_model_active",
+                condition=models.Q(is_active=True),
+            )
+        ]
+
+    def __str__(self):
+        return f"MLModel v{self.version} ({'active' if self.is_active else 'inactive'})"
+
+
 class RiskRule(models.Model):
     class Operator(models.TextChoices):
         EQ = "eq", "Equals"
@@ -81,6 +108,14 @@ class RiskAssessment(models.Model):
     recommended_action_en = models.TextField(blank=True)
     recommended_action_hi = models.TextField(blank=True)
     recommended_urgency = models.CharField(max_length=32, default="routine", blank=True)
+    recommendation_source = models.CharField(max_length=30, default="rule_template", blank=True,
+                                              help_text="rule_template | gemma4_api | tflite")
+    score_source = models.CharField(max_length=30, default="rule_engine", blank=True,
+                                    help_text="rule_engine | tflite | ml_ensemble")
+    rule_engine_score = models.IntegerField(null=True, blank=True)
+    ml_score = models.FloatField(null=True, blank=True)
+    ml_confidence = models.FloatField(null=True, blank=True)
+    ml_model_version = models.IntegerField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
 
