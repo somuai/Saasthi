@@ -4,6 +4,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   View,
@@ -190,44 +191,46 @@ export default function OtpScreen() {
         <Pressable style={styles.back} onPress={() => router.back()} accessibilityLabel="Back">
           <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
         </Pressable>
-        <Text style={styles.titleHi}>OTP सत्यापन</Text>
-        <Text style={styles.titleEn}>OTP Verification</Text>
-        <Text style={styles.info}>
-          आपके +91 XXXXXX{last4} पर OTP भेजा गया है{"\n"}
-          OTP sent to +91 …{last4}
-        </Text>
-        {devOtp ? (
-          <Pressable style={styles.devHint} onPress={() => setOtp(devOtp.slice(0, 6))}>
-            <Text style={styles.devHintTxt}>Dev OTP: {devOtp} (tap to fill)</Text>
-          </Pressable>
-        ) : null}
-        <OtpInputRow
-          value={otp}
-          onChange={setOtp}
-          onComplete={handleVerify}
-          autoFocus
-        />
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        {canResend ? (
-          <Pressable onPress={handleResend} disabled={resending} style={styles.resendBtn}>
-            {resending ? (
-              <ActivityIndicator color={COLORS.accent} />
-            ) : (
-              <Text style={styles.resendActive}>फिर से भेजें / Resend OTP</Text>
-            )}
-          </Pressable>
-        ) : (
-          <Text style={styles.resend}>
-            OTP फिर से भेजें / Resend in 0:{String(timer).padStart(2, "0")}
+        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.cardInner} keyboardShouldPersistTaps="handled">
+          <Text style={styles.titleHi}>OTP सत्यापन</Text>
+          <Text style={styles.titleEn}>OTP Verification</Text>
+          <Text style={styles.info}>
+            आपके +91 XXXXXX{last4} पर OTP भेजा गया है{"\n"}
+            OTP sent to +91 …{last4}
           </Text>
-        )}
-        <Pressable
-          style={[styles.verify, otp.length < 6 || loading ? styles.verifyDisabled : null]}
-          disabled={otp.length < 6 || loading}
-          onPress={() => handleVerify()}
-        >
-          {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.verifyText}>सत्यापित करें / Verify</Text>}
-        </Pressable>
+          {devOtp ? (
+            <Pressable style={styles.devHint} onPress={() => setOtp(devOtp.slice(0, 6))}>
+              <Text style={styles.devHintTxt}>Dev OTP: {devOtp} (tap to fill)</Text>
+            </Pressable>
+          ) : null}
+          <OtpInputRow
+            value={otp}
+            onChange={setOtp}
+            onComplete={handleVerify}
+            autoFocus
+          />
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          {canResend ? (
+            <Pressable onPress={handleResend} disabled={resending} style={styles.resendBtn}>
+              {resending ? (
+                <ActivityIndicator color={COLORS.accent} />
+              ) : (
+                <Text style={styles.resendActive}>फिर से भेजें / Resend OTP</Text>
+              )}
+            </Pressable>
+          ) : (
+            <Text style={styles.resend}>
+              OTP फिर से भेजें / Resend in 0:{String(timer).padStart(2, "0")}
+            </Text>
+          )}
+          <Pressable
+            style={[styles.verify, otp.length < 6 || loading ? styles.verifyDisabled : null]}
+            disabled={otp.length < 6 || loading}
+            onPress={() => handleVerify()}
+          >
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.verifyText}>सत्यापित करें / Verify</Text>}
+          </Pressable>
+        </ScrollView>
       </View>
     </KeyboardAvoidingView>
   );
@@ -244,8 +247,13 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     marginTop: -12,
+  },
+  scrollContainer: { flex: 1 },
+  cardInner: {
     paddingHorizontal: 24,
     paddingTop: 24,
+    paddingBottom: 32,
+    flexGrow: 1,
   },
   back: { position: "absolute", top: 16, left: 16, zIndex: 2, padding: 8, minHeight: tapTargetMin, minWidth: tapTargetMin },
   titleHi: { fontSize: 20, fontWeight: "800", color: COLORS.textPrimary },

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -41,7 +41,7 @@ export default function PatientProfileScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: COLORS.background }}>
       <GovtHeader titleHi="मरीज प्रोफाइल" title="Patient profile" showBack showSync />
-      <View style={styles.body}>
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <Text style={styles.name}>{patient.name}</Text>
         <RiskBadge risk={risk} />
         <GovtButton
@@ -71,13 +71,14 @@ export default function PatientProfileScreen() {
             </Pressable>
           </>
         ) : null}
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  body: { padding: 16, gap: 12 },
+  scrollContainer: { flex: 1 },
+  scroll: { padding: 16, gap: 12, flexGrow: 1 },
   name: { fontSize: 20, fontWeight: "800", color: COLORS.textPrimary },
   link: { minHeight: tapTargetMin, justifyContent: "center" },
   linkTxt: { color: COLORS.accent, fontWeight: "700", fontSize: 15 },
