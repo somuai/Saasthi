@@ -1,7 +1,8 @@
-import urllib.request
-import urllib.parse
-import urllib.error
 import logging
+import urllib.error
+import urllib.parse
+import urllib.request
+
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
@@ -10,7 +11,7 @@ def send_otp_sms(phone, code):
     if not settings.MSG91_AUTH_KEY or not settings.MSG91_TEMPLATE_ID:
         logger.warning(f"MSG91 credentials not configured. Skipping SMS for {phone} with code {code}.")
         return False
-        
+
     url = "https://control.msg91.com/api/v5/otp"
     params = {
         "template_id": settings.MSG91_TEMPLATE_ID,
@@ -20,7 +21,7 @@ def send_otp_sms(phone, code):
     }
     query_string = urllib.parse.urlencode(params)
     full_url = f"{url}?{query_string}"
-    
+
     try:
         req = urllib.request.Request(full_url, method="POST")
         req.add_header("Content-Type", "application/json")

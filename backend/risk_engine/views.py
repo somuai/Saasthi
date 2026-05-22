@@ -1,18 +1,18 @@
+from accounts.views import audit
 from django.utils import timezone
+from flagging.services import create_flags_for_assessment
+from registry.models import Patient
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from accounts.views import audit
-from flagging.services import create_flags_for_assessment
-from registry.models import Patient
 from shaasthi_backend.permissions import AdminOnlyPermission
-from shaasthi_backend.throttling import RiskAssessmentThrottle
 from shaasthi_backend.querysets import for_user_geography
+from shaasthi_backend.throttling import GemmaQueryThrottle, RiskAssessmentThrottle
 from surveys.models import SurveyResponse
 
-from .engine import RiskEngine
+from .gemma_service import gemma_service
 from .models import RiskAssessment, RiskRule
 from .rule_validator import RuleValidator
 from .schemas_serializers import RiskAssessmentResponseSerializer, RiskRuleCreateSerializer, build_assessment_response
@@ -176,3 +176,58 @@ class RiskAssessmentViewSet(viewsets.ModelViewSet):
         assessment = self.get_object()
         flags = create_flags_for_assessment(assessment, request.user)
         return Response({"flags_created": len(flags)})
+
+    @action(detail=False, methods=["post"], throttle_classes=[GemmaQueryThrottle])
+    def gemma_query(self, request):
+        patient_id = request.data.get("patient_id")
+        question = request.data.get("question", "").strip()
+        if not patient_id:
+            return Response({"detail": "patient_id required"}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            patient = Patient.objects.get(pk=patient_id)
+        except Patient.DoesNotExist:
+            raise NotFound("Patient not found")
+        if not for_user_geography(Patient.objects.filter(pk=patient.pk), request.user).exists():
+            raise PermissionDenied("No access to this patient")
+
+        latest_assessment = (
+            RiskAssessment.objects.filter(patient=patient).order_by("-created_at").first()
+        )
+
+        patient_context = {
+            "name": patient.full_name,
+            "age": patient.age_years or "N/A",
+            "village": patient.village or "N/A",
+        }
+        assessment_dict = {"level": "low", "normalized_score": 0, "explanations": []}
+        if latest_assessment:
+            assessment_dict = {
+                "level": latest_assessment.risk_level,
+                "normalized_score": latest_assessment.normalized_score,
+                "explanations": [
+                    {"name": r.rule_label_en, "rule_label_hi": r.rule_label_hi}
+                    for r in latest_assessment.triggered_rules.all()
+                ],
+                "triggered_by_hard_flag": latest_assessment.triggered_by_hard_flag,
+            }
+
+        population = "maternal" if patient.pregnancy_status else "general"
+        photo_base64 = request.data.get("photo_base64")
+
+        recommendation = gemma_service.generate(
+            patient_context, assessment_dict, photo_base64, population,
+        )
+        if not recommendation:
+            return Response(
+                {"detail": "AI recommendation unavailable. Try again later."},
+                status=status.HTTP_503_SERVICE_UNAVAILABLE,
+            )
+
+        response_data = {
+            "patient_id": patient.id,
+            "patient_name": patient.full_name,
+            "question": question or None,
+            "recommendation": recommendation,
+        }
+        audit(request, "risk.gemma_query", "Patient", patient.local_uuid)
+        return Response(response_data)

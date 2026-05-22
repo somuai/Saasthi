@@ -1,29 +1,18 @@
 """MCP clinical tests — maternal/child hard flags, WHO z-scores, immunizations, feature extractor."""
-import json
 from datetime import date, timedelta
 
 import numpy as np
 import pytest
-from django.utils import timezone
-
 from mcp.models import (
-    ANCVisit,
     DevelopmentMilestoneCheck,
-    GrowthRecord,
-    ImmunizationRecord,
-    PNCVisit,
 )
 from risk_engine.mcp_feature_extractor import MCPFeatureExtractor
-from risk_engine.models import RiskRule
-
 from tests.factories import (
     ANCVisitFactory,
     GrowthRecordFactory,
-    ImmunizationRecordFactory,
     PatientFactory,
     PNCVisitFactory,
 )
-
 
 # ── Maternal Hard Flags (NHM danger signs) ────────────────────────────
 

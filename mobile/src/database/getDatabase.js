@@ -6,7 +6,7 @@ let instance = null;
 export function getDatabase() {
   if (!isWatermelonNativeAvailable()) {
     throw new Error(
-      "WMDatabaseBridge is not available. Build with: cd shaasthi-app && npm run native:ios"
+      "WMDatabaseBridge is not available. Build with: cd mobile && npm run native:ios"
     );
   }
   if (!instance) {

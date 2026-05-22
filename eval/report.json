@@ -1,5 +1,5 @@
 {
-  "started_at": "2026-05-21T20:23:24Z",
+  "started_at": "2026-05-22T19:09:44Z",
   "tiers": [
     {
       "tier": "T1",
@@ -8,9 +8,9 @@
           "name": "T1_jest",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 1.13,
-          "stdout_tail": "\n> shaasthi-app@0.1.0 test\n> jest --watchAll=false\n\n",
-          "stderr_tail": "watchman warning:  Recrawled this watch 3 times, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/syncJitter.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/workerId.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/riskScorer.test.js\nPASS __tests__/syncErrors.test.js\n\nTest Suites: 14 passed, 14 total\nTests:       39 passed, 39 total\nSnapshots:   0 total\nTime:        0.526 s, estimated 1 s\nRan all test suites.\n"
+          "duration_sec": 0.76,
+          "stdout_tail": "\n> shaasthi-mobile@0.1.0 test\n> jest --watchAll=false\n\n",
+          "stderr_tail": "watchman warning:  Recrawled this watch 5 times, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/syncJitter.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/workerId.test.js\nPASS __tests__/syncErrors.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       37 passed, 37 total\nSnapshots:   0 total\nTime:        0.407 s, estimated 1 s\nRan all test suites.\n"
         }
       ]
     },
@@ -21,9 +21,9 @@
           "name": "T2_django",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.79,
-          "stdout_tail": "Found 0 test(s).\nSystem check identified no issues (0 silenced).\n",
-          "stderr_tail": "WARNING: DJANGO_DEBUG is enabled with a custom SECRET_KEY. Disable in production.\n[2026-05-22 01:53:26,037] INFO risk_engine.gemma_service Gemma Service initialized with google.genai client.\n[2026-05-22 01:53:26,037] INFO risk_engine.gemma_service Gemma Service initialized with google.genai client.\n\n----------------------------------------------------------------------\nRan 0 tests in 0.000s\n\nNO TESTS RAN\n"
+          "duration_sec": 3.16,
+          "stdout_tail": " darwin -- Python 3.14.4, pytest-8.4.2, pluggy-1.6.0\ndjango: version: 5.2.14, settings: shaasthi_backend.settings (from ini)\nrootdir: /Users/soumyajitghosh/Documents/Saasthi/backend\nconfigfile: pytest.ini\nplugins: cov-7.1.0, timeout-2.4.0, Faker-40.18.0, django-4.12.0, anyio-4.13.0\ncollected 240 items\n\ntests/test_e2e_pipeline.py .........................                     [ 10%]\ntests/test_gemma_integration.py ..                                       [ 11%]\ntests/test_otp_auth.py .                                                 [ 11%]\ntests/test_risk_and_flags.py ...........                                 [ 16%]\ntests/test_risk_engine_comprehensive.py ...............................  [ 29%]\ntests/test_sync.py ..........................                            [ 40%]\ntests/unit/test_feature_extractor.py ......                              [ 42%]\ntests/unit/test_mcp_risk_engine.py ................................      [ 55%]\ntests/unit/test_otp_service.py .............                             [ 61%]\ntests/unit/test_risk_engine.py ......................................... [ 78%]\n.......                                                                  [ 81%]\ntests/test_gemma_integration.py ........                                 [ 84%]\ntests/unit/test_feature_extractor.py ................                    [ 91%]\ntests/unit/test_risk_engine.py .....................                     [100%]\n\n=============================== warnings summary ===============================\n.venv/lib/python3.14/site-packages/google/genai/types.py:42\n  /Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.14/site-packages/google/genai/types.py:42: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17\n    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 240 passed, 1 warning in 1.81s ========================\n",
+          "stderr_tail": ""
         }
       ]
     },
@@ -66,5 +66,5 @@
     }
   ],
   "ok": true,
-  "finished_at": "2026-05-21T20:23:26Z"
+  "finished_at": "2026-05-22T19:09:48Z"
 }

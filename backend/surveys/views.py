@@ -1,9 +1,7 @@
-from django.db import transaction
-from rest_framework import status, viewsets
-from rest_framework.response import Response
-
 from accounts.views import audit
 from registry.models import Patient
+from rest_framework import status, viewsets
+from rest_framework.response import Response
 from risk_engine.hooks import enqueue_risk_assessment
 from shaasthi_backend.querysets import for_user_geography
 from shaasthi_backend.throttling import SurveyWriteThrottle

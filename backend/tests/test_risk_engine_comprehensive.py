@@ -3,10 +3,9 @@ from datetime import timedelta
 
 import pytest
 from django.utils import timezone
-
 from registry.models import Patient
-from risk_engine.engine import RiskEngine, assess, level_for_score
-from risk_engine.models import RiskAssessment, RiskRule
+from risk_engine.engine import RiskEngine, assess
+from risk_engine.models import RiskRule
 from surveys.models import SurveyResponse
 
 

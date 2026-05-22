@@ -100,6 +100,7 @@ export default function OtpScreen() {
   async function completeLogin(sessionUser, worker, accessToken) {
     await persistAuthSession(sessionUser, worker);
     await clearPendingLogin();
+    import("../../services/fcm").then(({ registerFcmTokenOnServer }) => registerFcmTokenOnServer());
     if (accessToken && isWatermelonNativeAvailable()) {
       const { initAutoSync } = await import("../../database/sync");
       initAutoSync();
@@ -154,7 +155,7 @@ export default function OtpScreen() {
         /* Legacy OTP flow */
         const res = await apiClient.post(endpoints.verifyOtp, {
           phone: `+91${phone}`,
-          otp: code,
+          code,
         });
         const { access, refresh, user, worker } = res.data;
         await persistAuthTokens({ access, refresh });
@@ -220,7 +221,7 @@ export default function OtpScreen() {
         setConfirmationResult(cr);
       } else {
         const res = await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
-        const nextDevOtp = res.data?.dev_otp ? String(res.data.dev_otp) : "";
+        const nextDevOtp = res.data?.debug_otp ? String(res.data.debug_otp) : "";
         if (nextDevOtp) setDevOtp(nextDevOtp);
       }
     } catch (err) {

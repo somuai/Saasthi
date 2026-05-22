@@ -16,8 +16,13 @@ def api_available() -> bool:
 
 
 def request_otp(phone: str = "+919988776655") -> str:
-    r = requests.post(f"{API}/auth/otp/request/", json={"phone": phone}, timeout=10)
-    r.raise_for_status()
+    for attempt in range(3):
+        r = requests.post(f"{API}/auth/otp/request/", json={"phone": phone}, timeout=10)
+        if r.status_code == 429 and attempt < 2:
+            time.sleep(2)
+            continue
+        r.raise_for_status()
+        break
     data = r.json()
     otp = data.get("debug_otp") or data.get("dev_otp")
     if not otp:

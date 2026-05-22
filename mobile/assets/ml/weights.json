@@ -1,0 +1,106 @@
+{
+  "features": [
+    {
+      "factor": "severe_breathing",
+      "weight": 35,
+      "category": "critical"
+    },
+    {
+      "factor": "continuous_chest_pain",
+      "weight": 32,
+      "category": "critical"
+    },
+    {
+      "factor": "unable_to_walk",
+      "weight": 30,
+      "category": "critical"
+    },
+    {
+      "factor": "pregnancy_complications",
+      "weight": 30,
+      "category": "critical"
+    },
+    {
+      "factor": "severe_anemia",
+      "weight": 28,
+      "category": "critical"
+    },
+    {
+      "factor": "pregnant",
+      "weight": 22,
+      "category": "maternal"
+    },
+    {
+      "factor": "high_risk_pregnancy",
+      "weight": 25,
+      "category": "maternal"
+    },
+    {
+      "factor": "tb_cough",
+      "weight": 22,
+      "category": "communicable"
+    },
+    {
+      "factor": "high_bp",
+      "weight": 20,
+      "category": "chronic"
+    },
+    {
+      "factor": "diabetes",
+      "weight": 18,
+      "category": "chronic"
+    },
+    {
+      "factor": "anemia",
+      "weight": 16,
+      "category": "chronic"
+    },
+    {
+      "factor": "malnutrition",
+      "weight": 16,
+      "category": "child"
+    },
+    {
+      "factor": "age_elderly",
+      "weight": 15,
+      "category": "demographic"
+    },
+    {
+      "factor": "heart_disease",
+      "weight": 14,
+      "category": "chronic"
+    },
+    {
+      "factor": "has_tb",
+      "weight": 14,
+      "category": "chronic"
+    },
+    {
+      "factor": "immunization_defaulter",
+      "weight": 14,
+      "category": "child"
+    },
+    {
+      "factor": "age_infant",
+      "weight": 12,
+      "category": "demographic"
+    },
+    {
+      "factor": "hospitalized_last_year",
+      "weight": 8,
+      "category": "history"
+    },
+    {
+      "factor": "fever_3days",
+      "weight": 10,
+      "category": "communicable"
+    },
+    {
+      "factor": "no_healthcare_access",
+      "weight": 10,
+      "category": "social"
+    }
+  ],
+  "modelVersion": "1.0.0-rule-export",
+  "source": "riskScorer.js"
+}

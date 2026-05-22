@@ -89,6 +89,11 @@ class Patient(models.Model):
     birth_place = models.CharField(max_length=100, null=True, blank=True)
     birth_registration_number = models.CharField(max_length=30, null=True, blank=True)
 
+    # ABDM (Ayushman Bharat Digital Mission) fields
+    abha_number = models.CharField(max_length=20, null=True, blank=True, unique=True, help_text="ABHA Health ID")
+    abha_consent_given = models.BooleanField(default=False)
+    fhir_bundle = models.JSONField(default=dict, blank=True, help_text="Cached FHIR Patient bundle")
+
     metadata = models.JSONField(default=dict, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,

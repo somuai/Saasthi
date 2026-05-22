@@ -4,6 +4,27 @@ from django.conf import settings
 from django.db import models
 
 
+class VisitVerificationOTP(models.Model):
+    patient = models.ForeignKey("registry.Patient", on_delete=models.CASCADE)
+    asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    otp_hash = models.CharField(max_length=200)
+    sent_to_phone = models.CharField(max_length=32)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+    attempt_count = models.PositiveSmallIntegerField(default=0)
+    verified_at = models.DateTimeField(null=True, blank=True)
+    bypass_reason = models.CharField(max_length=200, blank=True, default="")
+    bypass_approved_by = models.CharField(max_length=100, blank=True, default="")
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["patient", "asha_worker"], name="ix_visit_otp_patient_worker"),
+        ]
+
+    def __str__(self):
+        return f"VisitOTP for {self.patient_id} (used={self.is_used})"
+
+
 class FollowUp(models.Model):
     class Urgency(models.TextChoices):
         WITHIN_24H = "within_24h", "Within 24 hours"
@@ -29,6 +50,22 @@ class FollowUp(models.Model):
     completed_at = models.DateTimeField(null=True, blank=True)
     completion_notes = models.TextField(blank=True)
     incentive_claimed = models.BooleanField(default=False)
+
+    # GPS verification
+    visit_lat = models.FloatField(null=True, blank=True)
+    visit_lng = models.FloatField(null=True, blank=True)
+    visit_accuracy_m = models.FloatField(null=True, blank=True)
+    visit_gps_timestamp = models.DateTimeField(null=True, blank=True)
+    distance_from_household_m = models.FloatField(null=True, blank=True)
+    gps_verification_status = models.CharField(
+        max_length=20, blank=True, default="not_captured",
+    )
+
+    # Visit OTP verification
+    visit_otp_verified = models.BooleanField(default=False)
+    visit_otp_bypassed = models.BooleanField(default=False)
+    bypass_reason = models.CharField(max_length=200, blank=True, default="")
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

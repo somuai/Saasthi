@@ -12,6 +12,6 @@ class HouseholdAdmin(admin.ModelAdmin):
 
 @admin.register(Patient)
 class PatientAdmin(admin.ModelAdmin):
-    list_display = ("full_name", "gender", "district", "block", "village", "status", "updated_at")
+    list_display = ("full_name", "gender", "abha_number", "district", "block", "village", "status", "updated_at")
     list_filter = ("gender", "status", "district", "block")
-    search_fields = ("full_name", "phone", "local_uuid")
+    search_fields = ("full_name", "phone", "local_uuid", "abha_number")

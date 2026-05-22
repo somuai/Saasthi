@@ -6,8 +6,8 @@ Run:
 """
 import random
 import uuid
-from locust import HttpUser, task, between
 
+from locust import HttpUser, between, task
 
 GEOGRAPHIES = [
     {"region": "R1", "district": "D1", "block": "B1", "village": "V1"},

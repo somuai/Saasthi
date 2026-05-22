@@ -49,13 +49,13 @@ def run_cmd(name: str, cmd: list[str], cwd: Path | None = None, env: dict | None
 
 
 def tier_jest() -> dict:
-    return run_cmd("T1_jest", ["npm", "test"], cwd=ROOT / "shaasthi-app")
+    return run_cmd("T1_jest", ["npm", "test"], cwd=ROOT / "mobile")
 
 
 def tier_django() -> dict:
-    venv_python = ROOT / "shaasthi-api" / ".venv" / "bin" / "python"
+    venv_python = ROOT / "backend" / ".venv" / "bin" / "python"
     python = str(venv_python) if venv_python.exists() else sys.executable
-    return run_cmd("T2_django", [python, "manage.py", "test", "tests"], cwd=ROOT / "shaasthi-api")
+    return run_cmd("T2_django", [python, "-m", "pytest", "tests/", "-v", "--tb=short"], cwd=ROOT / "backend")
 
 
 def tier_contracts(offline: bool) -> dict:
@@ -66,7 +66,7 @@ def tier_contracts(offline: bool) -> dict:
 
 
 def _api_python() -> str:
-    venv_python = ROOT / "shaasthi-api" / ".venv" / "bin" / "python"
+    venv_python = ROOT / "backend" / ".venv" / "bin" / "python"
     return str(venv_python) if venv_python.exists() else sys.executable
 
 

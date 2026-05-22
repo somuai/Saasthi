@@ -1,6 +1,5 @@
 import numpy as np
 
-
 MCP_SCHEMA_VERSION = 1
 MCP_FEATURE_COUNT = 35
 

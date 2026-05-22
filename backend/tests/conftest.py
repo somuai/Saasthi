@@ -1,8 +1,6 @@
 import pytest
-from rest_framework.test import APIClient
-
-from accounts.models import User
 from registry.models import Patient
+from rest_framework.test import APIClient
 
 from .factories import (
     AdminUserFactory,
@@ -63,7 +61,7 @@ def sample_patient():
 
 @pytest.fixture
 def household(worker):
-    return HouseholdFactory(asha_worker=worker)
+    return HouseholdFactory()
 
 
 @pytest.fixture

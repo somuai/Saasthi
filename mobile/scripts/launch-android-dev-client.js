@@ -64,7 +64,7 @@ async function main() {
   if (!metroUp) {
     console.error(
       "[android] Metro is not running on port 8081.\n" +
-        "  In another terminal: cd shaasthi-app && npm run start:dev\n" +
+        "  In another terminal: cd mobile && npm run start:dev\n" +
         "  (Do not use plain npm start — use --localhost for the emulator.)"
     );
     process.exit(1);

@@ -1,11 +1,10 @@
 import os
 
+from accounts.models import User
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from accounts.models import User
-from risk_engine.serializers import RiskRuleSerializer
 from risk_engine.models import RiskRule
+from risk_engine.serializers import RiskRuleSerializer
 
 
 class AppVersionView(APIView):

@@ -1,16 +1,43 @@
 import random
 
-from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .firebase_auth import verify_firebase_token
-from .models import OTPChallenge
+from .models import OTPChallenge, WorkerRegistration
 from .sms import send_otp_sms
 
 User = get_user_model()
+
+
+def resolve_worker(phone):
+    reg = WorkerRegistration.objects.filter(phone=phone, is_active=True).first()
+    if not reg:
+        raise serializers.ValidationError(
+            "This number is not registered. Contact your ANM supervisor."
+        )
+    user, created = User.objects.get_or_create(
+        phone=phone,
+        defaults={
+            "username": phone,
+            "first_name": reg.full_name,
+            "role": User.Role.HEALTH_WORKER,
+            "village": reg.village,
+            "block": reg.block,
+            "district": reg.district,
+            "region": reg.region,
+        },
+    )
+    if not created:
+        user.first_name = reg.full_name
+        user.village = reg.village or user.village
+        user.block = reg.block or user.block
+        user.district = reg.district or user.district
+        user.region = reg.region or user.region
+        user.save(update_fields=["first_name", "village", "block", "district", "region"])
+    return user
 
 
 class OTPRequestSerializer(serializers.Serializer):
@@ -49,10 +76,7 @@ class OTPVerifySerializer(serializers.Serializer):
         challenge.consumed_at = timezone.now()
         challenge.save(update_fields=["consumed_at"])
         phone = validated_data["phone"]
-        user, _ = User.objects.get_or_create(
-            phone=phone,
-            defaults={"username": phone, "role": User.Role.HEALTH_WORKER},
-        )
+        user = resolve_worker(phone)
         refresh = RefreshToken.for_user(user)
         return {
             "user": UserSerializer(user).data,
@@ -76,16 +100,31 @@ class FirebaseVerifySerializer(serializers.Serializer):
 
     def create(self, validated_data):
         phone = validated_data["phone"]
-        user, _ = User.objects.get_or_create(
-            phone=phone,
-            defaults={"username": phone, "role": User.Role.HEALTH_WORKER},
-        )
+        user = resolve_worker(phone)
         refresh = RefreshToken.for_user(user)
         return {
             "user": UserSerializer(user).data,
             "refresh": str(refresh),
             "access": str(refresh.access_token),
         }
+
+
+class WorkerRegistrationSerializer(serializers.ModelSerializer):
+    supervisor_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = WorkerRegistration
+        fields = [
+            "id", "phone", "full_name", "supervisor", "supervisor_name",
+            "village", "block", "district", "region", "is_active",
+            "created_at", "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def get_supervisor_name(self, obj):
+        if not obj.supervisor:
+            return None
+        return obj.supervisor.get_full_name() or obj.supervisor.first_name or obj.supervisor.phone
 
 
 class UserSerializer(serializers.ModelSerializer):

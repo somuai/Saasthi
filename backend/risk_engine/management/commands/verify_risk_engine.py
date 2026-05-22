@@ -2,11 +2,11 @@
 
 from django.core.management.base import BaseCommand
 from django.utils import timezone
-
 from registry.models import Patient
+from surveys.models import SurveyResponse
+
 from risk_engine.engine import RiskEngine
 from risk_engine.models import RiskRule
-from surveys.models import SurveyResponse
 
 
 class Command(BaseCommand):

@@ -1,7 +1,6 @@
 """Validate Gemma 4 service integration — mock fallback + Celery task."""
 import pytest
-
-from risk_engine.gemma_service import GemmaService, MODEL_ID
+from risk_engine.gemma_service import MODEL_ID, GemmaService
 from risk_engine.tasks import enhance_with_gemma4
 
 

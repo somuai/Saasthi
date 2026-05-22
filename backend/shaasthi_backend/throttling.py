@@ -1,4 +1,4 @@
-from rest_framework.throttling import ScopedRateThrottle, UserRateThrottle
+from rest_framework.throttling import ScopedRateThrottle
 
 
 class SyncPushThrottle(ScopedRateThrottle):
@@ -11,3 +11,7 @@ class SurveyWriteThrottle(ScopedRateThrottle):
 
 class RiskAssessmentThrottle(ScopedRateThrottle):
     scope = "risk_assess"
+
+
+class GemmaQueryThrottle(ScopedRateThrottle):
+    scope = "gemma_query"

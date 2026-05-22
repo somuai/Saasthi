@@ -1,6 +1,5 @@
-from rest_framework import serializers
-
 from registry.models import Patient
+from rest_framework import serializers
 
 from .models import SurveyResponse
 

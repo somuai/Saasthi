@@ -102,7 +102,7 @@ export function initAutoSync() {
   };
 }
 
-/** WatermelonDB synchronize against shaasthi-api */
+/** WatermelonDB synchronize against the Shaasthi API */
 export async function syncWithServer() {
   if (!isWatermelonNativeAvailable()) {
     return { success: false, reason: "native_db_unavailable" };

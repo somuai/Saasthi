@@ -1,9 +1,8 @@
-from rest_framework import serializers
-
 from registry.models import Patient
+from rest_framework import serializers
 from surveys.models import SurveyResponse
 
-from .engine import RiskEngine, assess
+from .engine import RiskEngine
 from .models import RiskAssessment, RiskRule
 
 

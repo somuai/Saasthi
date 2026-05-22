@@ -10,7 +10,7 @@
   },
   "overrides": [
     {
-      "files": ["shaasthi-app/**/*.{js,jsx}"],
+      "files": ["mobile/**/*.{js,jsx}"],
       "env": { "browser": false, "jest": true },
       "parserOptions": { "ecmaFeatures": { "jsx": true } }
     }

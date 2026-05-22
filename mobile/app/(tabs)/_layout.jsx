@@ -2,6 +2,7 @@ import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ShaasthiTabBar } from "../../src/components/ShaasthiTabBar";
 import { useOverdueFollowUpCount } from "../../src/hooks/useOverdueFollowUpCount";
+import { FEATURES } from "../../src/constants/featureFlags";
 
 export default function TabsLayout() {
   const overdueCount = useOverdueFollowUpCount();
@@ -55,6 +56,26 @@ export default function TabsLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="medkit" size={size} color={color} />,
         }}
       />
+      {FEATURES.OFFLINE_MAP ? (
+        <Tabs.Screen
+          name="map"
+          options={{
+            title: "Map",
+            tabBarLabel: "नक्शा / Map",
+            tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />,
+          }}
+        />
+      ) : null}
+      {FEATURES.GEMMA_ONDEVICE ? (
+        <Tabs.Screen
+          name="ai-assistant"
+          options={{
+            title: "AI Assistant",
+            tabBarLabel: "AI सहायिका / AI",
+            tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" size={size} color={color} />,
+          }}
+        />
+      ) : null}
       <Tabs.Screen
         name="sync"
         options={{

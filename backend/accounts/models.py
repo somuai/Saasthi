@@ -22,6 +22,10 @@ class User(AbstractUser):
     district = models.CharField(max_length=120, blank=True, db_index=True)
     block = models.CharField(max_length=120, blank=True, db_index=True)
     village = models.CharField(max_length=120, blank=True, db_index=True)
+    requires_review = models.BooleanField(default=False, help_text="Flagged for ANM review during backfill")
+    fcm_token = models.CharField(max_length=500, blank=True, default="")
+    fcm_token_updated = models.DateTimeField(null=True, blank=True)
+    notifications_enabled = models.BooleanField(default=True)
     metadata = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
@@ -77,6 +81,35 @@ class AuthSession(models.Model):
 
     def __str__(self):
         return f"Session {self.pk or 'new'} for {self.worker_id}"
+
+
+class WorkerRegistration(models.Model):
+    phone = models.CharField(max_length=32, unique=True, db_index=True)
+    full_name = models.CharField(max_length=255)
+    supervisor = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name="registered_workers",
+        limit_choices_to={"role": "supervisor"},
+        null=True, blank=True,
+    )
+    village = models.CharField(max_length=120, blank=True, default="")
+    block = models.CharField(max_length=120, blank=True, default="")
+    district = models.CharField(max_length=120, blank=True, default="")
+    region = models.CharField(max_length=120, blank=True, default="")
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=["supervisor", "is_active"], name="ix_wreg_supervisor_active"),
+            models.Index(fields=["phone", "is_active"], name="ix_wreg_phone_active"),
+        ]
+
+    def __str__(self):
+        return f"{self.full_name} ({self.phone})"
 
 
 class AuditLog(models.Model):

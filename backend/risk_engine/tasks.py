@@ -8,7 +8,6 @@ from datetime import datetime
 from celery import shared_task
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
-
 from flagging.services import create_flags_for_assessment
 from registry.models import Patient
 from surveys.models import SurveyResponse
@@ -96,8 +95,8 @@ def enhance_with_gemma4(self, assessment_id, photo_base64=None):
     Background Celery task to enhance a RiskAssessment's recommendation
     using Gemma 4 LLM.
     """
-    from .models import RiskAssessment
     from .gemma_service import gemma_service
+    from .models import RiskAssessment
 
     try:
         if isinstance(assessment_id, str) and "-" in assessment_id:
@@ -124,7 +123,7 @@ def enhance_with_gemma4(self, assessment_id, photo_base64=None):
             assessment.recommended_action_hi = result["hindi"]
             assessment.recommendation_source = "gemma4_api"
             assessment.save(update_fields=["recommended_action_en", "recommended_action_hi", "recommendation_source"])
-            
+
             logger.info("Risk assessment %s enhanced with Gemma 4 recommendation.", assessment_id)
             return {
                 "status": "enhanced",
@@ -139,7 +138,7 @@ def enhance_with_gemma4(self, assessment_id, photo_base64=None):
                 "assessment_id": str(assessment.local_uuid),
                 "reason": "validation_or_api_error",
             }
-    except RiskAssessment.DoesNotExist as exc:
+    except RiskAssessment.DoesNotExist:
         logger.warning("enhance_with_gemma4 skipped: RiskAssessment %s not found", assessment_id)
         return {"status": "skipped", "reason": "assessment_not_found"}
     except Exception as exc:
@@ -239,7 +238,7 @@ def run_mcp_risk_assessment(self, patient_local_uuid, instance_local_uuid="", in
             "risk_level": assessment.level,
             "population": population,
         }
-    except Patient.DoesNotExist as exc:
+    except Patient.DoesNotExist:
         logger.warning("run_mcp_risk_assessment skipped: patient %s not found", patient_local_uuid)
         return {"status": "skipped", "reason": "patient_not_found"}
     except Exception as exc:

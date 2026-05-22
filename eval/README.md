@@ -9,7 +9,7 @@ Reproducible checks for mobile units, API integration, contracts, live scenarios
 make eval-offline
 
 # Full (start API first)
-cd shaasthi-api && source .venv/bin/activate && python manage.py runserver
+cd backend && source .venv/bin/activate && python manage.py runserver
 # another terminal:
 make eval
 ```
@@ -18,8 +18,8 @@ make eval
 
 | Tier | What |
 |------|------|
-| T1 | `shaasthi-app` Jest (risk golden, survey submit, contracts) |
-| T2 | `shaasthi-api` Django tests |
+| T1 | `mobile` Jest (risk golden, survey submit, contracts) |
+| T2 | `backend` Django tests |
 | T3 | Contract shape vs `contracts/*.json` (live pull optional) |
 | T4 | Live HTTP scenarios (`eval/scenarios/*.py`) |
 | T5 | Static compliance grep checks |
@@ -38,10 +38,10 @@ open eval/report.json
 
 ## Risk scoring contract (server vs mobile)
 
-- **Server (Django):** `shaasthi-api/risk_engine/` — weighted rules, hard flags → `normalized_score=100`, levels `low` / `medium` / `high` from raw score thresholds (4 and 8).
-- **Mobile (offline):** `shaasthi-app/src/ml/riskScorer.js` — keep aligned on level thresholds and critical symptoms over time; server assessments are authoritative after sync.
+- **Server (Django):** `backend/risk_engine/` — weighted rules, hard flags → `normalized_score=100`, levels `low` / `medium` / `high` from raw score thresholds (4 and 8).
+- **Mobile (offline):** `mobile/src/ml/riskScorer.js` — keep aligned on level thresholds and critical symptoms over time; server assessments are authoritative after sync.
 
 ## Manual smoke (not in CI)
 
-- `cd shaasthi-app && npm start` — login `+919876543210`, OTP from API `dev_otp`
+- `cd mobile && npm start` — login `+919876543210`, OTP from API `dev_otp`
 - Background sync: registered on app boot via `initAutoSync()`; optional `expo-background-fetch` when installed

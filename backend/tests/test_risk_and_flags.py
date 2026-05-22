@@ -2,8 +2,6 @@ from datetime import timedelta
 
 import pytest
 from django.utils import timezone
-from rest_framework.test import APIClient
-
 from flagging.models import Flag
 from registry.models import Patient
 from risk_engine.engine import RiskEngine, assess

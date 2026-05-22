@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 echo "==> SHAASTHI dev bootstrap"
-cd "$ROOT/shaasthi-api"
+cd "$ROOT/backend"
 if [ ! -d .venv ]; then
   python3 -m venv .venv
 fi

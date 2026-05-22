@@ -3,16 +3,13 @@
 from datetime import date
 
 import pytest
-from django.utils import timezone
-
 from accounts.models import User
-from flagging.models import Flag
+from django.utils import timezone
 from incentives.models import IncentiveLedgerEntry
 from registry.models import Household, Patient
 from risk_engine.engine import RiskEngine, assess
-from risk_engine.models import MLModelVersion, RiskAssessment, RiskRule
+from risk_engine.models import MLModelVersion, RiskRule
 from surveys.models import SurveyResponse
-
 
 pytestmark = pytest.mark.django_db
 
@@ -270,7 +267,7 @@ class TestFeatureFlagsContract:
     def test_mvp_feature_flags_exist(self):
         """FEATURES should have all 8 MVP-defined flags, all default false."""
         import os
-        flags_path = os.path.join(os.path.dirname(__file__), "..", "..", "shaasthi-app", "src", "constants", "featureFlags.js")
+        flags_path = os.path.join(os.path.dirname(__file__), "..", "..", "mobile", "src", "constants", "featureFlags.js")
         with open(flags_path) as f:
             content = f.read()
         required = ["VISIT_VERIFICATION_OTP", "OFFLINE_MAP", "GPS_TRACKING", "VOICE_INPUT",
@@ -281,7 +278,7 @@ class TestFeatureFlagsContract:
     def test_incentive_rates_in_paise(self):
         """INCENTIVE_RATES should be in paise (rupees × 100)."""
         import os
-        flags_path = os.path.join(os.path.dirname(__file__), "..", "..", "shaasthi-app", "src", "constants", "featureFlags.js")
+        flags_path = os.path.join(os.path.dirname(__file__), "..", "..", "mobile", "src", "constants", "featureFlags.js")
         with open(flags_path) as f:
             content = f.read()
         assert "survey_completion: 5000" in content, "survey_completion should be 5000 paise (₹50)"

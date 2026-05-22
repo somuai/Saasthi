@@ -1,12 +1,10 @@
 import uuid
 
 import pytest
-from django.utils import timezone
-
 from accounts.models import User
+from django.utils import timezone
 from registry.models import Household, Patient
 from sync.models import SyncEvent
-
 
 # ── Helpers ──────────────────────────────────────────────────
 

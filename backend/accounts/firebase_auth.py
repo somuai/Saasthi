@@ -2,8 +2,8 @@ import json
 import logging
 
 import firebase_admin
-from firebase_admin import auth as firebase_auth
 from django.conf import settings
+from firebase_admin import auth as firebase_auth
 
 logger = logging.getLogger(__name__)
 

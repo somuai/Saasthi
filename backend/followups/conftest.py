@@ -1,8 +1,6 @@
 from datetime import date
 
 import pytest
-from django.utils import timezone
-
 from accounts.models import User
 from registry.models import Patient
 

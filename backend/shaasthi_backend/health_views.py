@@ -1,41 +1,35 @@
-from django.db import connection
-from django.http import JsonResponse
-from django.utils import timezone
-from django.views.decorators.http import require_GET
+from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
 
-@require_GET
+@api_view(["GET"])
+@permission_classes([AllowAny])
 def health_check(request):
-    payload = {
-        "status": "healthy",
-        "timestamp": timezone.now().isoformat(),
-        "db": "unknown",
-        "queue_depth": None,
-    }
+    data = {"status": "ok", "version": getattr(settings, "APP_VERSION", "0.1.0")}
     try:
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT 1")
-        payload["db"] = "connected"
+        from django.db import connections
+        connections["default"].cursor().execute("SELECT 1")
+        data["database"] = "ok"
     except Exception as exc:
-        return JsonResponse(
-            {"status": "unhealthy", "db": "disconnected", "error": str(exc)},
-            status=503,
-        )
+        data["database"] = "error"
+        data["database_detail"] = str(exc)
+        data["status"] = "degraded"
 
     try:
-        from django.conf import settings
+        from celery import current_app
+        insp = current_app.control.inspect()
+        ping = insp.ping()
+        if ping:
+            data["celery"] = "ok"
+            data["celery_workers"] = list(ping.keys())
+        else:
+            data["celery"] = "no_workers"
+            data["status"] = "degraded"
+    except Exception as exc:
+        data["celery"] = "error"
+        data["celery_detail"] = str(exc)
+        data["status"] = "degraded"
 
-        import redis
-
-        client = redis.from_url(settings.REDIS_URL)
-        client.ping()
-        payload["redis"] = "connected"
-        try:
-            depth = client.llen("risk_assessment")
-            payload["queue_depth"] = depth
-        except Exception:
-            payload["queue_depth"] = None
-    except Exception:
-        payload["redis"] = "unavailable"
-
-    return JsonResponse(payload)
+    return Response(data)

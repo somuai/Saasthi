@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import AuditLog, AuthSession, OTPChallenge, User
+from .models import AuditLog, AuthSession, OTPChallenge, User, WorkerRegistration
 
 
 @admin.register(User)
@@ -31,3 +31,11 @@ class AuthSessionAdmin(admin.ModelAdmin):
 class AuditLogAdmin(admin.ModelAdmin):
     list_display = ("action", "resource_type", "resource_id", "actor", "created_at")
     list_filter = ("action", "resource_type")
+
+
+@admin.register(WorkerRegistration)
+class WorkerRegistrationAdmin(admin.ModelAdmin):
+    list_display = ("phone", "full_name", "supervisor", "village", "block", "district", "is_active", "created_at")
+    list_filter = ("is_active", "district", "block")
+    search_fields = ("phone", "full_name", "supervisor__phone")
+    date_hierarchy = "created_at"

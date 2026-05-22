@@ -27,13 +27,13 @@ Run instructions: [RUNBOOK.md](RUNBOOK.md)
 | Background sync hook (`expo-background-fetch` when installed) | Done |
 | Sync screen per-table breakdown, earnings progress | Done |
 
-## Mobile (`shaasthi-app`)
+## Mobile (`mobile`)
 
-- Offline-first WatermelonDB + sync against `shaasthi-api`
+- Offline-first WatermelonDB + sync against `backend`
 - Jest: contracts, risk golden, survey submit, MCP calculators
-- Reference PDFs: `shaasthi-app/docs/reference/`
+- Reference PDFs: `mobile/docs/reference/`
 
-## Backend (`shaasthi-api`)
+## Backend (`backend`)
 
 - 12-table Watermelon sync, flagging engine, Celery stubs
 - Postgres optional via `DATABASE_URL` in docker-compose

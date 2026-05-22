@@ -11,15 +11,12 @@ import uuid
 from datetime import date, timedelta
 
 import django
-from django.conf import settings
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shaasthi_backend.settings")
 django.setup()
 
-from django.db import transaction
-from django.utils import timezone
-
 from accounts.models import User
+from django.db import transaction
 from mcp.models import ANCVisit, GrowthRecord, ImmunizationRecord, MCPSurveySession
 from registry.models import Patient
 

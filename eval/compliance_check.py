@@ -4,9 +4,9 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-APP = ROOT / "shaasthi-app"
-API = ROOT / "shaasthi-api"
+APP = ROOT / "mobile"
 
+API = ROOT / "backend"
 FAILURES = []
 
 
@@ -19,7 +19,7 @@ def read(rel: str) -> str:
 
 
 def check_aadhaar_schema() -> None:
-    schema = read("shaasthi-app/src/database/schema.js")
+    schema = read("mobile/src/database/schema.js")
     if 'name: "aadhaar"' in schema and "aadhaar_last4" not in schema:
         fail("full aadhaar column found in schema")
     if "aadhaar_last4" not in schema and "mother_aadhaar_last4" not in schema:
@@ -28,8 +28,8 @@ def check_aadhaar_schema() -> None:
 
 def check_no_fetal_sex() -> None:
     for rel in [
-        "shaasthi-app/src/ml/riskScorer.js",
-        "shaasthi-app/src/ml/mcpRiskRules.js",
+        "mobile/src/ml/riskScorer.js",
+        "mobile/src/ml/mcpRiskRules.js",
     ]:
         text = read(rel).lower()
         for bad in ("fetal_sex", "fetal sex", "ultrasound_sex", "baby_gender"):
@@ -39,8 +39,8 @@ def check_no_fetal_sex() -> None:
 
 def check_incentive_ethics() -> None:
     for rel in [
-        "shaasthi-app/src/screens/tabs/EarningsScreen.jsx",
-        "shaasthi-app/src/screens/tabs/FollowupsScreen.jsx",
+        "mobile/src/screens/tabs/EarningsScreen.jsx",
+        "mobile/src/screens/tabs/FollowupsScreen.jsx",
     ]:
         text = read(rel).lower()
         for bad in ("per_patient_commission", "referral_volume_bonus", "commission_per_referral"):
@@ -49,7 +49,7 @@ def check_incentive_ethics() -> None:
 
 
 def check_otp_validation_exists() -> None:
-    serializers_file = read("shaasthi-api/accounts/serializers.py")
+    serializers_file = read("backend/accounts/serializers.py")
     if "OTPChallenge" not in serializers_file or "is_valid" not in serializers_file:
         fail("OTPChallenge validation missing in accounts serializers")
 

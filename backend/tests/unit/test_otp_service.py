@@ -3,14 +3,11 @@ import re
 from datetime import timedelta
 
 import pytest
+from accounts.models import OTPChallenge, User
 from django.conf import settings
 from django.utils import timezone
 from freezegun import freeze_time
-from rest_framework.exceptions import ErrorDetail
-
-from accounts.models import OTPChallenge, User
 from tests.factories import UserFactory
-
 
 # ── Helper ────────────────────────────────────────────────────────────
 

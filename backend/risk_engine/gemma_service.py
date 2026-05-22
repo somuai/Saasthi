@@ -1,7 +1,7 @@
-import os
-import logging
-import json
 import asyncio
+import json
+import logging
+import os
 import re
 
 logger = logging.getLogger(__name__)
@@ -86,7 +86,7 @@ class GemmaService:
             logger.info("Gemma Service initialized with google.genai client.")
         except ImportError:
             logger.error("google-genai package not installed. Mock fallback active.")
-        except Exception as e:
+        except Exception:
             logger.exception("Failed to configure Google Gen AI client.")
 
     def generate(self, patient_context: dict, assessment: dict, photo_base64: str = None,
@@ -146,7 +146,7 @@ class GemmaService:
 
         try:
             return asyncio.run(self._call_api(system_instruction, prompt, photo_base64))
-        except Exception as e:
+        except Exception:
             logger.exception("Error during Gemma 4 recommendation generation.")
             return None
 
@@ -258,7 +258,7 @@ class GemmaService:
                 "source": "gemma4_api",
                 "model": MODEL_ID,
             }
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning("Gemma API call timed out.")
             return None
         except Exception as e:

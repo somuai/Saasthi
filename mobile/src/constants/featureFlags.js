@@ -1,12 +1,13 @@
 export const FEATURES = {
-  VISIT_VERIFICATION_OTP: false,
-  OFFLINE_MAP: false,
-  GPS_TRACKING: false,
-  VOICE_INPUT: false,
-  PDF_PAYSLIP: false,
-  TFLITE_SCORING: false,
-  GEMMA_ONDEVICE: false,
-  ABDM_COMPLIANCE: false,
+  VISIT_VERIFICATION_OTP: true,
+  OFFLINE_MAP: true,
+  GPS_TRACKING: true,
+  VOICE_INPUT: true,
+  PDF_PAYSLIP: true,
+  PUSH_NOTIFICATIONS: true,
+  TFLITE_SCORING: true,
+  GEMMA_ONDEVICE: true,
+  ABDM_COMPLIANCE: true,
 };
 
 export const INCENTIVE_RATES = {

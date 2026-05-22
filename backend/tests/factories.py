@@ -1,10 +1,8 @@
-import uuid
 from datetime import date, timedelta
 
 import factory
-from django.utils import timezone
-
 from accounts.models import User
+from django.utils import timezone
 from flagging.models import Flag
 from followups.models import FollowUp
 from incentives.models import IncentiveLedgerEntry
@@ -20,7 +18,6 @@ from referrals.models import Referral
 from registry.models import Household, Patient
 from risk_engine.models import RiskRule
 from surveys.models import SurveyResponse
-
 
 INDIAN_VILLAGES = [
     "Bagbera", "Rampur", "Sitapur", "Jagdishpur", "Maholi",
@@ -96,8 +93,6 @@ class HouseholdFactory(factory.django.DjangoModelFactory):
     address = factory.LazyAttribute(lambda o: f"{o.village}, Block {o.block}")
     member_count = factory.Faker("random_int", min=2, max=8)
     is_active = True
-    is_bpl = factory.Faker("boolean", chance_of_getting_true=40)
-    has_toilet = factory.Faker("boolean", chance_of_getting_true=30)
 
 
 class PatientFactory(factory.django.DjangoModelFactory):
@@ -295,6 +290,19 @@ class ImmunizationRecordFactory(factory.django.DjangoModelFactory):
     fic_eligible = False
     cic_eligible = False
     is_vitamin_a = False
+
+
+class WorkerRegistrationFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = "accounts.WorkerRegistration"
+
+    phone = factory.Sequence(lambda n: f"+91{9}{n:09d}")
+    full_name = factory.LazyFunction(lambda: indian_name(gender="female"))
+    supervisor = factory.SubFactory(SupervisorFactory)
+    village = factory.Iterator(INDIAN_VILLAGES)
+    block = factory.Iterator(INDIAN_BLOCKS)
+    district = factory.Iterator(INDIAN_DISTRICTS)
+    is_active = True
 
 
 class CareInteractionFactory(factory.django.DjangoModelFactory):

@@ -8,11 +8,11 @@ This repo is set up for the Cursor workflow in your SHAASTHI Final Build Guide.
 |------|----------|
 | Cursor rules | `.cursor/rules/*.mdc` |
 | MCP config | `.cursor/mcp.json` (edit postgres URL if needed) |
-| Mobile app | `shaasthi-app/` |
-| Sync API | `shaasthi-api/` |
+| Mobile app | `mobile/` |
+| Sync API | `backend/` |
 | Legacy pilot API | `shaasthi-backend/` |
 | API contracts | `contracts/` |
-| Reference PDFs | `shaasthi-app/docs/reference/` |
+| Reference PDFs | `mobile/docs/reference/` |
 
 ## Cursor settings (manual)
 
@@ -20,15 +20,15 @@ In Cursor → Settings, enable Agent, YOLO mode, Iterate on Lints, Memories, Cod
 
 **Suggested memory to paste:**
 
-> SHAASTHI: Offline-first Expo SDK 50 ASHA app. WatermelonDB + Redux. Primary #003087, accent #FF6600. Bilingual Hindi 14px / English 11px. Min tap 52px. Write Watermelon first; `scorePatient()` after survey; `shaasthi-api` for sync.
+> SHAASTHI: Offline-first Expo SDK 50 ASHA app. WatermelonDB + Redux. Primary #003087, accent #FF6600. Bilingual Hindi 14px / English 11px. Min tap 52px. Write Watermelon first; `scorePatient()` after survey; `backend` for sync.
 
 ## @-mentions for sessions
 
 - `@.cursor/rules/001-always-project-context.mdc`
-- `@shaasthi-app/src/database/schema.js`
-- `@shaasthi-app/src/database/sync.js`
-- `@shaasthi-app/src/ml/riskScorer.js`
-- `@shaasthi-app/src/constants/colors.js`
+- `@mobile/src/database/schema.js`
+- `@mobile/src/database/sync.js`
+- `@mobile/src/ml/riskScorer.js`
+- `@mobile/src/constants/colors.js`
 
 ## Build order (remaining work)
 
@@ -36,13 +36,13 @@ In Cursor → Settings, enable Agent, YOLO mode, Iterate on Lints, Memories, Cod
 2. **Prompt 7** — MCP ANC/PNC/immunization/growth depth
 3. **Prompt 8** — 25 risk rules + `mcpRiskRules` wired
 4. **Prompt 9** — Earnings badges, follow-up calendar, sync breakdown
-5. **Prompt 10** — Extend `shaasthi-api` (accounts models, flagging, Celery, Faker mock, sklearn)
+5. **Prompt 10** — Extend `backend` (accounts models, flagging, Celery, Faker mock, sklearn)
 
 ## Verify app
 
 ```bash
-cd shaasthi-api && . .venv/bin/activate && python manage.py runserver
-cd shaasthi-app && npm start
+cd backend && . .venv/bin/activate && python manage.py runserver
+cd mobile && npm start
 ```
 
 Branch: `cursor/shaasthi-phased-build`

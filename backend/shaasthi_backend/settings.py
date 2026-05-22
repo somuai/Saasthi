@@ -191,6 +191,7 @@ REST_FRAMEWORK = {
         "sync_push": os.getenv("THROTTLE_SYNC_PUSH", "60/min"),
         "survey_write": os.getenv("THROTTLE_SURVEY_WRITE", "10/min"),
         "risk_assess": os.getenv("THROTTLE_RISK_ASSESS", "30/min"),
+        "gemma_query": os.getenv("THROTTLE_GEMMA_QUERY", "10/min"),
     },
     "DEFAULT_THROTTLE_CLASSES": (),
 }
@@ -208,6 +209,10 @@ SPECTACULAR_SETTINGS = {
 
 OTP_TTL_MINUTES = int(os.getenv("OTP_TTL_MINUTES", "10"))
 EXPOSE_DEBUG_OTP = os.getenv("EXPOSE_DEBUG_OTP", "true" if DEBUG else "false").lower() in {"1", "true", "yes"}
+
+# GPS verification
+GPS_ACCEPTABLE_RADIUS_M = int(os.getenv("GPS_ACCEPTABLE_RADIUS_M", "200"))
+GPS_WARNING_RADIUS_M = int(os.getenv("GPS_WARNING_RADIUS_M", "500"))
 
 # MSG91 SMS Provider Settings
 MSG91_AUTH_KEY = os.getenv("MSG91_AUTH_KEY")

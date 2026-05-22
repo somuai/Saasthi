@@ -4,9 +4,10 @@ import { StyleSheet, TextInput, View } from "react-native";
 import { COLORS } from "../constants/colors";
 import { tapTargetMin } from "../constants/typography";
 
-export function OtpInputRow({ value, onChange, onComplete, autoFocus }) {
-  const refs = [useRef(), useRef(), useRef(), useRef(), useRef(), useRef()];
-  const digits = value.length === 6 ? value.split("") : [...value.split(""), ...Array(6 - value.length).fill("")].slice(0, 6);
+export function OtpInputRow({ value, onChange, onComplete, autoFocus, length = 6 }) {
+  const refs = Array.from({ length }, () => useRef());
+  const pad = Array(length - value.length).fill("");
+  const digits = value.length === length ? value.split("") : [...value.split(""), ...pad].slice(0, length);
 
   useEffect(() => {
     if (autoFocus) refs[0].current?.focus?.();
@@ -15,19 +16,19 @@ export function OtpInputRow({ value, onChange, onComplete, autoFocus }) {
   function setDigit(i, text) {
     const digitsOnly = text.replace(/\D/g, "");
     if (digitsOnly.length > 1) {
-      const pasted = digitsOnly.slice(0, 6);
+      const pasted = digitsOnly.slice(0, length);
       onChange(pasted);
-      const focusIdx = Math.min(5, pasted.length - 1);
+      const focusIdx = Math.min(length - 1, pasted.length - 1);
       refs[focusIdx].current?.focus?.();
-      if (pasted.length === 6) onComplete?.(pasted);
+      if (pasted.length === length) onComplete?.(pasted);
       return;
     }
     const digit = digitsOnly.slice(-1);
     const next = digits.map((d, idx) => (idx === i ? digit : d));
     const joined = next.join("");
     onChange(joined);
-    if (digit && i < 5) refs[i + 1].current?.focus?.();
-    if (digit && i === 5 && joined.length === 6) onComplete?.(joined);
+    if (digit && i < length - 1) refs[i + 1].current?.focus?.();
+    if (digit && i === length - 1 && joined.length === length) onComplete?.(joined);
   }
 
   function onKeyPress(i, e) {
@@ -60,6 +61,7 @@ OtpInputRow.propTypes = {
   onChange: PropTypes.func.isRequired,
   onComplete: PropTypes.func,
   autoFocus: PropTypes.bool,
+  length: PropTypes.number,
 };
 
 const styles = StyleSheet.create({

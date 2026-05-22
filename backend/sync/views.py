@@ -7,10 +7,6 @@ from datetime import datetime
 
 from django.db import IntegrityError, transaction
 from django.utils import timezone as tz
-from rest_framework import status
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
 from flagging.models import Flag
 from flagging.services import dedupe_key
 from followups.models import FollowUp
@@ -19,6 +15,9 @@ from mcp.models import CareInteraction
 from referrals.models import Referral
 from registry.models import Household, Patient
 from registry.serializers import HouseholdSerializer, PatientSerializer
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 from risk_engine.hooks import enqueue_risk_assessment
 from shaasthi_backend.querysets import for_user_geography
 from shaasthi_backend.throttling import SyncPushThrottle
@@ -81,6 +80,8 @@ WATERMELON_COLUMNS = {
     "follow_ups": WATERMELON_BASE | {
         "patient_id", "survey_id", "due_date", "completed_date", "is_completed",
         "is_overdue", "follow_type", "outcome", "notes", "incentive_awarded",
+        "visit_lat", "visit_lng", "visit_accuracy_m", "visit_gps_timestamp",
+        "distance_from_household_m", "gps_verification_status",
     },
     "flags": WATERMELON_BASE | {
         "patient_id", "asha_worker_server_id", "flag_type", "severity",
@@ -178,6 +179,12 @@ FIELD_ALIASES = {
         "completed_at": "completed_date",
         "completion_notes": "notes",
         "incentive_claimed": "incentive_awarded",
+        "visit_lat": "visit_lat",
+        "visit_lng": "visit_lng",
+        "visit_accuracy_m": "visit_accuracy_m",
+        "visit_gps_timestamp": "visit_gps_timestamp",
+        "distance_from_household_m": "distance_from_household_m",
+        "gps_verification_status": "gps_verification_status",
         "created_by": None,
     },
     "flags": {
@@ -487,6 +494,12 @@ def _wm_defaults(table_name):
             "due_date": "",
             "completed_date": "",
             "notes": "",
+            "visit_lat": None,
+            "visit_lng": None,
+            "visit_accuracy_m": None,
+            "visit_gps_timestamp": None,
+            "distance_from_household_m": None,
+            "gps_verification_status": "",
         },
         "flags": {
             "patient_id": "",
@@ -674,6 +687,12 @@ def _serialize_records(queryset, table_name, fk_cache=None):
                 "completion_notes": obj.completion_notes,
                 "urgency": obj.urgency,
                 "incentive_claimed": obj.incentive_claimed,
+                "visit_lat": obj.visit_lat,
+                "visit_lng": obj.visit_lng,
+                "visit_accuracy_m": obj.visit_accuracy_m,
+                "visit_gps_timestamp": obj.visit_gps_timestamp.isoformat() if obj.visit_gps_timestamp else None,
+                "distance_from_household_m": obj.distance_from_household_m,
+                "gps_verification_status": obj.gps_verification_status,
                 "created_at": obj.created_at.isoformat() if obj.created_at else None,
                 "updated_at": obj.updated_at.isoformat() if obj.updated_at else None,
             }
@@ -940,6 +959,12 @@ def upsert_follow_up(local_uuid, data, user):
         "status": data.get("status", FollowUp.Status.PENDING),
         "completion_notes": data.get("notes") or data.get("completion_notes", ""),
         "triggered_by_assessment": None,
+        "visit_lat": data.get("visit_lat"),
+        "visit_lng": data.get("visit_lng"),
+        "visit_accuracy_m": data.get("visit_accuracy_m"),
+        "visit_gps_timestamp": data.get("visit_gps_timestamp"),
+        "distance_from_household_m": data.get("distance_from_household_m"),
+        "gps_verification_status": data.get("gps_verification_status", "not_captured"),
     }
     if data.get("completed_date") or data.get("completed_at"):
         defaults["completed_at"] = data.get("completed_date") or data["completed_at"]
@@ -1192,7 +1217,7 @@ class SyncPushView(APIView):
                     "message": event.message,
                 })
 
-            except Patient.DoesNotExist as exc:
+            except Patient.DoesNotExist:
                 event.status = SyncEvent.Status.ERROR
                 event.message = "Referenced patient not found"
                 event.save(update_fields=["status", "message"])

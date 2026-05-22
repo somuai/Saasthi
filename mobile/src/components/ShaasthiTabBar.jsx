@@ -4,12 +4,14 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 
-const TAB_META = {
+const DEFAULT_TAB_META = {
   home: { icon: "home", hi: "होम", en: "Home" },
   patients: { icon: "people", hi: "मरीज", en: "Records" },
   followups: { icon: "calendar", hi: "फॉलो-अप", en: "Tracker" },
   earnings: { icon: "wallet", hi: "कमाई", en: "Ledger" },
   mcp: { icon: "medkit", hi: "एमसीपी", en: "MCP" },
+  map: { icon: "map", hi: "नक्शा", en: "Map" },
+  "ai-assistant": { icon: "chatbubbles", hi: "AI", en: "AI" },
 };
 
 export function ShaasthiTabBar({ state, descriptors, navigation }) {
@@ -31,10 +33,10 @@ export function ShaasthiTabBar({ state, descriptors, navigation }) {
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
       <View style={styles.bar}>
         {state.routes
-          .filter((r) => ["home", "patients", "followups", "earnings", "mcp"].includes(r.name))
+          .filter((r) => r.name in DEFAULT_TAB_META)
           .map((route) => {
             const { options } = descriptors[route.key];
-            const meta = TAB_META[route.name] || { icon: "ellipse", hi: route.name, en: route.name };
+            const meta = DEFAULT_TAB_META[route.name] || { icon: "ellipse", hi: route.name, en: route.name };
             const focused = state.routes[state.index]?.key === route.key;
             const badge = options.tabBarBadge;
 

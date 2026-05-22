@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useSelector } from "react-redux";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
+import * as SecureStore from "expo-secure-store";
 import { GovtHeader } from "../../components/GovtHeader";
 import { LoadingState } from "../../components/LoadingState";
 import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
 import { FEATURES } from "../../constants/featureFlags";
+import { apiUrl } from "../../constants/api";
 import { firstDayOfMonthYmd, lastDayOfMonthYmd } from "../../utils/dateHelpers";
 import { tapTargetMin } from "../../constants/typography";
 
@@ -32,9 +36,12 @@ const MONTH_TARGET_PTS = 120;
 export default function EarningsScreen() {
   const database = useDatabase();
   const worker = useSelector((s) => s.auth.workerData);
+  const today = new Date();
+  const currentMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
   const [rows, setRows] = useState([]);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(null);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
     let sub;
@@ -71,6 +78,37 @@ export default function EarningsScreen() {
       .slice(0, 4);
   }, [rows]);
 
+  async function handleDownloadPayslip() {
+    setDownloading(true);
+    try {
+      const token = await SecureStore.getItemAsync("accessToken");
+      const url = apiUrl(`/incentives/ledger/payslip/${currentMonth}/`);
+      const response = await fetch(url, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error("Failed");
+      const blob = await response.blob();
+      const fileUri = FileSystem.cacheDirectory + `payslip-${currentMonth}.pdf`;
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64 = reader.result.split(",")[1];
+        await FileSystem.writeAsStringAsync(fileUri, base64, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(fileUri);
+        } else {
+          Alert.alert("Downloaded", `Payslip saved to ${fileUri}`);
+        }
+        setDownloading(false);
+      };
+      reader.readAsDataURL(blob);
+    } catch {
+      Alert.alert("Error", "Could not generate payslip. Try again.");
+      setDownloading(false);
+    }
+  }
+
   function chipState(item) {
     if (item.isApproved) return "approved";
     return "pending";
@@ -99,8 +137,10 @@ export default function EarningsScreen() {
           लक्ष्य {MONTH_TARGET_PTS} अंक — {progress}% / Target {MONTH_TARGET_PTS} pts
         </Text>
         {FEATURES.PDF_PAYSLIP && (
-          <Pressable style={styles.pdfBtn} onPress={() => {}} disabled>
-            <Text style={styles.pdfTxt}>PDF — जल्द उपलब्ध / Coming soon</Text>
+          <Pressable style={styles.pdfBtn} onPress={handleDownloadPayslip} disabled={downloading}>
+            <Text style={styles.pdfTxt}>
+              {downloading ? "Downloading… / डाउनलोड हो रहा…" : `PDF — ${currentMonth} / पेस्लिप डाउनलोड`}
+            </Text>
           </Pressable>
         )}
       </View>

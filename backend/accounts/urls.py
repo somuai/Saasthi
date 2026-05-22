@@ -1,10 +1,17 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import FirebaseVerifyView, OTPRequestView, OTPVerifyView, UserViewSet
+from .views import (
+    FirebaseVerifyView,
+    OTPRequestView,
+    OTPVerifyView,
+    UserViewSet,
+    WorkerRegistrationViewSet,
+)
 
 router = DefaultRouter()
 router.register("users", UserViewSet)
+router.register("workers", WorkerRegistrationViewSet, basename="workers")
 
 urlpatterns = [
     path("otp/request/", OTPRequestView.as_view(), name="otp-request"),

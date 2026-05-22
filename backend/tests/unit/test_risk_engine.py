@@ -3,7 +3,6 @@ from datetime import date, timedelta
 
 import pytest
 from django.utils import timezone
-
 from risk_engine.engine import (
     RiskEngine,
     compare,
@@ -11,10 +10,7 @@ from risk_engine.engine import (
     resolve_path,
 )
 from risk_engine.models import RiskRule
-from surveys.models import SurveyResponse
-
 from tests.factories import PatientFactory, RiskRuleFactory, SurveyResponseFactory
-
 
 # ── Resolve Path ──────────────────────────────────────────────────────
 

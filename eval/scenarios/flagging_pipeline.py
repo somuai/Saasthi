@@ -3,7 +3,7 @@ import os
 import sys
 
 # Django setup for direct engine run
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "shaasthi-api"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "backend"))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shaasthi_backend.settings")
 
 import django

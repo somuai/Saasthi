@@ -18,7 +18,7 @@ chmod +x scripts/dev.sh
 Or manually:
 
 ```bash
-cd shaasthi-api && source .venv/bin/activate
+cd backend && source .venv/bin/activate
 pip install -r requirements/dev.txt
 python manage.py migrate
 python manage.py generate_mock_data --workers 1 --patients 5
@@ -32,7 +32,7 @@ python manage.py runserver 127.0.0.1:8000
 After migrations:
 
 ```bash
-cd shaasthi-api && source .venv/bin/activate
+cd backend && source .venv/bin/activate
 python manage.py migrate
 python manage.py seed_risk_rules
 ```
@@ -46,13 +46,13 @@ python manage.py seed_risk_rules
 Docker (API + Postgres + Redis + worker):
 
 ```bash
-cd shaasthi-api && docker compose up --build
+cd backend && docker compose up --build
 ```
 
 Production profile (Gunicorn + nginx rate limits on port 8080):
 
 ```bash
-cd shaasthi-api
+cd backend
 USE_GUNICORN=true docker compose --profile prod up --build
 # API behind nginx: http://127.0.0.1:8080/api/v1/
 ```
@@ -65,10 +65,10 @@ Clinical paths in seeded rules use `patient.metadata.*` (no dedicated diabetes c
 
 **`InconsistentMigrationHistory` or `no such column: …is_hard_flag`**
 
-Your local `shaasthi-api/db.sqlite3` is out of date (often from an older project that never ran `accounts` migrations). Reset dev DB:
+Your local `backend/db.sqlite3` is out of date (often from an older project that never ran `accounts` migrations). Reset dev DB:
 
 ```bash
-cd shaasthi-api
+cd backend
 .venv/bin/python3.14 manage.py reset_dev_database --yes --seed-risk
 ```
 
@@ -83,7 +83,7 @@ Start Docker Desktop first, then `docker compose up --build`. For API-only dev, 
 **First time (install native app on simulator):**
 
 ```bash
-cd shaasthi-app
+cd mobile
 cp .env.example .env   # optional
 npm install
 npm run native:ios     # iOS — builds in.shaasthi.pilot — ~5–15 min first run
@@ -109,7 +109,7 @@ Do **not** switch to Expo Go (`s` in Metro) — WatermelonDB will crash with `WM
 **EAS dev build (device / cloud):**
 
 ```bash
-cd shaasthi-app
+cd mobile
 npm install -g eas-cli   # once
 eas login                # once
 eas init                 # links Expo project — sets extra.eas.projectId in app.json
@@ -117,7 +117,7 @@ eas build --profile development --platform ios
 # or: npm run eas:build:dev:ios
 ```
 
-Profiles in [`shaasthi-app/eas.json`](shaasthi-app/eas.json): `development` (simulator), `development-device` (physical iOS), `preview`, `production`.
+Profiles in [`mobile/eas.json`](mobile/eas.json): `development` (simulator), `development-device` (physical iOS), `preview`, `production`.
 
 **Troubleshooting**
 
@@ -137,7 +137,7 @@ Login: enter 10-digit mobile → OTP screen. With API running, use `dev_otp` fro
 ## 3. Automated verification
 
 ```bash
-cd shaasthi-app && npm run verify   # Jest + eval-offline
+cd mobile && npm run verify   # Jest + eval-offline
 # or from repo root:
 make eval-offline    # no server
 make eval            # requires API on :8000
@@ -149,8 +149,8 @@ Report: `eval/report.json`
 
 | Suite | Command | Expected |
 |-------|---------|----------|
-| Mobile | `cd shaasthi-app && npm test` | 37 passed (13 suites) |
-| API | `cd shaasthi-api && .venv/bin/python3.14 -m pytest tests/` | 11 passed |
+| Mobile | `cd mobile && npm test` | 37 passed (13 suites) |
+| API | `cd backend && .venv/bin/python3.14 -m pytest tests/` | 11 passed |
 | Eval | `make eval-offline` | OVERALL: PASS |
 | Eval (live) | `make eval` | OVERALL: PASS (requires API :8000) |
 

@@ -2,14 +2,13 @@ import csv
 
 from django.db.models import Count
 from django.http import HttpResponse
+from flagging.models import Flag
+from referrals.models import Referral
+from registry.models import Patient
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
-from flagging.models import Flag
 from shaasthi_backend.querysets import for_user_geography
-from referrals.models import Referral
-from registry.models import Patient
 from surveys.models import SurveyResponse
 
 

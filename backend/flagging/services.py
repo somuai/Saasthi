@@ -60,7 +60,6 @@ def auto_schedule_followups(assessment):
     from datetime import timedelta
 
     from django.utils import timezone
-
     from mcp.models import CareInteraction
 
     if assessment.level not in ("medium", "high"):

@@ -5,7 +5,6 @@ Hard flags trigger immediate referral regardless of score.
 Scoring rules contribute to the weighted risk score.
 """
 
-import datetime
 import logging
 import os
 import sys
@@ -15,6 +14,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shaasthi_backend.settings")
 
 import django
+
 django.setup()
 
 from risk_engine.models import RiskRule

@@ -61,7 +61,7 @@
 ### API Server (5 minutes)
 
 ```bash
-cd shaasthi-api
+cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt -r requirements-dev.txt
 cp .env.example .env          # edit for your environment
@@ -73,7 +73,7 @@ python manage.py runserver
 ### Mobile App (5 minutes)
 
 ```bash
-cd shaasthi-app
+cd mobile
 npm install
 cp .env.example .env          # set EXPO_PUBLIC_API_URL
 npx expo start
@@ -82,7 +82,7 @@ npx expo start
 ### Docker Deployment
 
 ```bash
-cd shaasthi-api
+cd backend
 cp .env.example .env          # set production values
 docker compose up -d
 ```
@@ -116,7 +116,7 @@ docker compose up -d
 ### Building the APK
 
 ```bash
-cd shaasthi-app
+cd mobile
 # Development build (debug APK)
 eas build --profile development --platform android
 # Preview build (internal distribution)
@@ -130,7 +130,7 @@ eas build --profile production --platform android
 ## Project Structure
 
 ```
-shaasthi-api/                  # Django REST API
+backend/                  # Django REST API
 ├── accounts/                  # Auth (OTP, JWT, User mgmt)
 ├── analytics/                 # Dashboard + CSV export
 ├── flagging/                  # Flag management
@@ -146,7 +146,7 @@ shaasthi-api/                  # Django REST API
 ├── sync/                      # WatermelonDB sync
 └── tests/                     # Integration + E2E tests
 
-shaasthi-app/                  # Expo React Native
+mobile/                  # Expo React Native
 ├── app/                       # Expo Router routes
 │   ├── (auth)/                # Splash, Login, OTP
 │   └── (tabs)/                # Home, Patients, Surveys, MCP
@@ -271,7 +271,7 @@ patients, households, survey_responses, follow_ups, flags, referrals, mother_rec
 
 ### Backend (89 tests)
 ```bash
-cd shaasthi-api && .venv/bin/python -m pytest
+cd backend && .venv/bin/python -m pytest
 ```
 
 | Suite | Tests | What it covers |
@@ -286,7 +286,7 @@ cd shaasthi-api && .venv/bin/python -m pytest
 
 ### Frontend (39 tests)
 ```bash
-cd shaasthi-app && npm test
+cd mobile && npm test
 ```
 
 | Suite | Tests | What it covers |
@@ -318,7 +318,7 @@ make eval-tier2        # Backend only
 
 ## Feature Flags
 
-All experimental features are gated behind `FEATURES` in `shaasthi-app/src/constants/featureFlags.js`:
+All experimental features are gated behind `FEATURES` in `mobile/src/constants/featureFlags.js`:
 
 | Flag | Default | Description |
 |---|---|---|
@@ -350,7 +350,7 @@ Toggle flags by changing `true`/`false` in `featureFlags.js` and rebuilding the 
 
 ### Celery Workers
 ```bash
-cd shaasthi-api
+cd backend
 celery -A shaasthi_backend worker -Q risk_assessment,celery -l info --concurrency=4
 ```
 
@@ -389,7 +389,7 @@ npm run format:api         # ruff format
 
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Run tests: `npm run lint && make eval-offline && cd shaasthi-app && npm test`
+3. Run tests: `npm run lint && make eval-offline && cd mobile && npm test`
 4. Commit: `git commit -m "feat: add feature description"`
 5. Push and open a PR
 

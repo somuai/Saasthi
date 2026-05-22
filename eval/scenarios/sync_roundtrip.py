@@ -19,9 +19,8 @@ def main() -> int:
     token = verify_otp(PHONE, otp)
     headers = auth_headers(token)
     
-    # Assign village to user so they can pull patients
-    me_resp = requests.get(f"{API}/auth/users/me/", headers=headers).json()
-    requests.patch(f"{API}/auth/users/{me_resp['id']}/", json={"village": "South"}, headers=headers)
+    me = requests.get(f"{API}/auth/users/me/", headers=headers).json()
+    requests.patch(f"{API}/auth/users/{me['id']}/", json={"village": "South"}, headers=headers)
     
     ts = now_ms()
     patient_id = "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f"
@@ -37,7 +36,7 @@ def main() -> int:
                         "patient_code": "EVAL-P-1",
                         "full_name": "Eval Patient",
                         "village": "South",
-                        "asha_worker_server_id": None,
+                        "asha_worker_server_id": me["id"],
                         "is_synced": False,
                         "created_at": ts,
                         "updated_at": ts,

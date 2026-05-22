@@ -1,7 +1,6 @@
-from rest_framework import serializers
-
 from flagging.models import Flag
 from registry.models import Patient
+from rest_framework import serializers
 
 from .models import Referral
 

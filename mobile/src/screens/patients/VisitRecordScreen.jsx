@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -15,14 +16,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { ShaasthiTopBar } from "../../components/ShaasthiTopBar";
 import { GovtButton } from "../../components/GovtButton";
 import { GovtInput } from "../../components/GovtInput";
+import { OtpInputRow } from "../../components/OtpInputRow";
+import { VoiceInputButton } from "../../components/ui/VoiceInputButton";
+import { useSpeechInput } from "../../hooks/useSpeechInput";
 import { LoadingState } from "../../components/LoadingState";
 import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
 import { FEATURES } from "../../constants/featureFlags";
+import { apiUrl } from "../../constants/api";
 import { PHC_FACILITIES } from "../../constants/phcFacilities";
 import { todayYmd } from "../../utils/dateHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
 import { tapTargetMin } from "../../constants/typography";
+import * as SecureStore from "expo-secure-store";
 
 const CONDITIONS = [
   { key: "well", icon: "happy-outline", hi: "ठीक", en: "Well" },
@@ -34,6 +40,8 @@ const CONDITIONS = [
  * Field visit log — stored in follow_ups with follow_type "field_visit".
  * notes JSON holds GPS, PHC, condition until dedicated visit_records API exists.
  */
+const OTP_FLOW = { PENDING: 0, REQUESTED: 1, VERIFIED: 2, BYPASSED: 3 };
+
 export default function VisitRecordScreen() {
   const { id: patientId } = useLocalSearchParams();
   const database = useDatabase();
@@ -47,6 +55,15 @@ export default function VisitRecordScreen() {
   const [timestamp] = useState(() => new Date().toISOString());
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+
+  const [otpStep, setOtpStep] = useState(OTP_FLOW.PENDING);
+  const [otpId, setOtpId] = useState(null);
+  const [otpValue, setOtpValue] = useState("");
+  const speech = useSpeechInput((text) => setNotes((prev) => (prev ? `${prev}\n${text}` : text)));
+  const [otpError, setOtpError] = useState("");
+  const [otpLoading, setOtpLoading] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(15 * 60);
+  const [formUnlocked, setFormUnlocked] = useState(false);
 
   useEffect(() => {
     if (!patientId) return undefined;
@@ -115,6 +132,76 @@ export default function VisitRecordScreen() {
     }
   }
 
+  async function handleRequestOtp() {
+    setOtpLoading(true);
+    setOtpError("");
+    try {
+      const token = await SecureStore.getItemAsync("accessToken");
+      const res = await fetch(apiUrl("/followups/verify/request-otp/"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ patient_id: patient.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Failed");
+      if (data.status === "no_phone") {
+        setOtpStep(OTP_FLOW.BYPASSED);
+        setFormUnlocked(true);
+        return;
+      }
+      setOtpId(data.otp_id);
+      setOtpStep(OTP_FLOW.REQUESTED);
+      setOtpTimer(15 * 60);
+    } catch (e) {
+      setOtpError(e.message || "Network error");
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
+  async function handleVerifyOtp(code) {
+    if (!otpId || code.length < 4) return;
+    setOtpLoading(true);
+    setOtpError("");
+    try {
+      const token = await SecureStore.getItemAsync("accessToken");
+      const res = await fetch(apiUrl("/followups/verify/verify-otp/"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ otp_id: otpId, otp_input: code }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Verification failed");
+      setOtpStep(OTP_FLOW.VERIFIED);
+      setFormUnlocked(true);
+    } catch (e) {
+      setOtpError(e.message || "Wrong OTP");
+      setOtpValue("");
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
+  async function handleBypassOtp() {
+    setOtpLoading(true);
+    setOtpError("");
+    try {
+      const token = await SecureStore.getItemAsync("accessToken");
+      const res = await fetch(apiUrl("/followups/verify/bypass-otp/"), {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ patient_id: patient.id, reason: "no_phone" }),
+      });
+      if (!res.ok) throw new Error("Bypass failed");
+      setOtpStep(OTP_FLOW.BYPASSED);
+      setFormUnlocked(true);
+    } catch (e) {
+      setOtpError(e.message);
+    } finally {
+      setOtpLoading(false);
+    }
+  }
+
   if (!patient) {
     return (
       <View style={styles.page}>
@@ -137,6 +224,36 @@ export default function VisitRecordScreen() {
             <Text style={styles.meta}>{new Date(timestamp).toLocaleString()}</Text>
           </View>
         </View>
+
+        {FEATURES.VISIT_VERIFICATION_OTP && !formUnlocked ? (
+          <View style={styles.otpSection}>
+            {otpStep === OTP_FLOW.PENDING ? (
+              <GovtButton titleHi="OTP भेजें" titleEn="Send OTP" onPress={handleRequestOtp} loading={otpLoading} />
+            ) : otpStep === OTP_FLOW.REQUESTED ? (
+              <View>
+                <Text style={styles.otpLabel}>परिवार को OTP दें / Ask household for OTP</Text>
+                <OtpInputRow value={otpValue} onChange={setOtpValue} onComplete={handleVerifyOtp} length={4} autoFocus />
+                {otpError ? <Text style={styles.otpError}>{otpError}</Text> : null}
+                {otpLoading ? <ActivityIndicator style={{ marginTop: 12 }} /> : null}
+                <View style={styles.otpActions}>
+                  <Pressable onPress={handleRequestOtp} style={styles.otpLink}>
+                    <Text style={styles.otpLinkTxt}>पुनः भेजें / Resend</Text>
+                  </Pressable>
+                  <Pressable onPress={handleBypassOtp} style={styles.otpLink}>
+                    <Text style={styles.otpLinkTxt}>फ़ोन नहीं? / No phone?</Text>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
+          </View>
+        ) : FEATURES.VISIT_VERIFICATION_OTP && formUnlocked ? (
+          <View style={[styles.verifyBadge, otpStep === OTP_FLOW.VERIFIED ? styles.verifyBadgeGreen : styles.verifyBadgeAmber]}>
+            <Ionicons name={otpStep === OTP_FLOW.VERIFIED ? "checkmark-circle" : "alert-circle"} size={18} color="#fff" />
+            <Text style={styles.verifyBadgeTxt}>
+              {otpStep === OTP_FLOW.VERIFIED ? "पुष्टि भेंट / Visit Verified ✓" : "बिना फ़ोन सत्यापन / No phone verification"}
+            </Text>
+          </View>
+        ) : null}
 
         <Text style={styles.labelHi}>स्थिति / Condition</Text>
         <View style={styles.condRow}>
@@ -173,14 +290,26 @@ export default function VisitRecordScreen() {
           </Text>
         </View>
 
-        <GovtInput
-          labelHi="टिप्पणी"
-          labelEn="Visit notes (optional)"
-          value={notes}
-          onChangeText={setNotes}
-          multiline
-          placeholder="Observation, referral advice…"
-        />
+        <View style={styles.notesRow}>
+          <GovtInput
+            labelHi="टिप्पणी"
+            labelEn="Visit notes (optional)"
+            value={notes}
+            onChangeText={setNotes}
+            multiline
+            placeholder="Observation, referral advice…"
+            containerStyle={{ flex: 1 }}
+          />
+          {FEATURES.VOICE_INPUT && (
+            <VoiceInputButton
+              onTranscript={(text) => setNotes((prev) => (prev ? `${prev}\n${text}` : text))}
+              isListening={speech.isListening}
+              isSupported={speech.isSupported}
+              onStart={speech.startListening}
+              onStop={speech.stopListening}
+            />
+          )}
+        </View>
 
         <GovtButton titleHi="सहेजें" titleEn="Save visit offline" onPress={saveVisit} loading={saving} />
         {saveError ? <Text style={styles.errorTxt}>{saveError}</Text> : null}
@@ -252,4 +381,29 @@ const styles = StyleSheet.create({
   },
   gpsTxt: { flex: 1, fontSize: 12, color: COLORS.textPrimary },
   errorTxt: { color: COLORS.danger, fontSize: 13, textAlign: "center", marginTop: 8 },
+  otpSection: {
+    backgroundColor: COLORS.card,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 16,
+  },
+  otpLabel: { fontSize: 13, color: COLORS.textPrimary, fontWeight: "700", marginBottom: 12 },
+  otpError: { color: COLORS.danger, fontSize: 12, marginTop: 8, textAlign: "center" },
+  otpActions: { flexDirection: "row", justifyContent: "space-between", marginTop: 16 },
+  otpLink: { minHeight: tapTargetMin, justifyContent: "center" },
+  otpLinkTxt: { color: COLORS.accent, fontSize: 13, fontWeight: "800" },
+  verifyBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  verifyBadgeGreen: { backgroundColor: COLORS.success },
+  verifyBadgeAmber: { backgroundColor: "#D4A017" },
+  verifyBadgeTxt: { color: "#fff", fontSize: 13, fontWeight: "700", flex: 1 },
+  notesRow: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
 });

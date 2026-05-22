@@ -1,8 +1,7 @@
-from rest_framework import viewsets
-
 from accounts.views import audit
-from shaasthi_backend.querysets import for_user_geography
 from registry.models import Patient
+from rest_framework import viewsets
+from shaasthi_backend.querysets import for_user_geography
 
 from .models import Flag
 from .serializers import FlagSerializer

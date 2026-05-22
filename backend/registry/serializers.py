@@ -1,6 +1,5 @@
-from rest_framework import serializers
-
 from accounts.models import User
+from rest_framework import serializers
 
 from .models import Household, Patient
 
@@ -34,3 +33,16 @@ class PatientSerializer(serializers.ModelSerializer):
                     "ASHA worker geography (village/block/district) must be set before registering patients."
                 )
         return attrs
+
+
+class MapPatientSerializer(serializers.ModelSerializer):
+    household_lat = serializers.FloatField(source="household.lat", read_only=True, allow_null=True)
+    household_lng = serializers.FloatField(source="household.lng", read_only=True, allow_null=True)
+
+    class Meta:
+        model = Patient
+        fields = [
+            "id", "local_uuid", "full_name", "phone", "gender", "age_years",
+            "village", "status", "pregnancy_status",
+            "household_lat", "household_lng",
+        ]

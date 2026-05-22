@@ -4,8 +4,13 @@ def for_user_geography(queryset, user):
     if user.is_superuser or user.role in {"admin", "auditor", "supervisor"}:
         return queryset
 
+    model = queryset.model
+    model_field_names = {f.name for f in model._meta.fields}
+
+    if user.role == "health_worker" and "asha_worker" in model_field_names:
+        return queryset.filter(asha_worker=user)
+
     filters = {}
-    model_field_names = {f.name for f in queryset.model._meta.fields}
     for field in ("region", "district", "block", "village"):
         value = getattr(user, field, "")
         if value and field in model_field_names:

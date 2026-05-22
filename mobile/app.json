@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "scheme": "shaasthi",
     "userInterfaceStyle": "light",
-    "icon": "./assets/shaasthi-logo.png",
+    "icon": "./assets/icon.png",
     "assetBundlePatterns": [
       "assets/**/*"
     ],
@@ -28,7 +28,7 @@
     "android": {
       "package": "enactus.Shaasthi.kiit",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/shaasthi-logo.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F766E"
       },
       "permissions": [

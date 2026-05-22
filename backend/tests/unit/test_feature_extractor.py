@@ -1,13 +1,9 @@
 """Feature extractor + operator edge case tests."""
-import json
 
-import numpy as np
 import pytest
-
 from risk_engine.engine import compare, resolve_path
 from risk_engine.models import RiskRule
 from tests.factories import PatientFactory, RiskRuleFactory, SurveyResponseFactory
-
 
 # ── Operator Edge Cases ───────────────────────────────────────────────
 

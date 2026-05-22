@@ -1,13 +1,12 @@
-from datetime import date, timedelta
+from datetime import date
 
+from accounts.views import audit
 from django.utils import timezone
+from registry.models import Patient
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from accounts.views import audit
 from shaasthi_backend.querysets import for_user_geography
-from registry.models import Patient
 
 from .models import (
     ANCVisit,

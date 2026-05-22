@@ -2,8 +2,6 @@
 
 from rest_framework import serializers
 
-from registry.models import Patient
-
 from .models import RiskAssessment, RiskRule
 
 
