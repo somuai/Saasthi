@@ -6,7 +6,12 @@ from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from .models import AuditLog, User
-from .serializers import OTPRequestSerializer, OTPVerifySerializer, UserSerializer
+from .serializers import (
+    FirebaseVerifySerializer,
+    OTPRequestSerializer,
+    OTPVerifySerializer,
+    UserSerializer,
+)
 
 
 def audit(request, action, resource="", resource_id="", metadata=None):
@@ -44,6 +49,19 @@ class OTPVerifyView(APIView):
 
     def post(self, request):
         serializer = OTPVerifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.save()
+        return Response(payload)
+
+
+class FirebaseVerifyView(APIView):
+    authentication_classes = []
+    permission_classes = []
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = "otp"
+
+    def post(self, request):
+        serializer = FirebaseVerifySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         payload = serializer.save()
         return Response(payload)

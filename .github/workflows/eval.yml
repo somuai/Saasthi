@@ -5,8 +5,16 @@ on:
     branches: [main, master, "cursor/**"]
   pull_request:
 
+env:
+  DJANGO_DEBUG: "true"
+  DJANGO_SECRET_KEY: shaasthi-ci-secret-key-not-for-production
+  DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1,testserver"
+  DATABASE_URL: "sqlite:///db.sqlite3"
+  CELERY_TASK_ALWAYS_EAGER: "true"
+  EXPOSE_DEBUG_OTP: "true"
+
 jobs:
-  offline-eval:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,7 +23,21 @@ jobs:
           node-version: "20"
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('shaasthi-api/requirements*.txt', 'eval/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Cache npm
+        uses: actions/cache@v4
+        with:
+          path: shaasthi-app/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('shaasthi-app/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
       - name: Install mobile deps
         run: cd shaasthi-app && npm ci
       - name: Install API deps
@@ -25,12 +47,17 @@ jobs:
           . .venv/bin/activate
           pip install -r requirements-dev.txt
           python manage.py migrate
-      - name: Run offline eval
-        run: make eval-offline
+      - name: Run backend tests
+        run: |
+          cd shaasthi-api
+          . .venv/bin/activate
+          python -m pytest tests/ -v
+      - name: Run frontend tests
+        run: cd shaasthi-app && npm test
 
-  live-eval:
+  offline-eval:
     runs-on: ubuntu-latest
-    needs: offline-eval
+    needs: [test]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -38,13 +65,51 @@ jobs:
           node-version: "20"
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('shaasthi-api/requirements*.txt', 'eval/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install mobile deps
+        run: cd shaasthi-app && npm ci
+      - name: Install API deps
+        run: |
+          cd shaasthi-api
+          python -m venv .venv
+          . .venv/bin/activate
+          pip install -r requirements-dev.txt
+          pip install -r ../eval/requirements.txt
+          python manage.py migrate
+      - name: Run offline eval
+        run: make eval-offline
+
+  live-eval:
+    runs-on: ubuntu-latest
+    needs: [offline-eval]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('shaasthi-api/requirements*.txt', 'eval/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
       - name: Install deps
         run: |
           cd shaasthi-app && npm ci
           cd ../shaasthi-api && python -m venv .venv && . .venv/bin/activate && pip install -r requirements-dev.txt
-          pip install -r ../eval/requirements.txt
-          python manage.py migrate
+          . .venv/bin/activate && pip install -r ../eval/requirements.txt
+          . .venv/bin/activate && python manage.py migrate
       - name: Start API
         run: |
           cd shaasthi-api

@@ -284,7 +284,12 @@ def test_pull_returns_data(auth_client):
     assert resp.status_code == 200
     assert "changes" in resp.data
     assert "timestamp" in resp.data
-    for table in ("patients", "households", "survey_responses"):
+    all_tables = [
+        "patients", "households", "survey_responses", "follow_ups",
+        "flags", "referrals", "mother_records", "immunization_records",
+        "growth_records", "incentive_records", "anc_visit_records", "child_development",
+    ]
+    for table in all_tables:
         assert table in resp.data["changes"]
         assert "created" in resp.data["changes"][table]
         assert "updated" in resp.data["changes"][table]
@@ -333,7 +338,7 @@ def test_pull_categorizes_created_vs_updated(auth_client, sample_patient):
 
     assert len(patients["created"]) == 0, "No new patients should be created"
     assert len(patients["updated"]) >= 1, "The updated patient should appear in 'updated'"
-    updated_names = [p["full_name"] for p in patients["updated"]]
+    updated_names = [p["name"] for p in patients["updated"]]
     assert "Updated Name" in updated_names
 
 
@@ -416,3 +421,256 @@ def test_pull_returns_correct_fk_ids(auth_client, sample_patient):
     matching = [s for s in surveys if s["id"] == str(sr.local_uuid)]
     assert len(matching) == 1
     assert matching[0]["patient_id"] == str(sample_patient.local_uuid)
+
+
+# ── Pull: field mapping correctness ──────────────────────────
+
+
+@pytest.mark.django_db
+def test_pull_patient_has_wm_field_names(auth_client, sample_patient):
+    """Pull patients should use WatermelonDB column names (e.g. 'name' not 'full_name')."""
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    patients = resp.data["changes"]["patients"]["created"]
+    patient = next((p for p in patients if p["id"] == str(sample_patient.local_uuid)), None)
+    assert patient is not None, "Sample patient should appear in pull"
+    assert "name" in patient, "Should use 'name' not 'full_name'"
+    assert "full_name" not in patient, "Should NOT have Django 'full_name'"
+    assert patient["name"] == sample_patient.full_name
+    assert "created_at" in patient
+    assert isinstance(patient["created_at"], int), "Timestamp should be int ms"
+    assert patient["is_synced"] is True
+    assert patient["is_mock"] is False
+    assert "server_id" in patient
+    assert "has_asthma" in patient, "Should include WM-only fields with defaults"
+
+
+@pytest.mark.django_db
+def test_pull_survey_uses_wm_field_names(auth_client, sample_patient):
+    """Survey responses should use WatermelonDB column names."""
+    from surveys.models import SurveyResponse
+
+    sr = SurveyResponse.objects.create(
+        local_uuid=uuid.uuid4(),
+        patient=sample_patient,
+        survey_type="initial",
+        answers={"fever": True},
+    )
+
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    surveys = resp.data["changes"]["survey_responses"]["created"]
+    matching = [s for s in surveys if s["id"] == str(sr.local_uuid)]
+    assert len(matching) == 1
+    sv = matching[0]
+    assert "survey_type" not in sv, "Should not include Django-only 'survey_type'"
+    assert "patient_id" in sv, "Should include WM patient_id"
+    assert sv["is_synced"] is True
+
+
+@pytest.mark.django_db
+def test_pull_household_uses_wm_field_names(auth_client, sample_patient):
+    """Households should use WatermelonDB column names."""
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    households = resp.data["changes"]["households"]["created"]
+    for hh in households:
+        assert "head_of_family" in hh, "Should use 'head_of_family' not 'head_name'"
+        assert "head_name" not in hh
+        assert "total_members" in hh
+        assert "gps_lat" in hh
+
+
+# ── Pull: timestamp format ───────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_pull_timestamps_are_milliseconds(auth_client, sample_patient):
+    """created_at and updated_at should be int ms timestamps, not ISO strings."""
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    for table_name in ("patients", "households", "survey_responses"):
+        for record in resp.data["changes"][table_name]["created"]:
+            assert isinstance(record["created_at"], int), f"{table_name}: created_at should be int"
+            assert isinstance(record["updated_at"], int), f"{table_name}: updated_at should be int"
+            assert record["created_at"] > 1_700_000_000_000, f"{table_name}: created_at seems wrong"
+
+
+# ── Pull: deleted records ────────────────────────────────────
+
+
+@pytest.mark.django_db
+def test_pull_deletes_include_sync_event_deletes(auth_client, sample_patient):
+    """Deleted patient should appear in pull 'deleted' array via SyncEvent."""
+    puid = sample_patient.local_uuid
+
+    # Delete the patient via sync push
+    resp = auth_client.post(
+        "/api/v1/sync/push/",
+        push_payload({
+            "patients": {"created": [], "updated": [], "deleted": [str(puid)]}
+        }),
+        format="json",
+    )
+    assert resp.status_code == 200
+
+    # Pull should show the patient in deleted
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    deleted = resp.data["changes"]["patients"]["deleted"]
+    assert str(puid) in deleted, "Deleted patient should appear in pull deleted"
+
+
+@pytest.mark.django_db
+def test_pull_household_deleted_via_is_active(auth_client):
+    """Household deactivated via is_active=False should appear in pull deleted."""
+    huid = uuid.uuid4()
+    auth_client.post(
+        "/api/v1/sync/push/",
+        push_payload({
+            "households": {
+                "created": [{"id": str(huid), "household_code": "HH-DEL"}],
+                "updated": [], "deleted": [],
+            }
+        }),
+        format="json",
+    )
+
+    Household.objects.filter(local_uuid=huid).update(is_active=False)
+
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    deleted = resp.data["changes"]["households"]["deleted"]
+    assert str(huid) in deleted, "Deactivated household should appear in pull deleted"
+
+
+# ── Push & Pull: all model types ──────────────────────────────
+
+
+@pytest.mark.django_db
+def test_push_and_pull_follow_up(auth_client, sample_patient):
+    """Push a follow_up, then pull it back with correct field names."""
+    fuid = uuid.uuid4()
+    puid = sample_patient.local_uuid
+
+    resp = auth_client.post(
+        "/api/v1/sync/push/",
+        push_payload({
+            "follow_ups": {
+                "created": [{
+                    "id": str(fuid),
+                    "patient_id": str(puid),
+                    "due_date": "2026-06-01",
+                    "urgency": "routine",
+                    "notes": "Test follow up",
+                }],
+                "updated": [], "deleted": [],
+            }
+        }),
+        format="json",
+    )
+    assert resp.status_code == 200
+    assert resp.data["results"][0]["status"] == SyncEvent.Status.APPLIED
+
+    from followups.models import FollowUp
+    fu = FollowUp.objects.get(local_uuid=fuid)
+    assert fu.patient_id == sample_patient.id
+
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    follow_ups = resp.data["changes"]["follow_ups"]["created"]
+    matching = [f for f in follow_ups if f["id"] == str(fuid)]
+    assert len(matching) == 1
+    assert matching[0]["patient_id"] == str(puid)
+
+
+@pytest.mark.django_db
+def test_push_and_pull_referral(auth_client, sample_patient):
+    """Push a referral, then pull it back."""
+    ruid = uuid.uuid4()
+    puid = sample_patient.local_uuid
+
+    resp = auth_client.post(
+        "/api/v1/sync/push/",
+        push_payload({
+            "referrals": {
+                "created": [{
+                    "id": str(ruid),
+                    "patient_id": str(puid),
+                    "destination": "PHC Test",
+                    "reason": "High risk",
+                }],
+                "updated": [], "deleted": [],
+            }
+        }),
+        format="json",
+    )
+    assert resp.status_code == 200
+
+    from referrals.models import Referral
+    ref = Referral.objects.get(local_uuid=ruid)
+    assert ref.patient_id == sample_patient.id
+
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    referrals = resp.data["changes"]["referrals"]["created"]
+    matching = [r for r in referrals if r["id"] == str(ruid)]
+    assert len(matching) == 1
+    assert matching[0]["provider_name"] == "PHC Test"
+
+
+@pytest.mark.django_db
+def test_push_and_pull_flag(auth_client, sample_patient):
+    """Push a flag, then pull it back with WM field names."""
+    flag_uid = uuid.uuid4()
+    puid = sample_patient.local_uuid
+
+    resp = auth_client.post(
+        "/api/v1/sync/push/",
+        push_payload({
+            "flags": {
+                "created": [{
+                    "id": str(flag_uid),
+                    "patient_id": str(puid),
+                    "flag_type": "clinical_risk",
+                    "severity": "high",
+                    "source": "sync",
+                }],
+                "updated": [], "deleted": [],
+            }
+        }),
+        format="json",
+    )
+    assert resp.status_code == 200
+
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    flags = resp.data["changes"]["flags"]["created"]
+    matching = [f for f in flags if f["id"] == str(flag_uid)]
+    assert len(matching) == 1
+    assert matching[0]["patient_id"] == str(puid)
+    assert matching[0]["flag_type"] == "clinical_risk"
+
+
+@pytest.mark.django_db
+def test_push_incentive_then_pull(auth_client):
+    """Push an incentive record, pull it back."""
+    iuid = uuid.uuid4()
+
+    resp = auth_client.post(
+        "/api/v1/sync/push/",
+        push_payload({
+            "incentive_records": {
+                "created": [{
+                    "id": str(iuid),
+                    "action_type": "survey_completion",
+                    "points": 10,
+                    "period_date": "2026-05",
+                }],
+                "updated": [], "deleted": [],
+            }
+        }),
+        format="json",
+    )
+    assert resp.status_code == 200
+
+    from incentives.models import IncentiveLedgerEntry
+    entry = IncentiveLedgerEntry.objects.get(local_uuid=iuid)
+    assert entry.activity_type == "survey_completion"
+
+    resp = auth_client.get("/api/v1/sync/pull/", {"last_pulled_at": "0"})
+    incentives = resp.data["changes"]["incentive_records"]["created"]
+    matching = [i for i in incentives if i["id"] == str(iuid)]
+    assert len(matching) == 1
+    assert matching[0]["action_type"] == "survey_completion"

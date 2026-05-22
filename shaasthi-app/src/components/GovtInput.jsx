@@ -14,6 +14,7 @@ export function GovtInput({
   keyboardType,
   prefix,
   placeholder,
+  autoCapitalize,
   required,
   multiline,
   error,
@@ -42,6 +43,7 @@ export function GovtInput({
           editable={editable}
           multiline={multiline}
           placeholder={placeholder}
+          autoCapitalize={autoCapitalize}
           keyboardType={keyboardType}
           value={value}
           onChangeText={onChangeText}
@@ -70,6 +72,7 @@ GovtInput.propTypes = {
   keyboardType: PropTypes.string,
   prefix: PropTypes.string,
   placeholder: PropTypes.string,
+  autoCapitalize: PropTypes.string,
   required: PropTypes.bool,
   multiline: PropTypes.bool,
   error: PropTypes.string,

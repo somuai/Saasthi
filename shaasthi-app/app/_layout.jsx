@@ -23,10 +23,6 @@ function AuthGuard({ children }) {
     const onSplash = authScreen === "splash";
     const onNativeRequired = authScreen === "native-required";
 
-    if (__DEV__) {
-      console.log("[AuthGuard]", { user: !!user, inAuth, authScreen, nativeDb });
-    }
-
     // ── Unauthenticated: always allow auth screens ──
     if (!user) {
       if (!inAuth) {
@@ -86,4 +82,3 @@ export default function RootLayout() {
     </AppProvider>
   );
 }
-

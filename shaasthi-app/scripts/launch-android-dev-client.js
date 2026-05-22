@@ -1,10 +1,12 @@
 #!/usr/bin/env node
 /**
- * Open the dev client on a connected emulator with localhost Metro (requires adb reverse).
+ * Open the dev client on a connected Android device with localhost Metro (requires adb reverse).
  */
 const { spawnSync } = require("child_process");
 const path = require("path");
+const { formatDevice, listAdbDevices, readyDevices, selectDevice } = require("./android-adb-devices");
 const { resolveAndroidSdk } = require("./resolve-android-sdk");
+const { setupAndroidDevConnection } = require("./setup-android-dev-connection");
 
 const http = require("http");
 const METRO_URL = process.env.EXPO_METRO_URL || "http://localhost:8081";
@@ -37,7 +39,26 @@ async function main() {
     PATH: `${path.join(sdk, "platform-tools")}:${process.env.PATH || ""}`,
   };
 
-  require("./setup-android-dev-connection.js");
+  if (!setupAndroidDevConnection()) {
+    process.exit(1);
+  }
+
+  const { devices, error } = listAdbDevices(adb, env);
+  if (error) {
+    console.error(`[android] ${error}`);
+    process.exit(1);
+  }
+
+  const requestedSerial = process.env.ANDROID_SERIAL;
+  const { device, ambiguous } = selectDevice(readyDevices(devices), requestedSerial);
+  if (!device) {
+    const suffix = requestedSerial ? ` matching ANDROID_SERIAL=${requestedSerial}` : "";
+    console.error(`[android] no authorized adb device${suffix}`);
+    process.exit(1);
+  }
+  if (ambiguous) {
+    console.warn(`[android] multiple devices connected; launching ${formatDevice(device)}`);
+  }
 
   const metroUp = await metroReachable();
   if (!metroUp) {
@@ -50,11 +71,11 @@ async function main() {
   }
 
   const deepLink = `${SCHEME}://expo-development-client/?url=${encodeURIComponent(METRO_URL)}`;
-  console.log(`[android] launching dev client → ${METRO_URL}`);
+  console.log(`[android] launching ${formatDevice(device)} dev client → ${METRO_URL}`);
 
   const r = spawnSync(
     adb,
-    ["shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", deepLink],
+    ["-s", device.serial, "shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", deepLink],
     { env, encoding: "utf8" }
   );
 

@@ -36,9 +36,6 @@ export default function AuthSplashScreen() {
     const nav = setTimeout(async () => {
       try {
         const storedUser = await AsyncStorage.getItem(AUTH_USER_KEY);
-        if (__DEV__) {
-          console.log("[Splash] storedUser:", !!storedUser, "nativeDb:", isWatermelonNativeAvailable());
-        }
         if (storedUser && isWatermelonNativeAvailable()) {
           router.replace("/(tabs)/home");
         } else if (storedUser) {

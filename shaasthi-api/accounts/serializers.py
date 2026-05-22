@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework_simplejwt.tokens import RefreshToken
 
+from .firebase_auth import verify_firebase_token
 from .models import OTPChallenge
 from .sms import send_otp_sms
 
@@ -47,6 +48,33 @@ class OTPVerifySerializer(serializers.Serializer):
         challenge = validated_data["challenge"]
         challenge.consumed_at = timezone.now()
         challenge.save(update_fields=["consumed_at"])
+        phone = validated_data["phone"]
+        user, _ = User.objects.get_or_create(
+            phone=phone,
+            defaults={"username": phone, "role": User.Role.HEALTH_WORKER},
+        )
+        refresh = RefreshToken.for_user(user)
+        return {
+            "user": UserSerializer(user).data,
+            "refresh": str(refresh),
+            "access": str(refresh.access_token),
+        }
+
+
+class FirebaseVerifySerializer(serializers.Serializer):
+    id_token = serializers.CharField()
+
+    def validate(self, attrs):
+        decoded = verify_firebase_token(attrs["id_token"])
+        if not decoded:
+            raise serializers.ValidationError("Invalid or expired Firebase token.")
+        phone = decoded.get("phone_number")
+        if not phone:
+            raise serializers.ValidationError("No phone number in Firebase token.")
+        attrs["phone"] = phone
+        return attrs
+
+    def create(self, validated_data):
         phone = validated_data["phone"]
         user, _ = User.objects.get_or_create(
             phone=phone,

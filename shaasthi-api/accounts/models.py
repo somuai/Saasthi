@@ -17,11 +17,11 @@ class User(AbstractUser):
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     phone = models.CharField(max_length=32, unique=True, null=True, blank=True)
-    role = models.CharField(max_length=32, choices=Role.choices, default=Role.HEALTH_WORKER)
-    region = models.CharField(max_length=120, blank=True)
-    district = models.CharField(max_length=120, blank=True)
-    block = models.CharField(max_length=120, blank=True)
-    village = models.CharField(max_length=120, blank=True)
+    role = models.CharField(max_length=32, choices=Role.choices, default=Role.HEALTH_WORKER, db_index=True)
+    region = models.CharField(max_length=120, blank=True, db_index=True)
+    district = models.CharField(max_length=120, blank=True, db_index=True)
+    block = models.CharField(max_length=120, blank=True, db_index=True)
+    village = models.CharField(max_length=120, blank=True, db_index=True)
     metadata = models.JSONField(default=dict, blank=True)
 
     def __str__(self):
@@ -32,8 +32,8 @@ class OTPChallenge(models.Model):
     phone = models.CharField(max_length=32, db_index=True)
     code_hash = models.CharField(max_length=64)
     purpose = models.CharField(max_length=32, default="login")
-    expires_at = models.DateTimeField()
-    consumed_at = models.DateTimeField(null=True, blank=True)
+    expires_at = models.DateTimeField(db_index=True)
+    consumed_at = models.DateTimeField(null=True, blank=True, db_index=True)
     attempts = models.PositiveSmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -80,13 +80,17 @@ class AuthSession(models.Model):
 
 
 class AuditLog(models.Model):
-    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
-    action = models.CharField(max_length=120)
-    resource_type = models.CharField(max_length=120, blank=True)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL, db_index=True)
+    action = models.CharField(max_length=120, db_index=True)
+    resource_type = models.CharField(max_length=120, blank=True, db_index=True)
     resource_id = models.CharField(max_length=120, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["action", "created_at"], name="ix_audit_action_created"),
+            models.Index(fields=["actor", "created_at"], name="ix_audit_actor_created"),
+        ]

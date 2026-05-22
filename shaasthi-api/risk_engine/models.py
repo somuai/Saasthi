@@ -117,6 +117,10 @@ class RiskAssessment(models.Model):
     ml_confidence = models.FloatField(null=True, blank=True)
     ml_model_version = models.IntegerField(null=True, blank=True)
 
+    patient_population = models.CharField(max_length=10, default="general", blank=True,
+                                          help_text="general|maternal|child")
+    mcp_session_type = models.CharField(max_length=30, null=True, blank=True)
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

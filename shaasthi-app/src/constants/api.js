@@ -9,6 +9,7 @@ export const API_BASE_URL =
 export const endpoints = {
   requestOtp: "/auth/otp/request/",
   verifyOtp: "/auth/otp/verify/",
+  firebaseVerify: "/auth/firebase/verify/",
   tokenRefresh: "/auth/token/refresh/",
   syncPull: "/sync/pull/",
   syncPush: "/sync/push/",

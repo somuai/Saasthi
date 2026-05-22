@@ -25,3 +25,7 @@ class Referral(models.Model):
 
     class Meta:
         ordering = ["-updated_at"]
+        indexes = [
+            models.Index(fields=["patient", "status"], name="ix_referral_patient_status"),
+            models.Index(fields=["destination"], name="ix_referral_destination"),
+        ]

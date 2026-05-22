@@ -4,6 +4,15 @@ from rest_framework.test import APIClient
 from accounts.models import User
 from registry.models import Patient
 
+from .factories import (
+    AdminUserFactory,
+    HouseholdFactory,
+    PatientFactory,
+    SupervisorFactory,
+    UserFactory,
+)
+
+
 @pytest.fixture(autouse=True)
 def _celery_eager(settings):
     settings.CELERY_TASK_ALWAYS_EAGER = True
@@ -16,23 +25,18 @@ def api_client():
 
 @pytest.fixture
 def worker():
-    return User.objects.create_user(username="worker", phone="+15550000001", role=User.Role.HEALTH_WORKER)
+    return UserFactory()
+
+
+@pytest.fixture
+def worker_client(api_client, worker):
+    api_client.force_authenticate(worker)
+    return api_client
 
 
 @pytest.fixture
 def supervisor():
-    return User.objects.create_user(username="supervisor", phone="+15550000002", role=User.Role.SUPERVISOR)
-
-
-@pytest.fixture
-def admin_user():
-    return User.objects.create_user(username="admin", phone="+15550000099", role=User.Role.ADMIN)
-
-
-@pytest.fixture
-def admin_client(api_client, admin_user):
-    api_client.force_authenticate(admin_user)
-    return api_client
+    return SupervisorFactory()
 
 
 @pytest.fixture
@@ -42,5 +46,32 @@ def auth_client(api_client, supervisor):
 
 
 @pytest.fixture
+def admin_user():
+    return AdminUserFactory()
+
+
+@pytest.fixture
+def admin_client(api_client, admin_user):
+    api_client.force_authenticate(admin_user)
+    return api_client
+
+
+@pytest.fixture
 def sample_patient():
     return Patient.objects.create(full_name="Test Patient", gender="female", village="Central Village")
+
+
+@pytest.fixture
+def household(worker):
+    return HouseholdFactory(asha_worker=worker)
+
+
+@pytest.fixture
+def patient(household, worker):
+    return PatientFactory(household=household, asha_worker=worker)
+
+
+@pytest.fixture
+def seed_risk_rules():
+    from django.core.management import call_command
+    call_command("seed_risk_rules")

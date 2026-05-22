@@ -26,6 +26,12 @@ class Flag(models.Model):
 
     class Meta:
         ordering = ["-updated_at"]
+        indexes = [
+            models.Index(fields=["patient", "status"], name="ix_flag_patient_status"),
+            models.Index(fields=["flag_type"], name="ix_flag_type"),
+            models.Index(fields=["severity"], name="ix_flag_severity"),
+            models.Index(fields=["source"], name="ix_flag_source"),
+        ]
 
     def __str__(self):
         return f"{self.flag_type}:{self.patient_id}:{self.status}"

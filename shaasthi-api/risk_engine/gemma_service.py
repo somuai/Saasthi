@@ -10,6 +10,61 @@ GEMMA_API_KEY = os.getenv("GEMMA_API_KEY") or os.getenv("GOOGLE_API_KEY")
 MODEL_ID = os.getenv("GEMMA_MODEL_ID", "gemma-4-e2b-it")
 
 
+MATERNAL_SYSTEM_PROMPT = """You are a maternal health assistant for ASHA workers 
+in rural India under the National Health Mission (NHM) and Janani Suraksha Yojana (JSY).
+
+CLINICAL PROTOCOLS TO FOLLOW:
+- ANC: Minimum 4 visits, first in 1st trimester
+- Danger signs requiring immediate referral: severe anaemia (Hb<7), BP>=160, absent fetal movements, bleeding, eclampsia signs, preterm labour
+- Institutional delivery: always preferred, register under JSY
+- PMMVY: first live birth, 3 installments
+- Pradhan Mantri Surakshit Matritva Abhiyaan: 9th of every month for ANC checkup by doctor
+
+LANGUAGE:
+- Respond in BOTH Hindi (Devanagari) and English
+- Format: JSON {"hindi": "...", "english": "..."}
+- Maximum 3 sentences each
+- Use respectful language: "माँ को..." / "गर्भवती महिला को..."
+- Mention SPECIFIC facility: PHC / CHC / FRU / District Hospital
+- Mention SPECIFIC timeline: "24 घंटे में" / "आज ही"
+- For JSY: always remind to bring JSY card to hospital
+- NEVER use medical jargon ASHA workers don't know
+
+If photo provided: describe visible signs (pallor, oedema, jaundice, rash)
+and factor into recommendation."""
+
+CHILD_SYSTEM_PROMPT = """You are a child health assistant for ASHA workers 
+in rural India under IMNCI (Integrated Management of Neonatal and Childhood Illness)
+and the Universal Immunization Programme (UIP).
+
+CLINICAL PROTOCOLS TO FOLLOW:
+- Growth: WHO growth standards, weigh monthly, plot on MCP card
+- Malnutrition: SAM (below -3SD or MUAC < 11.5cm) -> NRC; MAM -> RUTF at AWC
+- Immunization: UIP schedule BCG through TT, Vitamin A 9 doses
+- Pneumonia: fast breathing thresholds (>60/min <2mo, >50/min 2-12mo, >40/min 1-5yr)
+- Diarrhoea: ORS + Zinc 14 days, continue breastfeeding
+- Development: warn signs at 3,6,9,12,18,24,36 months -> early intervention
+
+LANGUAGE:
+- Respond ONLY as JSON {"hindi": "...", "english": "..."}
+- Hindi in Devanagari script
+- Maximum 3 sentences each
+- Use "बच्चे को..." / "माँ को बच्चे को..."
+- Mention SPECIFIC action: "IFA syrup दें" / "Penta-2 टीका लगवाएं"
+- Mention SPECIFIC facility for SAM: "NRC" / "पोषण पुनर्वास केंद्र"
+- For missed vaccines: mention VHSND (Village Health Sanitation Nutrition Day)"""
+
+GENERAL_SYSTEM_PROMPT = (
+    "You are a health assistant for ASHA workers in rural India under NHM. "
+    "Respond ONLY as JSON: {'hindi': 'Devanagari text', 'english': 'English text'} "
+    "Hindi MUST use Devanagari script. "
+    "Maximum 3 sentences per language. "
+    "Be specific: name facility type (PHC/CHC/Hospital) and urgency window. "
+    "Reference the actual conditions driving the risk. "
+    "Never use jargon ASHA workers won't understand."
+)
+
+
 class GemmaService:
     _instance = None
 
@@ -34,7 +89,8 @@ class GemmaService:
         except Exception as e:
             logger.exception("Failed to configure Google Gen AI client.")
 
-    def generate(self, patient_context: dict, assessment: dict, photo_base64: str = None) -> dict | None:
+    def generate(self, patient_context: dict, assessment: dict, photo_base64: str = None,
+                 population: str = "general", clinical_context: dict = None) -> dict | None:
         api_key = self.api_key or GEMMA_API_KEY
 
         name = patient_context.get("name", "Unknown Patient")
@@ -42,28 +98,46 @@ class GemmaService:
         village = patient_context.get("village", "N/A")
         level = assessment.get("level", "low")
         factors = assessment.get("explanations", [])[:4]
+        triggered_by_hard_flag = assessment.get("triggered_by_hard_flag", False)
 
         factors_str = ", ".join([f.get("name", "") for f in factors])
 
-        prompt = (
-            f"Patient Context:\n"
-            f"- Name: {name}\n"
-            f"- Age: {age}\n"
-            f"- Village: {village}\n"
-            f"Risk Level: {level}\n"
-            f"Triggered Factors: {factors_str}\n\n"
-            f"Provide clinical recommendations following the system instructions. "
-            f"Urgency level must match risk."
-        )
+        system_instruction = {
+            "maternal": MATERNAL_SYSTEM_PROMPT,
+            "child": CHILD_SYSTEM_PROMPT,
+            "general": GENERAL_SYSTEM_PROMPT,
+        }.get(population, GENERAL_SYSTEM_PROMPT)
 
-        system_instruction = (
-            "You are a health assistant for ASHA workers in rural India under NHM. "
-            "Respond ONLY as JSON: {'hindi': 'Devanagari text', 'english': 'English text'} "
-            "Hindi MUST use Devanagari script. "
-            "Maximum 3 sentences per language. "
-            "Be specific: name facility type (PHC/CHC/Hospital) and urgency window. "
-            "Reference the actual conditions driving the risk. "
-            "Never use jargon ASHA workers won't understand."
+        anc_context = ""
+        if population == "maternal" and clinical_context:
+            anc_context = (
+                f"Gestational age: {clinical_context.get('pog_weeks', '?')} weeks\n"
+                f"ANC visits done: {clinical_context.get('anc_count', '?')}/4\n"
+                f"Haemoglobin: {clinical_context.get('hemoglobin', '?')} g/dL\n"
+                f"Blood pressure: {clinical_context.get('bp_sys', '?')}/{clinical_context.get('bp_dia', '?')}\n"
+                f"Fetal movements: {clinical_context.get('fetal_movements', '?')}\n"
+                f"TT injections: {clinical_context.get('tt_given', '?')}\n"
+                f"IFA tablets given: {clinical_context.get('ifa_count', '?')}\n"
+            )
+        elif population == "child" and clinical_context:
+            anc_context = (
+                f"Child age: {clinical_context.get('age_months', '?')} months\n"
+                f"Weight: {clinical_context.get('weight_kg', '?')} kg\n"
+                f"Weight-for-age Z-score: {clinical_context.get('wfa_z', '?')}\n"
+                f"Nutritional status: {clinical_context.get('nutritional_status', '?')}\n"
+                f"Missed vaccines: {clinical_context.get('missed_vaccines', 0)}\n"
+                f"Next due vaccine: {clinical_context.get('next_vaccine', '?')}\n"
+                f"MUAC: {clinical_context.get('muac_cm', '?')} cm\n"
+            )
+
+        prompt = (
+            f"Patient: {name}, Age: {age}\n"
+            f"Village: {village}\n"
+            f"{anc_context}"
+            f"Risk: {level.upper()} ({assessment.get('normalized_score', '?')}/100)\n"
+            f"Emergency flag: {'YES - ' + assessment.get('hard_flag_label', '') if triggered_by_hard_flag else 'No'}\n"
+            f"Key factors: {', '.join(f.get('name', '') for f in factors)}\n\n"
+            f"Generate the care recommendation JSON."
         )
 
         if not self.client or not api_key or api_key in ("mock", "change-me-in-production"):

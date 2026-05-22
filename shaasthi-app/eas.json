@@ -34,8 +34,22 @@
         "buildType": "apk"
       }
     },
+    "preview-device": {
+      "extends": "preview",
+      "distribution": "internal"
+    },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "ios": {
+        "bundleIdentifier": "in.shaasthi.pilot",
+        "enterpriseProvisioning": "universal"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_ENV": "production"
+      }
     }
   },
   "submit": {

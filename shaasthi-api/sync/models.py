@@ -23,4 +23,9 @@ class SyncEvent(models.Model):
 
     class Meta:
         ordering = ["-received_at"]
-        indexes = [models.Index(fields=["client_id", "model_name", "object_local_uuid"])]
+        indexes = [
+            models.Index(fields=["client_id", "model_name", "object_local_uuid"]),
+            models.Index(fields=["status"], name="ix_sync_event_status"),
+            models.Index(fields=["received_at"], name="ix_sync_event_received"),
+            models.Index(fields=["event_type"], name="ix_sync_event_type"),
+        ]

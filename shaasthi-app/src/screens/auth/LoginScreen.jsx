@@ -24,6 +24,7 @@ import { requestOtp } from "../../features/auth/authSlice";
 import { persistPendingLogin } from "../../features/auth/authSession";
 import { LOCALES, getStoredLocale, setStoredLocale } from "../../utils/locale";
 import { tapTargetMin } from "../../constants/typography";
+import { setConfirmationResult, clearConfirmationResult } from "../../utils/firebaseConfirm";
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
@@ -49,18 +50,29 @@ export default function LoginScreen() {
     }
     setLoading(true);
     setError("");
+    clearConfirmationResult();
     let devOtp = "";
+    let useFirebase = false;
+    /* Try Firebase Auth first */
     try {
-      const res = await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
-      devOtp = res.data?.dev_otp || "";
-    } catch {
-      /* offline / no API — pilot continues */
+      const auth = (await import("@react-native-firebase/auth")).default;
+      const cr = await auth().signInWithPhoneNumber(`+91${phone}`);
+      setConfirmationResult(cr);
+      useFirebase = true;
+    } catch (fbErr) {
+      /* Firebase not available (no google-services.json, emulator, etc.) — fall back to legacy OTP */
+      try {
+        const res = await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
+        devOtp = res.data?.debug_otp || "";
+      } catch {
+        /* offline / no API — pilot continues */
+      }
     } finally {
       setLoading(false);
     }
     await persistPendingLogin({ phone, locale });
     dispatch(requestOtp(phone));
-    router.push({ pathname: "/(auth)/otp", params: { phone, devOtp, locale } });
+    router.push({ pathname: "/(auth)/otp", params: { phone, devOtp, locale, useFirebase: useFirebase ? "1" : "0" } });
   }
 
   async function pilotLogin() {

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shaasthi Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f4f7fc; color: #1a1a2e; min-height: 100vh;
+    }
+    .header {
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      color: white; padding: 16px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header h1 { font-size: 20px; font-weight: 700; }
+    .header .sub { font-size: 13px; opacity: 0.85; }
+    .header .user-info { display: flex; align-items: center; gap: 12px; }
+    .header .user-info span { font-size: 13px; }
+    #logoutBtn {
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+      color: white; padding: 6px 14px; border-radius: 6px; cursor: pointer;
+      font-size: 13px; font-weight: 600;
+    }
+    #logoutBtn:hover { background: rgba(255,255,255,0.25); }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card {
+      background: white; border-radius: 12px; padding: 20px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e8ecf0;
+    }
+    .card .label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: #6b7280; }
+    .card .value { font-size: 32px; font-weight: 800; margin-top: 4px; }
+    .card .value.green { color: #0f766e; }
+    .card .value.red { color: #dc2626; }
+    .card .value.amber { color: #d97706; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    .chart-card { background: white; border-radius: 12px; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); border: 1px solid #e8ecf0; }
+    .chart-card h3 { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #374151; }
+    .chart-card canvas { max-height: 260px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { text-align: left; padding: 10px 12px; font-weight: 700; color: #6b7280; border-bottom: 2px solid #e8ecf0; }
+    td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; }
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 12px;
+      font-size: 11px; font-weight: 700;
+    }
+    .badge-high { background: #fef2f2; color: #dc2626; }
+    .badge-medium { background: #fffbeb; color: #d97706; }
+    .badge-low { background: #f0fdf4; color: #16a34a; }
+    .badge-open { background: #fef2f2; color: #dc2626; }
+    .badge-resolved { background: #f0fdf4; color: #16a34a; }
+    .badge-acknowledged { background: #fffbeb; color: #d97706; }
+
+    /* Login screen */
+    #loginScreen {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      z-index: 100;
+    }
+    #loginScreen.hidden { display: none; }
+    .login-card {
+      background: white; border-radius: 16px; padding: 40px; width: 380px; max-width: 90vw;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    .login-card h2 { font-size: 24px; font-weight: 800; margin-bottom: 4px; }
+    .login-card p { color: #6b7280; font-size: 14px; margin-bottom: 24px; }
+    .login-card input {
+      width: 100%; padding: 12px 16px; border: 2px solid #e0e0e0; border-radius: 8px;
+      font-size: 16px; margin-bottom: 12px; outline: none; transition: border-color 0.2s;
+    }
+    .login-card input:focus { border-color: #0f766e; }
+    .login-card button {
+      width: 100%; padding: 12px; background: #0f766e; color: white;
+      border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer;
+    }
+    .login-card button:hover { background: #0d9488; }
+    .login-card button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .login-card .msg { margin-top: 12px; font-size: 13px; text-align: center; }
+    .login-card .msg.error { color: #dc2626; }
+    .login-card .msg.success { color: #16a34a; }
+
+    .flags-table-wrap { overflow-x: auto; }
+    .export-btn {
+      background: #0f766e; color: white; border: none; padding: 8px 16px;
+      border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
+      float: right; margin-bottom: 12px;
+    }
+    .export-btn:hover { background: #0d9488; }
+    @media (max-width: 768px) { .row { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="loginScreen">
+    <div class="login-card">
+      <h2>Shaasthi</h2>
+      <p>Supervisor Dashboard</p>
+      <input type="tel" id="phoneInput" placeholder="Phone (+91XXXXXXXXXX)" maxlength="15">
+      <input type="text" id="otpInput" placeholder="OTP (6-digit)" maxlength="6" style="display:none">
+      <button id="loginBtn" onclick="handleLogin()">Request OTP</button>
+      <div id="loginMsg" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboardScreen">
+    <div class="header">
+      <div>
+        <h1>Shaasthi Dashboard</h1>
+        <div class="sub" id="lastRefresh"></div>
+      </div>
+      <div class="user-info">
+        <span id="userDisplay"></span>
+        <button id="logoutBtn" onclick="logout()">Log out</button>
+      </div>
+    </div>
+    <div class="container">
+      <div class="grid" id="kpiGrid"></div>
+      <div class="row">
+        <div class="chart-card"><h3>Flags by Severity</h3><canvas id="severityChart"></canvas></div>
+        <div class="chart-card"><h3>Referrals by Status</h3><canvas id="referralChart"></canvas></div>
+      </div>
+      <div class="card" id="flagsSection" style="display:none">
+        <h3 style="font-size:14px;font-weight:700;margin-bottom:12px;color:#374151;">
+          Recent Flags
+          <button class="export-btn" onclick="exportCSV()">Download CSV</button>
+        </h3>
+        <div class="flags-table-wrap"><table id="flagsTable"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BASE = window.location.origin;
+    let token = localStorage.getItem('shaasthi_dash_token');
+    let userInfo = JSON.parse(localStorage.getItem('shaasthi_dash_user') || '{}');
+    let otpRequested = false;
+
+    if (token && userInfo.role) {
+      document.getElementById('loginScreen').classList.add('hidden');
+      initDashboard();
+    }
+
+    async function handleLogin() {
+      const phone = document.getElementById('phoneInput').value.trim();
+      const otp = document.getElementById('otpInput').value.trim();
+      const btn = document.getElementById('loginBtn');
+      const msg = document.getElementById('loginMsg');
+
+      if (!otpRequested) {
+        if (phone.length < 10) { msg.textContent = 'Enter a valid phone number'; msg.className = 'msg error'; return; }
+        btn.disabled = true; btn.textContent = 'Sending…';
+        try {
+          const r = await fetch(`${BASE}/api/v1/auth/otp/request/`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({phone}),
+          });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.detail || d.message || 'Failed');
+          otpRequested = true;
+          document.getElementById('otpInput').style.display = 'block';
+          btn.textContent = 'Verify OTP'; btn.disabled = false;
+          msg.textContent = 'OTP sent to phone (check logs for dev)'; msg.className = 'msg success';
+
+          if (d.otp) {
+            document.getElementById('otpInput').value = String(d.otp);
+            document.getElementById('otpInput').focus();
+            msg.textContent += ` — Dev OTP: ${d.otp}`;
+          }
+        } catch(e) {
+          msg.textContent = e.message; msg.className = 'msg error'; btn.disabled = false; btn.textContent = 'Request OTP';
+        }
+      } else {
+        if (otp.length < 4) { msg.textContent = 'Enter the OTP'; msg.className = 'msg error'; return; }
+        btn.disabled = true; btn.textContent = 'Verifying…';
+        try {
+          const r = await fetch(`${BASE}/api/v1/auth/otp/verify/`, {
+            method: 'POST', headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({phone, otp}),
+          });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.detail || d.message || 'Invalid OTP');
+          token = d.access;
+          localStorage.setItem('shaasthi_dash_token', token);
+          const me = await fetch(`${BASE}/api/v1/auth/users/me/`, {
+            headers: {'Authorization': `Bearer ${token}`},
+          }).then(r => r.json());
+          userInfo = me;
+          localStorage.setItem('shaasthi_dash_user', JSON.stringify(me));
+          document.getElementById('loginScreen').classList.add('hidden');
+          initDashboard();
+        } catch(e) {
+          msg.textContent = e.message; msg.className = 'msg error';
+          btn.disabled = false; btn.textContent = 'Verify OTP';
+        }
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('shaasthi_dash_token');
+      localStorage.removeItem('shaasthi_dash_user');
+      token = null; userInfo = {};
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('phoneInput').value = '';
+      document.getElementById('otpInput').value = '';
+      document.getElementById('otpInput').style.display = 'none';
+      document.getElementById('loginBtn').textContent = 'Request OTP';
+      document.getElementById('loginMsg').textContent = '';
+      otpRequested = false;
+    }
+
+    async function initDashboard() {
+      document.getElementById('userDisplay').textContent = userInfo.phone || userInfo.username || 'User';
+      await loadDashboard();
+      setInterval(loadDashboard, 60000);
+    }
+
+    async function api(path) {
+      const r = await fetch(`${BASE}${path}`, {
+        headers: {'Authorization': `Bearer ${token}`},
+      });
+      if (r.status === 401) { logout(); throw new Error('Unauthorized'); }
+      return r.json();
+    }
+
+    async function loadDashboard() {
+      try {
+        const data = await api('/api/v1/dashboard/summary/');
+
+        document.getElementById('lastRefresh').textContent =
+          'Last updated: ' + new Date().toLocaleTimeString('en-IN', { hour12: false });
+
+        document.getElementById('kpiGrid').innerHTML = `
+          <div class="card"><div class="label">Patients</div><div class="value green">${data.patients}</div></div>
+          <div class="card"><div class="label">Surveys</div><div class="value green">${data.surveys}</div></div>
+          <div class="card"><div class="label">Open Flags</div><div class="value red">${data.open_flags}</div></div>
+          <div class="card"><div class="label">Total Referrals</div><div class="value amber">${data.referrals_by_status.reduce((s,r) => s + r.count, 0)}</div></div>
+        `;
+
+        const sevLabels = []; const sevData = [];
+        for (const s of data.flags_by_severity) {
+          sevLabels.push(s.severity.charAt(0).toUpperCase() + s.severity.slice(1));
+          sevData.push(s.count);
+        }
+        new Chart(document.getElementById('severityChart'), {
+          type: 'doughnut',
+          data: { labels: sevLabels, datasets: [{ data: sevData, backgroundColor: ['#dc2626','#d97706','#16a34a','#6b7280'] }] },
+          options: { responsive: true, plugins: { legend: { position: 'bottom' } } },
+        });
+
+        const refLabels = []; const refData = [];
+        for (const r of data.referrals_by_status) {
+          refLabels.push(r.status.charAt(0).toUpperCase() + r.status.slice(1));
+          refData.push(r.count);
+        }
+        new Chart(document.getElementById('referralChart'), {
+          type: 'bar',
+          data: { labels: refLabels, datasets: [{ label: 'Referrals', data: refData, backgroundColor: '#0f766e' }] },
+          options: { responsive: true, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } },
+        });
+      } catch(e) { if (token) console.error('Dashboard load error', e); }
+    }
+
+    async function exportCSV() {
+      try {
+        const r = await fetch(`${BASE}/api/v1/dashboard/export/flags.csv`, {
+          headers: {'Authorization': `Bearer ${token}`},
+        });
+        if (!r.ok) throw new Error('Failed');
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a'); a.href = url;
+        a.download = `shaasthi-flags-${new Date().toISOString().slice(0,10)}.csv`;
+        a.click(); URL.revokeObjectURL(url);
+      } catch(e) { alert('Export failed: ' + e.message); }
+    }
+  </script>
+</body>
+</html>

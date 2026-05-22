@@ -5,3 +5,7 @@ coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Firebase platform configs (download from Firebase Console — do not commit)
+android/app/google-services.json
+ios/GoogleService-Info.plist

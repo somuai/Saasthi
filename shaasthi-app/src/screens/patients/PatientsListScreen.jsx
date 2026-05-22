@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
@@ -54,10 +54,7 @@ export default function PatientsListScreen() {
     return <LoadingState />;
   }
 
-  const criticalCount = useMemo(
-    () => patients.filter((p) => p.riskLevel === "critical").length,
-    [patients]
-  );
+  const criticalCount = patients.filter((p) => p.riskLevel === "critical").length;
 
   return (
     <View style={styles.page}>

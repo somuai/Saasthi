@@ -6,26 +6,62 @@
     "orientation": "portrait",
     "scheme": "shaasthi",
     "userInterfaceStyle": "light",
+    "icon": "./assets/shaasthi-logo.png",
     "assetBundlePatterns": [
-      "**/*"
+      "assets/**/*"
     ],
+    "splash": {
+      "image": "./assets/shaasthi-logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0F766E"
+    },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "in.shaasthi.pilot"
+      "bundleIdentifier": "in.shaasthi.pilot",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Shaasthi uses your location to record field visit data for maternal and child health tracking.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Shaasthi needs background location access to continue tracking visits even when the app is in the background.",
+        "NSPhotoLibraryUsageDescription": "Shaasthi can access your photo library to attach images to survey records.",
+        "NSCameraUsageDescription": "Shaasthi uses the camera to capture wound/rash photos for health assessments."
+      }
     },
     "android": {
-      "package": "in.shaasthi.pilot",
+      "package": "enactus.Shaasthi.kiit",
       "adaptiveIcon": {
+        "foregroundImage": "./assets/shaasthi-logo.png",
         "backgroundColor": "#0F766E"
-      }
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "plugins": [
       "expo-router",
       "expo-dev-client",
+      "@react-native-firebase/app",
+      "@react-native-firebase/auth",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Shaasthi needs background location to track field visits.",
+          "locationWhenInUsePermission": "Shaasthi uses your location to record field visit data."
+        }
+      ],
+      [
+        "expo-background-fetch",
+        {
+          "minimumInterval": 900
+        }
+      ],
       "./plugins/withWatermelonSimdjson.js",
       "./plugins/withExpoDevMenuSimulatorFix.js",
       "./plugins/withAndroidLocalProperties.js",
-      "./plugins/withKotlinInPackageFix.js"
+      "./plugins/withKotlinInPackageFix.js",
+      "./plugins/withAndroidFlipperNoop.js"
     ],
     "experiments": {
       "typedRoutes": false

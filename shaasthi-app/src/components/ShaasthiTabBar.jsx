@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Keyboard, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
@@ -13,6 +14,18 @@ const TAB_META = {
 
 export function ShaasthiTabBar({ state, descriptors, navigation }) {
   const insets = useSafeAreaInsets();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const show = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+
+  if (keyboardVisible) return null;
 
   return (
     <View style={[styles.wrap, { paddingBottom: Math.max(insets.bottom, 8) }]}>
@@ -60,31 +73,35 @@ export function ShaasthiTabBar({ state, descriptors, navigation }) {
 
 const styles = StyleSheet.create({
   wrap: {
-    backgroundColor: COLORS.surfaceContainer,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    backgroundColor: COLORS.card,
     borderTopWidth: 1,
     borderColor: COLORS.border,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 10,
   },
   bar: {
     flexDirection: "row",
-    minHeight: 64,
-    paddingTop: 8,
-    paddingHorizontal: 4,
+    minHeight: 62,
+    paddingTop: 6,
+    paddingHorizontal: 8,
+    gap: 4,
   },
   tab: {
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 6,
-    borderRadius: 999,
-    minHeight: 52,
+    paddingVertical: 5,
+    borderRadius: 14,
+    minHeight: 50,
   },
   tabActive: {
     backgroundColor: COLORS.navyLight,
   },
-  labelHi: { fontSize: 10, fontWeight: "800", color: COLORS.textSecondary, marginTop: 2 },
-  labelEn: { fontSize: 8, color: COLORS.textHint },
+  labelHi: { fontSize: 10, fontWeight: "800", color: COLORS.textSecondary, marginTop: 2, lineHeight: 13 },
+  labelEn: { fontSize: 8, color: COLORS.textHint, lineHeight: 11 },
   labelActive: { color: COLORS.primary },
   badge: {
     position: "absolute",

@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 .pytest_cache/
 db.sqlite3
+
+# Firebase Admin SDK service account (sensitive — never commit)
+firebase-service-account.json

@@ -5,8 +5,9 @@ def for_user_geography(queryset, user):
         return queryset
 
     filters = {}
+    model_field_names = {f.name for f in queryset.model._meta.fields}
     for field in ("region", "district", "block", "village"):
         value = getattr(user, field, "")
-        if value and any(model_field.name == field for model_field in queryset.model._meta.fields):
+        if value and field in model_field_names:
             filters[field] = value
     return queryset.filter(**filters) if filters else queryset.none()

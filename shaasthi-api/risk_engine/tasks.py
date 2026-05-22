@@ -145,3 +145,103 @@ def enhance_with_gemma4(self, assessment_id, photo_base64=None):
     except Exception as exc:
         logger.exception("enhance_with_gemma4 task failed")
         raise self.retry(exc=exc) from exc
+
+
+# ── MCP Population-Specific Risk Assessment ──────────────────────────────
+
+_MCP_INSTANCE_MODELS: dict = {}
+
+
+def _get_instance(instance_local_uuid: str, instance_model: str):
+    model_map = {}
+    if not _MCP_INSTANCE_MODELS:
+        try:
+            from mcp.models import ANCVisit, DeliveryRecord, GrowthRecord, ImmunizationRecord, PNCVisit
+            _MCP_INSTANCE_MODELS.update(
+                ancvisit=ANCVisit, deliveryrecord=DeliveryRecord, pncvisit=PNCVisit,
+                growthrecord=GrowthRecord, immunizationrecord=ImmunizationRecord,
+            )
+        except ImportError:
+            pass
+    model_map.update(_MCP_INSTANCE_MODELS)
+    model = model_map.get(instance_model.lower())
+    if model is None:
+        return None
+    try:
+        return model.objects.get(local_uuid=instance_local_uuid)
+    except (model.DoesNotExist, ValueError):
+        return None
+
+
+@shared_task(
+    bind=True,
+    max_retries=3,
+    default_retry_delay=30,
+    name="risk_engine.run_mcp_risk_assessment",
+)
+def run_mcp_risk_assessment(self, patient_local_uuid, instance_local_uuid="", instance_model="",
+                            population="general", session_type=""):
+    """
+    Run risk assessment for MCP maternal/child populations.
+    Uses MCPFeatureExtractor and population-specific risk rules.
+    """
+    from .engine import RiskEngine
+    from .mcp_feature_extractor import MCPFeatureExtractor
+
+    try:
+        patient = Patient.objects.get(local_uuid=patient_local_uuid)
+        instance = _get_instance(instance_local_uuid, instance_model) if instance_local_uuid else None
+        surveyed_at = timezone.now()
+
+        engine = RiskEngine()
+        assessment = engine.create_assessment(
+            patient, survey=None, surveyed_at=surveyed_at, save=False,
+        )
+        assessment.patient_population = population
+        assessment.mcp_session_type = session_type
+
+        if population == "maternal":
+            latest_anc = None
+            if hasattr(patient, 'anc_visits'):
+                latest_anc = patient.anc_visits.order_by("-visit_date").first()
+            extractor = MCPFeatureExtractor()
+            features = extractor.extract_maternal(patient, latest_anc)
+            assessment.ml_score = float(features[8]) if hasattr(assessment, 'apply_ml_score') else None
+        elif population == "child":
+            latest_growth = None
+            if hasattr(patient, 'growth_records'):
+                latest_growth = patient.growth_records.order_by("-recorded_date").first()
+            missed_vaccines = 0
+            if hasattr(patient, 'immunizations'):
+                missed_vaccines = patient.immunizations.filter(status="missed").count()
+            extractor = MCPFeatureExtractor()
+            features = extractor.extract_child(patient, latest_growth, missed_vaccines)
+            assessment.ml_score = float(features[30]) if hasattr(assessment, 'apply_ml_score') else None
+
+        assessment.save()
+        create_flags_for_assessment(assessment)
+
+        if assessment.level in ("medium", "high"):
+            try:
+                auto_schedule_followups(assessment)
+            except Exception:
+                logger.warning("auto_schedule_followups skipped for MCP task", exc_info=True)
+
+        if assessment.level in ("medium", "high"):
+            try:
+                enhance_with_gemma4.delay(str(assessment.local_uuid))
+            except Exception:
+                logger.warning("enhance_with_gemma4 enqueue skipped for MCP task", exc_info=True)
+
+        return {
+            "status": "completed",
+            "assessment_id": str(assessment.local_uuid),
+            "risk_level": assessment.level,
+            "population": population,
+        }
+    except Patient.DoesNotExist as exc:
+        logger.warning("run_mcp_risk_assessment skipped: patient %s not found", patient_local_uuid)
+        return {"status": "skipped", "reason": "patient_not_found"}
+    except Exception as exc:
+        logger.exception("run_mcp_risk_assessment failed")
+        raise self.retry(exc=exc) from exc

@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
 import { Image, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
@@ -7,17 +8,6 @@ import { TricolorStripe } from "./TricolorStripe";
 import { OfflineBanner } from "./OfflineBanner";
 import { PilotSyncBanner } from "./PilotSyncBanner";
 import { SyncIndicator } from "./SyncIndicator";
-
-function AshokaLion({ size = 22 }) {
-  return (
-    <Svg width={18} height={size} viewBox="0 0 24 28">
-      <Path
-        fill="#fff"
-        d="M12 2c-1.5 2-4 3-6 4 1 2 1 4 0 6 2 1 4 1 6 0-1-2-1-4 0-6 2-1 4.5-2 6-4zm-6 10c-2 2-3 5-2 8h4c-1-3 0-6 2-8h-4zm12 0c2 2 3 5 2 8h-4c1-3 0-6-2-8h4zM8 22c0 3 2 5 4 6 2-1 4-3 4-6h-8z"
-      />
-    </Svg>
-  );
-}
 
 export function GovtHeader({
   title,
@@ -27,13 +17,15 @@ export function GovtHeader({
   rightComponent,
 }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   const hi = titleHi ?? title;
+  const showBrandText = !hi;
   return (
     <View style={styles.wrap}>
       <TricolorStripe />
       <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      <View style={styles.bar}>
-        <View style={styles.left}>
+      <View style={[styles.bar, { paddingTop: Math.max(insets.top, 8) }]}>
+        <View style={[styles.left, showBack && styles.leftCompact]}>
           {showBack ? (
             <Pressable
               accessibilityRole="button"
@@ -46,12 +38,12 @@ export function GovtHeader({
           ) : null}
           <View style={styles.brandRow}>
             <Image source={require("../../assets/shaasthi-logo.png")} style={styles.brandLogo} resizeMode="contain" />
-            <Text style={styles.brand}>SHAASTHI</Text>
+            {showBrandText ? <Text style={styles.brand} numberOfLines={1}>SHAASTHI</Text> : null}
           </View>
         </View>
         <View style={styles.center}>
-          <Text style={styles.title}>{hi}</Text>
-          {titleHi && title && title !== titleHi ? <Text style={styles.sub}>{title}</Text> : null}
+          <Text style={styles.title} numberOfLines={1}>{hi}</Text>
+          {titleHi && title && title !== titleHi ? <Text style={styles.sub} numberOfLines={1}>{title}</Text> : null}
         </View>
         <View style={styles.right}>
           {showSync ? <SyncIndicator /> : null}
@@ -75,14 +67,16 @@ GovtHeader.propTypes = {
 const styles = StyleSheet.create({
   wrap: { backgroundColor: COLORS.primary },
   bar: {
-    minHeight: 64,
-    paddingHorizontal: 8,
+    minHeight: 72,
+    paddingHorizontal: 12,
+    paddingBottom: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: COLORS.primary,
   },
-  left: { flexDirection: "row", alignItems: "center", flex: 1 },
+  left: { flexDirection: "row", alignItems: "center", flex: 1, minWidth: 0 },
+  leftCompact: { flex: 0.72 },
   iconBtn: {
     minWidth: 52,
     minHeight: 52,
@@ -90,11 +84,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  brandRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  brandLogo: { width: 22, height: 22 },
-  brand: { color: "#fff", fontSize: 12, fontWeight: "800", letterSpacing: 1 },
-  center: { flex: 2, alignItems: "center" },
-  title: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 6, minWidth: 0 },
+  brandLogo: { width: 20, height: 20 },
+  brand: { color: "#fff", fontSize: 11, fontWeight: "800", letterSpacing: 0.5, flexShrink: 1 },
+  center: { flex: 2.2, alignItems: "center", minWidth: 0, paddingHorizontal: 8 },
+  title: { color: "#fff", fontSize: 16, fontWeight: "800", textAlign: "center" },
   sub: { color: "rgba(255,255,255,0.85)", fontSize: 11 },
-  right: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8 },
+  right: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 8 },
 });

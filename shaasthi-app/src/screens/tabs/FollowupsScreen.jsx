@@ -70,7 +70,7 @@ export default function FollowupsScreen() {
     return <LoadingState />;
   }
 
-  const filtered = useMemo(() => rows.filter((r) => r.dueDate === selectedDay), [rows, selectedDay]);
+  const filtered = rows.filter((r) => r.dueDate === selectedDay);
   const today = todayYmd();
   const overdueTotal = rows.filter((r) => r.dueDate < today).length;
   const todayTotal = rows.filter((r) => r.dueDate === today).length;

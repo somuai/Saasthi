@@ -36,6 +36,7 @@ import {
 import { isWatermelonNativeAvailable } from "../../database/isNativeAvailable";
 import { setStoredLocale } from "../../utils/locale";
 import { tapTargetMin } from "../../constants/typography";
+import { getConfirmationResult, clearConfirmationResult, setConfirmationResult } from "../../utils/firebaseConfirm";
 
 const MOCK_WORKER = {
   serverId: "local-asha-worker",
@@ -59,6 +60,7 @@ export default function OtpScreen() {
   const [phone, setPhone] = useState(params.phone ? String(params.phone) : "");
   const [devOtp, setDevOtp] = useState(params.devOtp ? String(params.devOtp) : "");
   const [locale, setLocaleState] = useState(params.locale ? String(params.locale) : "hi");
+  const useFirebase = params.useFirebase === "1";
   const [otp, setOtp] = useState("");
   const [timer, setTimer] = useState(45);
   const [canResend, setCanResend] = useState(false);
@@ -75,6 +77,12 @@ export default function OtpScreen() {
       if (!params.locale && l) setLocaleState(l);
     });
   }, [params.phone, params.locale]);
+
+  useEffect(() => {
+    if (!useFirebase) {
+      clearConfirmationResult();
+    }
+  }, [useFirebase]);
 
   useEffect(() => {
     if (locale) setStoredLocale(locale);
@@ -121,32 +129,78 @@ export default function OtpScreen() {
       return;
     }
     try {
-      const res = await apiClient.post(endpoints.verifyOtp, {
-        phone: `+91${phone}`,
-        otp: code,
-      });
-      const { access, refresh, user, worker } = res.data;
-      await persistAuthTokens({ access, refresh });
-      dispatch(setTokens({ access, refresh }));
-      const sessionUser = { ...user, language: locale };
-      const sessionWorker = worker || MOCK_WORKER;
-      dispatch(setUser(sessionUser));
-      dispatch(setWorkerData(sessionWorker));
-      dispatch(setOfflinePilotSession(false));
-      await completeLogin(sessionUser, sessionWorker, access);
+      /* Firebase flow: confirm OTP via Firebase, then verify ID token on backend */
+      if (useFirebase) {
+        const cr = getConfirmationResult();
+        if (!cr) {
+          setError("OTP session expired — please request again");
+          setLoading(false);
+          return;
+        }
+        const fbUserCred = await cr.confirm(code);
+        const idToken = await fbUserCred.user.getIdToken();
+        clearConfirmationResult();
+        const res = await apiClient.post(endpoints.firebaseVerify, { id_token: idToken });
+        const { access, refresh, user, worker } = res.data;
+        await persistAuthTokens({ access, refresh });
+        dispatch(setTokens({ access, refresh }));
+        const sessionUser = { ...user, language: locale };
+        const sessionWorker = worker || MOCK_WORKER;
+        dispatch(setUser(sessionUser));
+        dispatch(setWorkerData(sessionWorker));
+        dispatch(setOfflinePilotSession(false));
+        await completeLogin(sessionUser, sessionWorker, access);
+      } else {
+        /* Legacy OTP flow */
+        const res = await apiClient.post(endpoints.verifyOtp, {
+          phone: `+91${phone}`,
+          otp: code,
+        });
+        const { access, refresh, user, worker } = res.data;
+        await persistAuthTokens({ access, refresh });
+        dispatch(setTokens({ access, refresh }));
+        const sessionUser = { ...user, language: locale };
+        const sessionWorker = worker || MOCK_WORKER;
+        dispatch(setUser(sessionUser));
+        dispatch(setWorkerData(sessionWorker));
+        dispatch(setOfflinePilotSession(false));
+        await completeLogin(sessionUser, sessionWorker, access);
+      }
     } catch (err) {
-      if (isInvalidOtpError(err)) {
-        setError("गलत या समाप्त OTP / Invalid or expired OTP");
-        return;
-      }
-      if (!shouldFallbackToOfflinePilot(err)) {
+      if (useFirebase) {
+        /* Firebase errors — check if it's a verification failure */
+        if (err.code === "auth/invalid-verification-code" || err.code === "auth/session-expired") {
+          setError("गलत या समाप्त OTP / Invalid or expired OTP");
+          return;
+        }
+        /* Backend validation failed */
+        if (err.response?.status === 400) {
+          setError("गलत या समाप्त OTP / Invalid or expired OTP");
+          return;
+        }
+        /* Network error — show generic message */
+        if (shouldFallbackToOfflinePilot(err)) {
+          const sessionUser = buildPilotUser(phone, locale);
+          dispatch(setOfflinePilotSession(true));
+          dispatch(verifyOtp({ user: sessionUser, worker: MOCK_WORKER }));
+          await completeLogin(sessionUser, MOCK_WORKER, null);
+          return;
+        }
         setError("सर्वर त्रुटि — बाद में प्रयास करें / Server error, try again");
-        return;
+      } else {
+        if (isInvalidOtpError(err)) {
+          setError("गलत या समाप्त OTP / Invalid or expired OTP");
+          return;
+        }
+        if (!shouldFallbackToOfflinePilot(err)) {
+          setError("सर्वर त्रुटि — बाद में प्रयास करें / Server error, try again");
+          return;
+        }
+        const sessionUser = buildPilotUser(phone, locale);
+        dispatch(setOfflinePilotSession(true));
+        dispatch(verifyOtp({ user: sessionUser, worker: MOCK_WORKER }));
+        await completeLogin(sessionUser, MOCK_WORKER, null);
       }
-      const sessionUser = buildPilotUser(phone, locale);
-      dispatch(setOfflinePilotSession(true));
-      dispatch(verifyOtp({ user: sessionUser, worker: MOCK_WORKER }));
-      await completeLogin(sessionUser, MOCK_WORKER, null);
     } finally {
       setLoading(false);
     }
@@ -160,11 +214,17 @@ export default function OtpScreen() {
     setResending(true);
     setError("");
     try {
-      const res = await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
-      const nextDevOtp = res.data?.dev_otp ? String(res.data.dev_otp) : "";
-      if (nextDevOtp) setDevOtp(nextDevOtp);
+      if (useFirebase) {
+        const auth = (await import("@react-native-firebase/auth")).default;
+        const cr = await auth().signInWithPhoneNumber(`+91${phone}`);
+        setConfirmationResult(cr);
+      } else {
+        const res = await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
+        const nextDevOtp = res.data?.dev_otp ? String(res.data.dev_otp) : "";
+        if (nextDevOtp) setDevOtp(nextDevOtp);
+      }
     } catch (err) {
-      if (!shouldFallbackToOfflinePilot(err)) {
+      if (!useFirebase && !shouldFallbackToOfflinePilot(err)) {
         setError("OTP नहीं भेजा जा सका — बाद में प्रयास करें / Could not resend OTP");
         setResending(false);
         return;

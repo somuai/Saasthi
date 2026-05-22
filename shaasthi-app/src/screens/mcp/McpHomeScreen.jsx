@@ -11,6 +11,8 @@ export default function McpHomeScreen() {
       <GovtHeader titleHi="एमसीपी" title="MCP tools" showSync />
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <Text style={styles.title}>MCP tools / एमसीपी उपकरण</Text>
+        <ListRow title="Register / पंजीकरण" subtitle="Register pregnant woman or child for MCP tracking" meta="Open" onPress={() => router.push("/(tabs)/mcp/register")} />
+        <ListRow title="Pregnancy Dashboard / गर्भावस्था डैशबोर्ड" subtitle="POG, EDD, ANC status, risk flags at a glance" meta="Open" onPress={() => router.push("/(tabs)/mcp/dashboard")} />
         <ListRow title="ANC planner / एएनसी योजना" subtitle="Gestational age, EDD, visit due status" meta="Open" onPress={() => router.push("/(tabs)/mcp/anc")} />
         <ListRow title="PNC / प्रसवोत्तर" subtitle="Day 1, 3, 7 and week 6 visits" meta="Open" onPress={() => router.push("/(tabs)/mcp/pnc")} />
         <ListRow title="Immunization / टीकाकरण" subtitle="Due and overdue vaccine helper" meta="Open" onPress={() => router.push("/(tabs)/mcp/immunization")} />

@@ -20,3 +20,8 @@ class Notification(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["recipient", "created_at"], name="ix_notif_recipient_created"),
+            models.Index(fields=["channel"], name="ix_notif_channel"),
+            models.Index(fields=["read_at"], name="ix_notif_read_at"),
+        ]

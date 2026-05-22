@@ -2,6 +2,7 @@ import csv
 
 from django.db.models import Count
 from django.http import HttpResponse
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,8 +13,31 @@ from registry.models import Patient
 from surveys.models import SurveyResponse
 
 
+class RoleRequiredPermission(IsAuthenticated):
+    """DRF permission that checks the user's role against allowed_roles."""
+
+    def __init__(self, allowed_roles=None):
+        self.allowed_roles = allowed_roles or ()
+        super().__init__()
+
+    def has_permission(self, request, view):
+        if not super().has_permission(request, view):
+            return False
+        roles = getattr(view, "allowed_roles", self.allowed_roles)
+        if not roles:
+            return True
+        return request.user.role in roles
+
+
 class SupervisorDashboardSummaryView(APIView):
     allowed_roles = ("admin", "supervisor", "auditor")
+    permission_classes = [IsAuthenticated]
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if self.allowed_roles and request.user.role not in self.allowed_roles:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Access restricted to supervisors and admins.")
 
     def get(self, request):
         patients = for_user_geography(Patient.objects.all(), request.user)
@@ -34,6 +58,13 @@ class SupervisorDashboardSummaryView(APIView):
 
 class FlagCSVExportView(APIView):
     allowed_roles = ("admin", "supervisor", "auditor")
+    permission_classes = [IsAuthenticated]
+
+    def initial(self, request, *args, **kwargs):
+        super().initial(request, *args, **kwargs)
+        if self.allowed_roles and request.user.role not in self.allowed_roles:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied("Access restricted to supervisors and admins.")
 
     def get(self, request):
         patients = for_user_geography(Patient.objects.all(), request.user)

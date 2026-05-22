@@ -155,6 +155,17 @@ export default function RiskResultScreen() {
           titleEn="Patient profile"
           onPress={() => router.replace(`/(tabs)/patients/${params.patientId}`)}
         />
+        {activeCategory === "maternal" && (
+          <>
+            <View style={{ height: 12 }} />
+            <GovtButton
+              titleHi="गर्भावस्था डैशबोर्ड"
+              titleEn="Pregnancy dashboard"
+              variant="secondary"
+              onPress={() => router.replace({ pathname: "/(tabs)/mcp/dashboard", params: { patientId: params.patientId } })}
+            />
+          </>
+        )}
         <View style={{ height: 12 }} />
         <GovtButton titleHi="होम" titleEn="Home" variant="secondary" onPress={() => router.replace("/(tabs)/home")} />
       </ScrollView>
