@@ -62,16 +62,16 @@ jobs:
           python -m venv .venv
           . .venv/bin/activate
           pip install -r requirements-dev.txt
-      - name: Migration consistency check
-        run: |
-          cd backend
-          . .venv/bin/activate
-          python manage.py makemigrations --check --dry-run
       - name: Apply migrations
         run: |
           cd backend
           . .venv/bin/activate
           python manage.py migrate
+      - name: Migration consistency check
+        run: |
+          cd backend
+          . .venv/bin/activate
+          python manage.py makemigrations --check --dry-run
       - name: Backend lint
         run: |
           cd backend
