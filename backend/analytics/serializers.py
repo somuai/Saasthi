@@ -6,5 +6,5 @@ from .models import AnalyticsSnapshot
 class AnalyticsSnapshotSerializer(serializers.ModelSerializer):
     class Meta:
         model = AnalyticsSnapshot
-        fields = "__all__"
+        fields = ['id', 'local_uuid', 'name', 'metrics', 'created_at']
         read_only_fields = ["id", "created_at"]

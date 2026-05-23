@@ -26,7 +26,12 @@ class RiskRuleCreateSerializer(serializers.Serializer):
 class RiskRuleReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = RiskRule
-        fields = "__all__"
+        fields = [
+            'id', 'code', 'name', 'description', 'field_path', 'operator', 'value',
+            'weight', 'severity', 'flag_type', 'is_active', 'version', 'is_hard_flag',
+            'hard_flag_message_en', 'hard_flag_message_hi', 'category', 'deactivated_at',
+            'deactivated_by', 'rule_label_en', 'rule_label_hi', 'created_at', 'updated_at'
+        ]
 
 
 class RecommendedActionSerializer(serializers.Serializer):

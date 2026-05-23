@@ -63,7 +63,6 @@ def resolve_path(patient, survey_response, field_path: str) -> Any:
     except (KeyError, AttributeError, TypeError):
         logger.warning("resolve_value failed for path=%s patient=%s", field_path, patient, exc_info=True)
         return None
-    return None
 
 
 def expected_value_from_rule(rule: RiskRule) -> Any:
