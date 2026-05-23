@@ -11,8 +11,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 
 # ── Production safety checks ────────────────────────────────────────────
-_SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", "shaasthi-dev-secret")
-_DEBUG_VALUE = os.getenv("DJANGO_DEBUG", "true").lower() in {"1", "true", "yes"}
+_SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not _SECRET_KEY:
+    if os.getenv("DJANGO_ALLOW_INSECURE_DEV", "false").lower() in {"1","true","yes"}:
+        _SECRET_KEY = "shaasthi-dev-secret"
+        print("WARNING: Using insecure dev SECRET_KEY because DJANGO_ALLOW_INSECURE_DEV is set.", file=sys.stderr)
+    else:
+        print("FATAL: DJANGO_SECRET_KEY must be set in the environment.", file=sys.stderr)
+        sys.exit(1)
+_DEBUG_VALUE = os.getenv("DJANGO_DEBUG", "false").lower() in {"1", "true", "yes"}
 if _DEBUG_VALUE is False and _SECRET_KEY == "shaasthi-dev-secret":
     print("FATAL: DJANGO_SECRET_KEY must be set to a unique value in production.", file=sys.stderr)
     sys.exit(1)
