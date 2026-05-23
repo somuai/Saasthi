@@ -87,7 +87,7 @@ class RiskRule(models.Model):
 
 class RiskAssessment(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="risk_assessments", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="risk_assessments", on_delete=models.SET_NULL, null=True)
     survey_response = models.ForeignKey(
         "surveys.SurveyResponse", null=True, blank=True, on_delete=models.SET_NULL, related_name="risk_assessments"
     )

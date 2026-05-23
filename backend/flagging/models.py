@@ -12,7 +12,7 @@ class Flag(models.Model):
         DISMISSED = "dismissed", "Dismissed"
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="flags", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="flags", on_delete=models.SET_NULL, null=True)
     flag_type = models.CharField(max_length=80)
     source = models.CharField(max_length=80, default="manual")
     severity = models.CharField(max_length=20, default="medium")

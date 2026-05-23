@@ -5,7 +5,7 @@ from django.db import models
 
 
 class VisitVerificationOTP(models.Model):
-    patient = models.ForeignKey("registry.Patient", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", on_delete=models.SET_NULL, null=True)
     asha_worker = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, related_name="visit_otps", on_delete=models.SET_NULL
     )
@@ -39,7 +39,7 @@ class FollowUp(models.Model):
         MISSED = "missed", "Missed"
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="followups", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="followups", on_delete=models.SET_NULL, null=True)
     worker = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, related_name="followups", on_delete=models.SET_NULL
     )
@@ -105,7 +105,7 @@ class VisitRecord(models.Model):
         POOR = "poor", "Poor"
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="visit_records", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="visit_records", on_delete=models.SET_NULL, null=True)
     worker = models.ForeignKey(
         settings.AUTH_USER_MODEL, null=True, blank=True, related_name="visit_records", on_delete=models.SET_NULL
     )

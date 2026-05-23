@@ -13,7 +13,7 @@ class Referral(models.Model):
         CANCELLED = "cancelled", "Cancelled"
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="referrals", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="referrals", on_delete=models.SET_NULL, null=True)
     flag = models.ForeignKey(
         "flagging.Flag", null=True, blank=True, related_name="referrals", on_delete=models.SET_NULL
     )

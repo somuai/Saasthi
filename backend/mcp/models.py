@@ -7,7 +7,7 @@ from django.utils import timezone
 
 class CareInteraction(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="care_interactions", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="care_interactions", on_delete=models.SET_NULL, null=True)
     protocol = models.CharField(max_length=120, blank=True)
     notes = models.TextField(blank=True)
     occurred_at = models.DateTimeField(default=timezone.now)
@@ -29,7 +29,7 @@ class CareInteraction(models.Model):
 
 class ANCVisit(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="anc_visits", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="anc_visits", on_delete=models.SET_NULL, null=True)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     visit_number = models.IntegerField()
     visit_date = models.DateField()
@@ -81,7 +81,7 @@ class ANCVisit(models.Model):
 
 class DeliveryRecord(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    mother_patient = models.ForeignKey("registry.Patient", related_name="deliveries", on_delete=models.CASCADE)
+    mother_patient = models.ForeignKey("registry.Patient", related_name="deliveries", on_delete=models.SET_NULL, null=True)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     delivery_date = models.DateField()
     delivery_place = models.CharField(max_length=20)
@@ -119,7 +119,7 @@ class DeliveryRecord(models.Model):
 
 class PNCVisit(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    mother_patient = models.ForeignKey("registry.Patient", related_name="pnc_visits", on_delete=models.CASCADE)
+    mother_patient = models.ForeignKey("registry.Patient", related_name="pnc_visits", on_delete=models.SET_NULL, null=True)
     delivery_record = models.ForeignKey(DeliveryRecord, null=True, blank=True, on_delete=models.SET_NULL)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     visit_timing = models.CharField(max_length=10)
@@ -166,7 +166,7 @@ class PNCVisit(models.Model):
 
 class GrowthRecord(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="growth_records", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="growth_records", on_delete=models.SET_NULL, null=True)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     recorded_date = models.DateField()
     recorded_by = models.CharField(max_length=10)
@@ -196,7 +196,7 @@ class GrowthRecord(models.Model):
 
 class DevelopmentMilestoneCheck(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="milestone_checks", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="milestone_checks", on_delete=models.SET_NULL, null=True)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     check_date = models.DateField()
     age_at_check_months = models.IntegerField()
@@ -259,7 +259,7 @@ class ImmunizationRecord(models.Model):
     ]
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="immunizations", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="immunizations", on_delete=models.SET_NULL, null=True)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     vaccine_name = models.CharField(max_length=20, choices=VACCINE_NAME_CHOICES)
     dose_number = models.IntegerField(default=1)
@@ -293,7 +293,7 @@ class ImmunizationRecord(models.Model):
 
 class IFACompliance(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="ifa_compliance", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="ifa_compliance", on_delete=models.SET_NULL, null=True)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     record_date = models.DateField()
     year_month = models.CharField(max_length=7)
@@ -327,7 +327,7 @@ class MCPSurveySession(models.Model):
     ]
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="mcp_sessions", on_delete=models.CASCADE)
+    patient = models.ForeignKey("registry.Patient", related_name="mcp_sessions", on_delete=models.SET_NULL, null=True)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     session_date = models.DateField()
     session_type = models.CharField(max_length=30, choices=SESSION_TYPES)
