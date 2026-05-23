@@ -817,9 +817,15 @@ def serialize_changes(table_name, patient_ids, since, fk_cache=None):
 
 
 def upsert_patient(local_uuid, data, user):
-    defaults = {k: v for k, v in data.items()
-                if k in {f.name for f in Patient._meta.fields}
-                and k not in {"id", "created_at", "updated_at"}}
+    allowed_fields = {f.name for f in Patient._meta.fields}
+    defaults = {}
+    for k, v in data.items():
+        if k in {"id", "created_at", "updated_at"}:
+            continue
+        if k in allowed_fields:
+            defaults[k] = v
+        elif k == "asha_worker_server_id" and v is not None:
+            defaults["asha_worker_id"] = v
     obj, _ = Patient.objects.update_or_create(local_uuid=local_uuid, defaults=defaults)
     if not obj.created_by_id and user.is_authenticated:
         obj.created_by = user
