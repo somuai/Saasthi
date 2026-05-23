@@ -98,6 +98,7 @@ def _create_incentive(immunization_record, request_user):
 class CareInteractionViewSet(viewsets.ModelViewSet):
     serializer_class = CareInteractionSerializer
     filterset_fields = ["protocol", "patient"]
+    throttle_scope = "mcp_write"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")
@@ -111,6 +112,7 @@ class CareInteractionViewSet(viewsets.ModelViewSet):
 class ANCVisitViewSet(viewsets.ModelViewSet):
     serializer_class = ANCVisitSerializer
     filterset_fields = ["patient", "visit_number", "is_high_risk"]
+    throttle_scope = "mcp_write"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")
@@ -126,6 +128,7 @@ class ANCVisitViewSet(viewsets.ModelViewSet):
 class DeliveryRecordViewSet(viewsets.ModelViewSet):
     serializer_class = DeliveryRecordSerializer
     filterset_fields = ["mother_patient", "delivery_type", "delivery_place"]
+    throttle_scope = "mcp_write"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")
@@ -141,6 +144,7 @@ class DeliveryRecordViewSet(viewsets.ModelViewSet):
 class PNCVisitViewSet(viewsets.ModelViewSet):
     serializer_class = PNCVisitSerializer
     filterset_fields = ["mother_patient", "visit_timing", "is_extra_visit"]
+    throttle_scope = "mcp_write"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")
@@ -156,6 +160,7 @@ class PNCVisitViewSet(viewsets.ModelViewSet):
 class GrowthRecordViewSet(viewsets.ModelViewSet):
     serializer_class = GrowthRecordSerializer
     filterset_fields = ["patient", "nutritional_status", "is_faltering"]
+    throttle_scope = "mcp_write"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")
@@ -171,6 +176,7 @@ class GrowthRecordViewSet(viewsets.ModelViewSet):
 class DevelopmentMilestoneCheckViewSet(viewsets.ModelViewSet):
     serializer_class = DevelopmentMilestoneCheckSerializer
     filterset_fields = ["patient", "any_warning_sign"]
+    throttle_scope = "mcp_write"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")
@@ -188,6 +194,7 @@ class ImmunizationRecordViewSet(viewsets.ModelViewSet):
     serializer_class = ImmunizationRecordSerializer
     filterset_fields = ["patient", "vaccine_name", "status"]
     http_method_names = ["get", "post", "patch", "delete", "head", "options"]
+    throttle_scope = "mcp_write"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")
@@ -216,6 +223,7 @@ class ImmunizationRecordViewSet(viewsets.ModelViewSet):
 class IFAComplianceViewSet(viewsets.ModelViewSet):
     serializer_class = IFAComplianceSerializer
     filterset_fields = ["patient", "year_month", "dose_given"]
+    throttle_scope = "mcp_write"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")
@@ -229,6 +237,7 @@ class IFAComplianceViewSet(viewsets.ModelViewSet):
 class MCPSurveySessionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = MCPSurveySessionSerializer
     filterset_fields = ["patient", "session_type"]
+    throttle_scope = "mcp_write"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")

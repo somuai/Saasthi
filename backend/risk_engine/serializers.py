@@ -9,8 +9,31 @@ from .models import RiskAssessment, RiskRule
 class RiskRuleSerializer(serializers.ModelSerializer):
     class Meta:
         model = RiskRule
-        fields = "__all__"
-        read_only_fields = ["id", "created_at", "updated_at", "deactivated_at", "deactivated_by"]
+        fields = [
+            "id",
+            "code",
+            "name",
+            "description",
+            "field_path",
+            "operator",
+            "value",
+            "weight",
+            "severity",
+            "flag_type",
+            "is_active",
+            "version",
+            "is_hard_flag",
+            "hard_flag_message_en",
+            "hard_flag_message_hi",
+            "category",
+            "deactivated_at",
+            "deactivated_by",
+            "rule_label_en",
+            "rule_label_hi",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at", "deactivated_at", "deactivated_by", "is_active"]
 
 
 class RiskAssessmentSerializer(serializers.ModelSerializer):
@@ -20,7 +43,37 @@ class RiskAssessmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = RiskAssessment
-        fields = "__all__"
+        fields = [
+            "id",
+            "local_uuid",
+            "patient",
+            "patient_local_uuid",
+            "survey_response",
+            "survey_response_local_uuid",
+            "total_score",
+            "level",
+            "explanations",
+            "rules_version",
+            "rules_snapshot",
+            "triggered_by_hard_flag",
+            "hard_flag_rule",
+            "normalized_score",
+            "primary_category",
+            "secondary_categories",
+            "surveyed_at",
+            "recommended_action_en",
+            "recommended_action_hi",
+            "recommended_urgency",
+            "recommendation_source",
+            "score_source",
+            "rule_engine_score",
+            "ml_score",
+            "ml_confidence",
+            "ml_model_version",
+            "patient_population",
+            "mcp_session_type",
+            "created_at",
+        ]
         read_only_fields = [
             "id",
             "local_uuid",

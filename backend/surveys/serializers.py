@@ -9,8 +9,22 @@ class SurveyResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SurveyResponse
-        fields = "__all__"
-        read_only_fields = ["id", "created_by", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "local_uuid",
+            "patient",
+            "patient_local_uuid",
+            "survey_type",
+            "answers",
+            "submitted_at",
+            "synced_at",
+            "score_snapshot",
+            "photo_base64",
+            "created_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "local_uuid", "created_by", "created_at", "updated_at", "submitted_at", "synced_at"]
         extra_kwargs = {"patient": {"required": False}}
 
     def validate(self, attrs):

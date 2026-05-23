@@ -10,6 +10,7 @@ from .serializers import ReferralSerializer
 class ReferralViewSet(viewsets.ModelViewSet):
     serializer_class = ReferralSerializer
     filterset_fields = ["status", "destination"]
+    throttle_scope = "referrals"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")

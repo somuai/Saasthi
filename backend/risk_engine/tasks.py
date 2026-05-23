@@ -82,7 +82,8 @@ def run_risk_assessment(self, patient_id, survey_response_id=None, surveyed_at=N
         return {"status": "skipped", "reason": "patient_or_survey_not_found"}
     except Exception as exc:
         logger.exception("run_risk_assessment failed")
-        raise self.retry(exc=exc) from exc
+        countdown = min(30 * 2 ** self.request.retries, 300)
+        raise self.retry(exc=exc, countdown=countdown) from exc
 
 
 @shared_task(
@@ -145,7 +146,8 @@ def enhance_with_gemma4(self, assessment_id, photo_base64=None):
         return {"status": "skipped", "reason": "assessment_not_found"}
     except Exception as exc:
         logger.exception("enhance_with_gemma4 task failed")
-        raise self.retry(exc=exc) from exc
+        countdown = min(30 * 2 ** self.request.retries, 300)
+        raise self.retry(exc=exc, countdown=countdown) from exc
 
 
 # ── MCP Population-Specific Risk Assessment ──────────────────────────────
@@ -255,4 +257,5 @@ def run_mcp_risk_assessment(
         return {"status": "skipped", "reason": "patient_not_found"}
     except Exception as exc:
         logger.exception("run_mcp_risk_assessment failed")
-        raise self.retry(exc=exc) from exc
+        countdown = min(30 * 2 ** self.request.retries, 300)
+        raise self.retry(exc=exc, countdown=countdown) from exc

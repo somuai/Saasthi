@@ -11,8 +11,22 @@ class ReferralSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Referral
-        fields = "__all__"
-        read_only_fields = ["id", "created_by", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "local_uuid",
+            "patient",
+            "patient_local_uuid",
+            "flag",
+            "flag_local_uuid",
+            "destination",
+            "reason",
+            "status",
+            "metadata",
+            "created_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "local_uuid", "created_by", "created_at", "updated_at", "status"]
         extra_kwargs = {"patient": {"required": False}, "flag": {"required": False}}
 
     def validate(self, attrs):

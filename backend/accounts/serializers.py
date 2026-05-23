@@ -150,4 +150,4 @@ class UserSerializer(serializers.ModelSerializer):
             "block",
             "village",
         ]
-        read_only_fields = ["id", "local_uuid"]
+        read_only_fields = ["id", "local_uuid", "role"]

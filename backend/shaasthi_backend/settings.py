@@ -77,6 +77,8 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "shaasthi_backend.middleware.RequestIDMiddleware",
+    "shaasthi_backend.middleware.RequestLoggingMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -189,15 +191,32 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 50,
+    "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.ScopedRateThrottle",),
     "DEFAULT_THROTTLE_RATES": {
         "otp": os.getenv("THROTTLE_OTP", "5/min"),
         "sync_push": os.getenv("THROTTLE_SYNC_PUSH", "60/min"),
+        "sync_pull": os.getenv("THROTTLE_SYNC_PULL", "10/min"),
         "survey_write": os.getenv("THROTTLE_SURVEY_WRITE", "10/min"),
         "risk_assess": os.getenv("THROTTLE_RISK_ASSESS", "30/min"),
         "gemma_query": os.getenv("THROTTLE_GEMMA_QUERY", "10/min"),
+        "visit_records": os.getenv("THROTTLE_VISIT_RECORDS", "30/min"),
+        "followups": os.getenv("THROTTLE_FOLLOWUPS", "30/min"),
+        "user_management": os.getenv("THROTTLE_USER_MANAGEMENT", "30/min"),
+        "worker_registration": os.getenv("THROTTLE_WORKER_REGISTRATION", "10/min"),
+        "registry_write": os.getenv("THROTTLE_REGISTRY_WRITE", "30/min"),
+        "flagging": os.getenv("THROTTLE_FLAGGING", "30/min"),
+        "referrals": os.getenv("THROTTLE_REFERRALS", "30/min"),
+        "incentives": os.getenv("THROTTLE_INCENTIVES", "10/min"),
+        "analytics": os.getenv("THROTTLE_ANALYTICS", "20/min"),
+        "notifications": os.getenv("THROTTLE_NOTIFICATIONS", "30/min"),
+        "mcp_write": os.getenv("THROTTLE_MCP_WRITE", "30/min"),
+        "risk_rules": os.getenv("THROTTLE_RISK_RULES", "10/min"),
     },
-    "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.ScopedRateThrottle",),
+    "EXCEPTION_HANDLER": "shaasthi_backend.exceptions.custom_exception_handler",
 }
+
+if not DEBUG:
+    REST_FRAMEWORK["DEFAULT_RENDERER_CLASSES"] = ("rest_framework.renderers.JSONRenderer",)
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(hours=6),

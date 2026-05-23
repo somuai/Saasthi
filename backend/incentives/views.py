@@ -11,6 +11,7 @@ from .services.payslip_service import PayslipService
 class IncentiveLedgerEntryViewSet(viewsets.ModelViewSet):
     serializer_class = IncentiveLedgerEntrySerializer
     filterset_fields = ["category", "worker"]
+    throttle_scope = "incentives"
 
     def get_queryset(self):
         qs = IncentiveLedgerEntry.objects.select_related("worker")

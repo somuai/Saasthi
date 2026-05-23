@@ -1,5 +1,5 @@
 import { Platform } from "react-native";
-import { apiUrl } from "./api";
+import { apiUrl } from "../constants/api";
 import { getAccessToken } from "./auth";
 
 let messaging = null;

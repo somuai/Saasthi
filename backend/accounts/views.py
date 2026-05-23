@@ -73,6 +73,7 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all().order_by("id")
     serializer_class = UserSerializer
     filterset_fields = ["role", "region", "district", "block", "village"]
+    throttle_scope = "user_management"
 
     def perform_create(self, serializer):
         user = serializer.save()
@@ -102,6 +103,7 @@ class UserViewSet(viewsets.ModelViewSet):
 class WorkerRegistrationViewSet(viewsets.ModelViewSet):
     serializer_class = WorkerRegistrationSerializer
     filterset_fields = ["village", "block", "district", "region", "is_active"]
+    throttle_scope = "worker_registration"
 
     def get_queryset(self):
         user = self.request.user

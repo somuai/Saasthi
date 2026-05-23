@@ -1,0 +1,18 @@
+# Dev-only overrides: live code reload + dev server.
+# docker compose up  (automatically merges this file)
+# docker compose -f docker-compose.yml -f docker-compose.prod.yml up  (skips this for production)
+services:
+  api:
+    volumes:
+      - .:/app
+    environment:
+      USE_GUNICORN: "false"
+      DJANGO_DEBUG: "true"
+
+  celery_worker:
+    volumes:
+      - .:/app
+
+  celery_beat:
+    volumes:
+      - .:/app

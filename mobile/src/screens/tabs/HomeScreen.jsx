@@ -11,7 +11,7 @@ import { SyncPendingBanner } from "../../components/SyncPendingBanner";
 import { LoadingState } from "../../components/LoadingState";
 import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
-import { todayYmd, timeAgo, firstDayOfMonthYmd } from "../../utils/dateHelpers";
+import { todayYmd, timeAgo } from "../../utils/dateHelpers";
 import { syncWithServer, countPendingRecords } from "../../database/sync";
 import { setPendingCount, syncStarted, syncSucceeded, syncFailed } from "../../features/sync/syncSlice";
 import { signOut } from "../../features/auth/authSlice";
@@ -89,7 +89,7 @@ export default function HomeScreen() {
     dispatch(signOut());
   }
 
-  const initials = (worker?.name || "A").slice(0, 2);
+
   const hour = new Date().getHours();
   const greetEn = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
   const greetHi = hour < 12 ? "सुप्रभात" : hour < 17 ? "नमस्ते" : "शुभ संध्या";

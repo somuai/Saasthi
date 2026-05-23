@@ -13,7 +13,6 @@ import { OtpInputRow } from "../../components/OtpInputRow";
 import { VoiceInputButton } from "../../components/ui/VoiceInputButton";
 import { useSpeechInput } from "../../hooks/useSpeechInput";
 import { LoadingState } from "../../components/LoadingState";
-import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
 import { FEATURES } from "../../constants/featureFlags";
 import { apiUrl } from "../../constants/api";
@@ -55,7 +54,6 @@ export default function VisitRecordScreen() {
   const speech = useSpeechInput((text) => setNotes((prev) => (prev ? `${prev}\n${text}` : text)));
   const [otpError, setOtpError] = useState("");
   const [otpLoading, setOtpLoading] = useState(false);
-  const [otpTimer, setOtpTimer] = useState(15 * 60);
   const [formUnlocked, setFormUnlocked] = useState(false);
 
   useEffect(() => {
@@ -71,7 +69,7 @@ export default function VisitRecordScreen() {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") return;
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      setGps({ lat: loc.coords.latitude, lng: loc.coords.longitude });
+      setGps({ lat: loc.coords.latitude, lng: loc.coords.longitude, accuracy: loc.coords.accuracy, timestamp: loc.timestamp });
     })();
   }, []);
 
@@ -106,7 +104,7 @@ export default function VisitRecordScreen() {
           f.notes = JSON.stringify(payload);
           f.visitLat = gps?.lat ?? null;
           f.visitLng = gps?.lng ?? null;
-          f.visitAccuracyM = null;
+          f.visitAccuracyM = gps?.accuracy ?? null;
           f.isSynced = false;
           f.isDeleted = false;
           f.isMock = false;
@@ -147,7 +145,6 @@ export default function VisitRecordScreen() {
       }
       setOtpId(data.otp_id);
       setOtpStep(OTP_FLOW.REQUESTED);
-      setOtpTimer(15 * 60);
     } catch (e) {
       setOtpError(e.message || "Network error");
     } finally {

@@ -1274,6 +1274,8 @@ PULL_TABLES = [
 
 
 class SyncPullView(APIView):
+    throttle_scope = "sync_pull"
+
     def get(self, request):
         last_pulled_at = request.query_params.get("last_pulled_at")
         since = None

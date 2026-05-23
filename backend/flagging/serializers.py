@@ -10,8 +10,33 @@ class FlagSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Flag
-        fields = "__all__"
-        read_only_fields = ["id", "dedupe_key", "created_by", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "local_uuid",
+            "patient",
+            "patient_local_uuid",
+            "flag_type",
+            "severity",
+            "source",
+            "status",
+            "score",
+            "explanation",
+            "dedupe_key",
+            "created_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "local_uuid",
+            "dedupe_key",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "status",
+            "severity",
+            "score",
+        ]
         extra_kwargs = {"patient": {"required": False}}
 
     def validate(self, attrs):

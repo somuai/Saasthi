@@ -7,8 +7,27 @@ from .models import Household, Patient
 class HouseholdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Household
-        fields = "__all__"
-        read_only_fields = ["id", "created_by", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "local_uuid",
+            "household_code",
+            "head_name",
+            "head_name_hi",
+            "region",
+            "district",
+            "block",
+            "village",
+            "address",
+            "lat",
+            "lng",
+            "member_count",
+            "is_active",
+            "metadata",
+            "created_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "local_uuid", "created_by", "created_at", "updated_at", "is_active"]
 
 
 class PatientSerializer(serializers.ModelSerializer):
@@ -17,8 +36,80 @@ class PatientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Patient
-        fields = "__all__"
-        read_only_fields = ["id", "created_by", "created_at", "updated_at"]
+        fields = [
+            "id",
+            "local_uuid",
+            "household",
+            "household_local_uuid",
+            "full_name",
+            "name_hi",
+            "phone",
+            "gender",
+            "date_of_birth",
+            "age_years",
+            "relationship_to_head",
+            "region",
+            "district",
+            "block",
+            "village",
+            "status",
+            "asha_worker",
+            "diabetes",
+            "hypertension",
+            "tb_history",
+            "prev_hospitalized",
+            "pregnancy_status",
+            "prev_high_risk_count",
+            "mcts_rch_id",
+            "mcp_card_issued",
+            "mcp_card_number",
+            "pmmvy_eligible",
+            "bank_account_number",
+            "bank_ifsc",
+            "bank_branch_name",
+            "gravida",
+            "para",
+            "last_delivery_date",
+            "last_delivery_place",
+            "obstetric_complications",
+            "past_medical_history",
+            "lmp_date",
+            "edd",
+            "is_high_risk_pregnancy",
+            "anc_visit_count",
+            "mother_patient",
+            "birth_weight_kg",
+            "birth_place",
+            "birth_registration_number",
+            "abha_number",
+            "abha_consent_given",
+            "fhir_bundle",
+            "metadata",
+            "created_by",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "local_uuid",
+            "age_years",
+            "created_by",
+            "created_at",
+            "updated_at",
+            "asha_worker",
+            "status",
+            "is_high_risk_pregnancy",
+            "bank_account_number",
+            "bank_ifsc",
+            "bank_branch_name",
+            "abha_number",
+            "mcts_rch_id",
+            "mcp_card_number",
+            "mcp_card_issued",
+            "pmmvy_eligible",
+            "fhir_bundle",
+            "metadata",
+        ]
 
     def validate(self, attrs):
         household_local_uuid = attrs.pop("household_local_uuid", None)

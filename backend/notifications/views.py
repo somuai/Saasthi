@@ -10,6 +10,7 @@ from .serializers import NotificationSerializer
 class NotificationViewSet(viewsets.ModelViewSet):
     serializer_class = NotificationSerializer
     filterset_fields = ["channel", "read_at"]
+    throttle_scope = "notifications"
 
     def get_queryset(self):
         qs = Notification.objects.select_related("recipient")

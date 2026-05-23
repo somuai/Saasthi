@@ -24,6 +24,7 @@ class RiskRuleViewSet(viewsets.ModelViewSet):
     serializer_class = RiskRuleSerializer
     filterset_fields = ["is_active", "severity", "flag_type", "category", "is_hard_flag"]
     permission_classes = [IsAuthenticated]
+    throttle_scope = "risk_rules"
 
     def get_permissions(self):
         if self.action in ("list", "retrieve", "simulate"):
@@ -193,7 +194,7 @@ class RiskAssessmentViewSet(viewsets.ModelViewSet):
         assessment_dict = {"level": "low", "normalized_score": 0, "explanations": []}
         if latest_assessment:
             assessment_dict = {
-                "level": latest_assessment.risk_level,
+                "level": latest_assessment.level,
                 "normalized_score": latest_assessment.normalized_score,
                 "explanations": [
                     {"name": r.get("rule_label_en", r.get("name", "")), "rule_label_hi": r.get("rule_label_hi", "")}

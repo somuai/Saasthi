@@ -8,3 +8,4 @@ class AnalyticsSnapshotViewSet(viewsets.ModelViewSet):
     queryset = AnalyticsSnapshot.objects.all()
     serializer_class = AnalyticsSnapshotSerializer
     filterset_fields = ["name"]
+    throttle_scope = "analytics"

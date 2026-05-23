@@ -10,6 +10,7 @@ from .serializers import FlagSerializer
 class FlagViewSet(viewsets.ModelViewSet):
     serializer_class = FlagSerializer
     filterset_fields = ["flag_type", "source", "severity", "status"]
+    throttle_scope = "flagging"
 
     def get_queryset(self):
         patient_ids = for_user_geography(Patient.objects.all(), self.request.user).values("id")

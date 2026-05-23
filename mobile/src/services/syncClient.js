@@ -10,7 +10,7 @@ async function postJson(path, body, fetchImpl) {
   return response.json();
 }
 
-export function createSyncClient({ db, fetchImpl = fetch, useMock = true } = {}) {
+export function createSyncClient({ db, fetchImpl = fetch, useMock = false } = {}) {
   return {
     async syncNow() {
       const pending = db.getPendingChanges();

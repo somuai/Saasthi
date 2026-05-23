@@ -8,7 +8,7 @@ import * as Location from "expo-location";
 import { COLORS } from "../../constants/colors";
 import { FEATURES } from "../../constants/featureFlags";
 import { GovtHeader } from "../../components/GovtHeader";
-import { apiUrl } from "../../constants/api";
+import { apiUrl, endpoints } from "../../constants/api";
 import { getAccessToken } from "../../services/auth";
 
 const INITIAL_REGION = { latitude: 20.5937, longitude: 78.9629, latitudeDelta: 4, longitudeDelta: 4 };
@@ -25,13 +25,16 @@ export default function MapScreen() {
   const [selectedMarker, setSelectedMarker] = useState(null);
 
   useEffect(() => {
-    Location.requestForegroundPermissionsAsync();
+    (async () => {
+      const { granted } = await Location.requestForegroundPermissionsAsync();
+      if (!granted) console.warn("Map: location permission denied");
+    })();
   }, []);
 
   const fetchMapData = useCallback(async () => {
     try {
       const token = await getAccessToken();
-      const res = await fetch(apiUrl("/patients/map_data/"), {
+      const res = await fetch(apiUrl(`${endpoints.patients}map_data/`), {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error("Failed to load map data");

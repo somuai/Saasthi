@@ -26,7 +26,9 @@ class IncentiveLedgerEntry(models.Model):
         PAID = "paid", "Paid"
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    worker = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="incentive_entries", on_delete=models.CASCADE)
+    worker = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, related_name="incentive_entries", on_delete=models.SET_NULL
+    )
     # Deprecated compat fields — kept for migration safety, use new fields below
     category = models.CharField(max_length=32, choices=Category.choices, blank=True)
     description = models.TextField(blank=True)

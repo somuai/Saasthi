@@ -16,6 +16,14 @@ def _celery_eager(settings):
     settings.CELERY_TASK_ALWAYS_EAGER = True
 
 
+@pytest.fixture(autouse=True)
+def _disable_throttling(settings):
+    settings.REST_FRAMEWORK = {
+        **settings.REST_FRAMEWORK,
+        "DEFAULT_THROTTLE_RATES": {k: "10000/min" for k in settings.REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"]},
+    }
+
+
 @pytest.fixture
 def api_client():
     return APIClient()

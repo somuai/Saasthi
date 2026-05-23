@@ -13,6 +13,7 @@ from .services.abdm_service import build_fhir_patient_bundle
 class HouseholdViewSet(viewsets.ModelViewSet):
     serializer_class = HouseholdSerializer
     filterset_fields = ["region", "district", "block", "village"]
+    throttle_scope = "registry_write"
 
     def get_queryset(self):
         return for_user_geography(
@@ -41,6 +42,7 @@ class PatientViewSet(viewsets.ModelViewSet):
     serializer_class = PatientSerializer
     filterset_fields = ["gender", "status", "region", "district", "block", "village"]
     search_fields = ["full_name", "phone"]
+    throttle_scope = "registry_write"
 
     def get_queryset(self):
         return for_user_geography(

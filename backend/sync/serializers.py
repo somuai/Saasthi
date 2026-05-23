@@ -6,8 +6,20 @@ from .models import SyncEvent
 class SyncEventSerializer(serializers.ModelSerializer):
     class Meta:
         model = SyncEvent
-        fields = "__all__"
-        read_only_fields = ["id", "received_at"]
+        fields = [
+            "id",
+            "local_uuid",
+            "client_id",
+            "event_type",
+            "model_name",
+            "object_local_uuid",
+            "payload_hash",
+            "status",
+            "message",
+            "actor",
+            "received_at",
+        ]
+        read_only_fields = ["id", "local_uuid", "received_at", "actor", "status", "message"]
 
 
 MODEL_CHOICES = [

@@ -10,7 +10,9 @@ class Notification(models.Model):
         SMS = "sms", "SMS"
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    recipient = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="notifications", on_delete=models.CASCADE)
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, related_name="notifications", on_delete=models.SET_NULL
+    )
     channel = models.CharField(max_length=20, choices=Channel.choices, default=Channel.IN_APP)
     title = models.CharField(max_length=160)
     body = models.TextField(blank=True)

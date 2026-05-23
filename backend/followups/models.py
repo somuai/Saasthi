@@ -6,7 +6,9 @@ from django.db import models
 
 class VisitVerificationOTP(models.Model):
     patient = models.ForeignKey("registry.Patient", on_delete=models.CASCADE)
-    asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    asha_worker = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, related_name="visit_otps", on_delete=models.SET_NULL
+    )
     otp_hash = models.CharField(max_length=200)
     sent_to_phone = models.CharField(max_length=32)
     expires_at = models.DateTimeField(db_index=True)
@@ -38,7 +40,9 @@ class FollowUp(models.Model):
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
     patient = models.ForeignKey("registry.Patient", related_name="followups", on_delete=models.CASCADE)
-    worker = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="followups", on_delete=models.CASCADE)
+    worker = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, related_name="followups", on_delete=models.SET_NULL
+    )
     scheduled_date = models.DateField()
     urgency = models.CharField(max_length=20, choices=Urgency.choices, default=Urgency.ROUTINE, db_index=True)
     triggered_by_assessment = models.ForeignKey(
@@ -102,7 +106,9 @@ class VisitRecord(models.Model):
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
     patient = models.ForeignKey("registry.Patient", related_name="visit_records", on_delete=models.CASCADE)
-    worker = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="visit_records", on_delete=models.CASCADE)
+    worker = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, related_name="visit_records", on_delete=models.SET_NULL
+    )
     follow_up = models.ForeignKey(FollowUp, null=True, blank=True, on_delete=models.SET_NULL, related_name="visits")
     visit_date = models.DateField()
     visit_time = models.TimeField(null=True, blank=True)

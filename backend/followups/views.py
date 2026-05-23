@@ -16,6 +16,7 @@ class FollowUpViewSet(viewsets.ModelViewSet):
     permission_classes = [RolePermission]
     allowed_roles = ["health_worker", "supervisor"]
     filterset_fields = ["status", "urgency", "scheduled_date", "patient", "worker"]
+    throttle_scope = "followups"
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -30,7 +31,7 @@ class FollowUpViewSet(viewsets.ModelViewSet):
         if not patient_id:
             return Response({"detail": "patient_id is required."}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            patient = Patient.objects.get(pk=patient_id)
+            patient = Patient.objects.select_related("household").get(pk=patient_id)
         except Patient.DoesNotExist:
             return Response({"detail": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -61,7 +62,7 @@ class FollowUpViewSet(viewsets.ModelViewSet):
         if not patient_id:
             return Response({"detail": "patient_id is required."}, status=status.HTTP_400_BAD_REQUEST)
         try:
-            patient = Patient.objects.get(pk=patient_id)
+            patient = Patient.objects.select_related("household").get(pk=patient_id)
         except Patient.DoesNotExist:
             return Response({"detail": "Patient not found."}, status=status.HTTP_404_NOT_FOUND)
 
@@ -72,11 +73,12 @@ class FollowUpViewSet(viewsets.ModelViewSet):
 
 
 class VisitRecordViewSet(viewsets.ModelViewSet):
-    queryset = VisitRecord.objects.select_related("patient", "worker", "follow_up").all()
+    queryset = VisitRecord.objects.select_related("patient__household", "worker", "follow_up").all()
     serializer_class = VisitRecordSerializer
     permission_classes = [RolePermission]
     allowed_roles = ["health_worker", "supervisor"]
     filterset_fields = ["visit_date", "condition_observed", "referred_to_phc", "patient", "worker"]
+    throttle_scope = "visit_records"
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -87,16 +89,15 @@ class VisitRecordViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         obj = serializer.save()
-        cls = obj
-        if cls.visit_lat is not None and cls.visit_lng is not None and cls.patient is not None:
-            household = cls.patient.household
+        if obj.visit_lat is not None and obj.visit_lng is not None and obj.patient is not None:
+            household = obj.patient.household
             result = classify_gps_visit(
-                cls.visit_lat,
-                cls.visit_lng,
+                obj.visit_lat,
+                obj.visit_lng,
                 household.lat if household else None,
                 household.lng if household else None,
-                cls.visit_accuracy_m or 0.0,
+                obj.visit_accuracy_m or 0.0,
             )
-            cls.distance_from_household_m = result["distance_m"]
-            cls.gps_verification_status = result["status"]
-            cls.save(update_fields=["distance_from_household_m", "gps_verification_status"])
+            obj.distance_from_household_m = result["distance_m"]
+            obj.gps_verification_status = result["status"]
+            obj.save(update_fields=["distance_from_household_m", "gps_verification_status"])

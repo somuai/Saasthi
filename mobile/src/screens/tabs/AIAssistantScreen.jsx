@@ -5,7 +5,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../constants/colors";
 import { tapTargetMin } from "../../constants/typography";
 import { GovtHeader } from "../../components/GovtHeader";
-import { apiUrl } from "../../services/api";
+import { apiUrl } from "../../constants/api";
 import { getAccessToken } from "../../services/auth";
 
 export default function AIAssistantScreen() {
