@@ -23,6 +23,9 @@ class CareInteraction(models.Model):
             models.Index(fields=["occurred_at"], name="ix_ci_occurred_at"),
         ]
 
+    def __str__(self):
+        return f"CareInteraction for patient {self.patient_id} ({self.protocol or 'no protocol'})"
+
 
 class ANCVisit(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
@@ -72,6 +75,9 @@ class ANCVisit(models.Model):
             models.Index(fields=["patient", "visit_date"], name="ix_anc_patient_date"),
         ]
 
+    def __str__(self):
+        return f"ANC Visit #{self.visit_number} for patient {self.patient_id} on {self.visit_date}"
+
 
 class DeliveryRecord(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
@@ -91,7 +97,9 @@ class DeliveryRecord(models.Model):
     complications = models.TextField(blank=True)
     ifa_postnatal_started = models.BooleanField(default=False)
     calcium_postnatal_started = models.BooleanField(default=False)
-    child_patient = models.ForeignKey("registry.Patient", null=True, blank=True, related_name="birth_record", on_delete=models.SET_NULL)
+    child_patient = models.ForeignKey(
+        "registry.Patient", null=True, blank=True, related_name="birth_record", on_delete=models.SET_NULL
+    )
     institution_stay_days = models.IntegerField(null=True, blank=True)
     jsy_registered = models.BooleanField(default=False)
     pmmvy_registered = models.BooleanField(default=False)
@@ -104,6 +112,9 @@ class DeliveryRecord(models.Model):
             models.Index(fields=["delivery_date"], name="ix_delivery_date"),
             models.Index(fields=["child_patient"], name="ix_delivery_child"),
         ]
+
+    def __str__(self):
+        return f"Delivery [{self.delivery_type}] for mother {self.mother_patient_id} on {self.delivery_date}"
 
 
 class PNCVisit(models.Model):
@@ -149,6 +160,9 @@ class PNCVisit(models.Model):
             models.Index(fields=["delivery_record"], name="ix_pnc_delivery"),
         ]
 
+    def __str__(self):
+        return f"PNC Visit ({self.visit_timing}) for mother {self.mother_patient_id} on {self.visit_date}"
+
 
 class GrowthRecord(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
@@ -176,6 +190,9 @@ class GrowthRecord(models.Model):
             models.Index(fields=["nutritional_status"], name="ix_growth_nutrition"),
         ]
 
+    def __str__(self):
+        return f"GrowthRecord for patient {self.patient_id} on {self.recorded_date} ({self.nutritional_status})"
+
 
 class DevelopmentMilestoneCheck(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
@@ -197,23 +214,48 @@ class DevelopmentMilestoneCheck(models.Model):
             models.Index(fields=["any_warning_sign"], name="ix_milestone_warning"),
         ]
 
+    def __str__(self):
+        return f"MilestoneCheck for patient {self.patient_id} at {self.age_at_check_months}mo on {self.check_date}"
+
 
 class ImmunizationRecord(models.Model):
     VACCINE_NAME_CHOICES = [
-        ("BCG", "BCG"), ("OPV0", "OPV-0"), ("HepB", "Hep-B"),
-        ("OPV1", "OPV-1"), ("Penta1", "Penta-1"), ("Rota1", "Rota-1"), ("PCV1", "PCV-1"), ("IPV1", "IPV-1"),
-        ("OPV2", "OPV-2"), ("Penta2", "Penta-2"), ("Rota2", "Rota-2"),
-        ("OPV3", "OPV-3"), ("Penta3", "Penta-3"), ("Rota3", "Rota-3"), ("PCV2", "PCV-2"), ("IPV2", "IPV-2"),
-        ("MR1", "MR-1"), ("JE1", "JE-1"),
-        ("VitA1", "Vitamin-A-1"), ("PCVBooster", "PCV-Booster"),
-        ("MR2", "MR-2"), ("JE2", "JE-2"),
-        ("DPTBooster1", "DPT-Booster-1"), ("OPVBooster", "OPV-Booster"),
-        ("VitA2", "Vitamin-A-2"), ("VitA3-9", "Vitamin-A-3-9"),
-        ("DPTBooster2", "DPT-Booster-2"), ("TT10yr", "TT-10yr"), ("TT16yr", "TT-16yr"),
+        ("BCG", "BCG"),
+        ("OPV0", "OPV-0"),
+        ("HepB", "Hep-B"),
+        ("OPV1", "OPV-1"),
+        ("Penta1", "Penta-1"),
+        ("Rota1", "Rota-1"),
+        ("PCV1", "PCV-1"),
+        ("IPV1", "IPV-1"),
+        ("OPV2", "OPV-2"),
+        ("Penta2", "Penta-2"),
+        ("Rota2", "Rota-2"),
+        ("OPV3", "OPV-3"),
+        ("Penta3", "Penta-3"),
+        ("Rota3", "Rota-3"),
+        ("PCV2", "PCV-2"),
+        ("IPV2", "IPV-2"),
+        ("MR1", "MR-1"),
+        ("JE1", "JE-1"),
+        ("VitA1", "Vitamin-A-1"),
+        ("PCVBooster", "PCV-Booster"),
+        ("MR2", "MR-2"),
+        ("JE2", "JE-2"),
+        ("DPTBooster1", "DPT-Booster-1"),
+        ("OPVBooster", "OPV-Booster"),
+        ("VitA2", "Vitamin-A-2"),
+        ("VitA3-9", "Vitamin-A-3-9"),
+        ("DPTBooster2", "DPT-Booster-2"),
+        ("TT10yr", "TT-10yr"),
+        ("TT16yr", "TT-16yr"),
     ]
 
     STATUS_CHOICES = [
-        ("due", "Due"), ("given", "Given"), ("missed", "Missed"), ("overdue", "Overdue"),
+        ("due", "Due"),
+        ("given", "Given"),
+        ("missed", "Missed"),
+        ("overdue", "Overdue"),
     ]
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
@@ -236,12 +278,17 @@ class ImmunizationRecord(models.Model):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["patient", "vaccine_name", "dose_number"], name="uq_immunization_patient_vaccine_dose"),
+            models.UniqueConstraint(
+                fields=["patient", "vaccine_name", "dose_number"], name="uq_immunization_patient_vaccine_dose"
+            ),
         ]
         indexes = [
             models.Index(fields=["patient", "status"], name="ix_immunization_patient_status"),
             models.Index(fields=["scheduled_date", "status"], name="ix_immu_sched_status"),
         ]
+
+    def __str__(self):
+        return f"Immunization {self.vaccine_name} dose#{self.dose_number} for patient {self.patient_id} ({self.status})"
 
 
 class IFACompliance(models.Model):
@@ -262,6 +309,9 @@ class IFACompliance(models.Model):
         indexes = [
             models.Index(fields=["patient", "year_month"], name="ix_ifa_patient_month"),
         ]
+
+    def __str__(self):
+        return f"IFA Compliance for patient {self.patient_id} {self.year_month} week#{self.week_number}"
 
 
 class MCPSurveySession(models.Model):
@@ -292,6 +342,9 @@ class MCPSurveySession(models.Model):
             models.Index(fields=["patient", "session_date"], name="ix_mcp_session_patient_date"),
             models.Index(fields=["session_type"], name="ix_mcp_session_type"),
         ]
+
+    def __str__(self):
+        return f"MCP Session '{self.session_type}' for patient {self.patient_id} on {self.session_date}"
 
 
 class WHOGrowthReference(models.Model):

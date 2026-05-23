@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
-from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
@@ -94,6 +93,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({"detail": "fcm_token required"}, status=status.HTTP_400_BAD_REQUEST)
         request.user.fcm_token = token
         from django.utils import timezone
+
         request.user.fcm_token_updated = timezone.now()
         request.user.save(update_fields=["fcm_token", "fcm_token_updated"])
         return Response({"status": "ok"})
@@ -105,9 +105,10 @@ class WorkerRegistrationViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         user = self.request.user
+        qs = WorkerRegistration.objects.select_related("supervisor").all()
         if user.role in (User.Role.ADMIN, User.Role.AUDITOR):
-            return WorkerRegistration.objects.all().order_by("-created_at")
-        return WorkerRegistration.objects.filter(supervisor=user).order_by("-created_at")
+            return qs.order_by("-created_at")
+        return qs.filter(supervisor=user).order_by("-created_at")
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -165,6 +166,7 @@ class WorkerRegistrationViewSet(viewsets.ModelViewSet):
         if not uploaded:
             return Response({"detail": "CSV file required (field name: 'file')"}, status=status.HTTP_400_BAD_REQUEST)
         from .services import import_workers_csv
+
         results = import_workers_csv(uploaded.read(), supervisor=request.user, file_name=uploaded.name)
         audit(request, "worker.bulk_import", "WorkerRegistration", results)
         return Response(results)

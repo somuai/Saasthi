@@ -14,7 +14,9 @@ class Referral(models.Model):
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
     patient = models.ForeignKey("registry.Patient", related_name="referrals", on_delete=models.CASCADE)
-    flag = models.ForeignKey("flagging.Flag", null=True, blank=True, related_name="referrals", on_delete=models.SET_NULL)
+    flag = models.ForeignKey(
+        "flagging.Flag", null=True, blank=True, related_name="referrals", on_delete=models.SET_NULL
+    )
     destination = models.CharField(max_length=180)
     reason = models.TextField(blank=True)
     status = models.CharField(max_length=24, choices=Status.choices, default=Status.DRAFT)
@@ -29,3 +31,6 @@ class Referral(models.Model):
             models.Index(fields=["patient", "status"], name="ix_referral_patient_status"),
             models.Index(fields=["destination"], name="ix_referral_destination"),
         ]
+
+    def __str__(self):
+        return f"Referral {self.patient_id} -> {self.destination} ({self.status})"

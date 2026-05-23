@@ -17,7 +17,7 @@ import django
 
 django.setup()
 
-from risk_engine.models import RiskRule
+from risk_engine.models import RiskRule  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

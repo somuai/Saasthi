@@ -48,12 +48,19 @@ jobs:
           . .venv/bin/activate
           pip install -r requirements-dev.txt
           python manage.py migrate
-      - name: Run backend tests
+      - name: Backend lint
+        run: |
+          cd backend
+          . .venv/bin/activate
+          ruff check .
+      - name: Backend tests
         run: |
           cd backend
           . .venv/bin/activate
           DJANGO_SETTINGS_MODULE=shaasthi_backend.settings python -m pytest -v --timeout 60
-      - name: Run frontend tests
+      - name: Mobile lint
+        run: cd mobile && npx eslint src/
+      - name: Mobile tests
         run: cd mobile && npx jest --watchAll=false --passWithNoTests
 
   offline-eval:

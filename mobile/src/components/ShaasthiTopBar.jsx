@@ -6,13 +6,7 @@ import { COLORS } from "../constants/colors";
 import { TricolorStripe } from "./TricolorStripe";
 import { tapTargetMin } from "../constants/typography";
 
-export function ShaasthiTopBar({
-  titleHi,
-  titleEn,
-  showBack,
-  rightComponent,
-  variant = "primary",
-}) {
+export function ShaasthiTopBar({ titleHi, titleEn, showBack, rightComponent, variant = "primary" }) {
   const router = useRouter();
   const dark = variant === "primary";
 
@@ -23,12 +17,7 @@ export function ShaasthiTopBar({
       <View style={[styles.bar, dark && styles.barPrimary]}>
         <View style={styles.side}>
           {showBack ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-              onPress={() => router.back()}
-              style={styles.iconBtn}
-            >
+            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.iconBtn}>
               <Ionicons name="arrow-back" size={24} color={dark ? "#fff" : COLORS.primary} />
             </Pressable>
           ) : (

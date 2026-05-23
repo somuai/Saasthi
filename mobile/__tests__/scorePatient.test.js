@@ -5,7 +5,7 @@ describe("scorePatient", () => {
     const r = scorePatient(
       { age: 70, isPregnant: true, hasDiabetes: true },
       { communicable: { feverOver3Days: true, coughOver2Weeks: true }, livingCondition: "poor" },
-      { isHighRisk: true }
+      { isHighRisk: true },
     );
     expect(r.score).toBeGreaterThan(0);
     expect(r.score).toBeLessThanOrEqual(100);

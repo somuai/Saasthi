@@ -59,6 +59,7 @@ def run_risk_assessment(self, patient_id, survey_response_id=None, surveyed_at=N
         if assessment.level in ("medium", "high"):
             try:
                 from flagging.services import auto_schedule_followups
+
                 auto_schedule_followups(assessment)
             except Exception:
                 logger.warning("auto_schedule_followups skipped", exc_info=True)
@@ -107,7 +108,8 @@ def enhance_with_gemma4(self, assessment_id, photo_base64=None):
         patient = assessment.patient
         patient_context = {
             "name": patient.full_name,
-            "age": patient.age_years or (timezone.now().year - patient.date_of_birth.year if patient.date_of_birth else "N/A"),
+            "age": patient.age_years
+            or (timezone.now().year - patient.date_of_birth.year if patient.date_of_birth else "N/A"),
             "village": patient.village,
         }
 
@@ -156,9 +158,13 @@ def _get_instance(instance_local_uuid: str, instance_model: str):
     if not _MCP_INSTANCE_MODELS:
         try:
             from mcp.models import ANCVisit, DeliveryRecord, GrowthRecord, ImmunizationRecord, PNCVisit
+
             _MCP_INSTANCE_MODELS.update(
-                ancvisit=ANCVisit, deliveryrecord=DeliveryRecord, pncvisit=PNCVisit,
-                growthrecord=GrowthRecord, immunizationrecord=ImmunizationRecord,
+                ancvisit=ANCVisit,
+                deliveryrecord=DeliveryRecord,
+                pncvisit=PNCVisit,
+                growthrecord=GrowthRecord,
+                immunizationrecord=ImmunizationRecord,
             )
         except ImportError:
             pass
@@ -178,8 +184,9 @@ def _get_instance(instance_local_uuid: str, instance_model: str):
     default_retry_delay=30,
     name="risk_engine.run_mcp_risk_assessment",
 )
-def run_mcp_risk_assessment(self, patient_local_uuid, instance_local_uuid="", instance_model="",
-                            population="general", session_type=""):
+def run_mcp_risk_assessment(
+    self, patient_local_uuid, instance_local_uuid="", instance_model="", population="general", session_type=""
+):
     """
     Run risk assessment for MCP maternal/child populations.
     Uses MCPFeatureExtractor and population-specific risk rules.
@@ -189,39 +196,44 @@ def run_mcp_risk_assessment(self, patient_local_uuid, instance_local_uuid="", in
 
     try:
         patient = Patient.objects.get(local_uuid=patient_local_uuid)
-        instance = _get_instance(instance_local_uuid, instance_model) if instance_local_uuid else None
+        _get_instance(instance_local_uuid, instance_model) if instance_local_uuid else None
         surveyed_at = timezone.now()
 
         engine = RiskEngine()
         assessment = engine.create_assessment(
-            patient, survey=None, surveyed_at=surveyed_at, save=False,
+            patient,
+            survey=None,
+            surveyed_at=surveyed_at,
+            save=False,
         )
         assessment.patient_population = population
         assessment.mcp_session_type = session_type
 
         if population == "maternal":
             latest_anc = None
-            if hasattr(patient, 'anc_visits'):
+            if hasattr(patient, "anc_visits"):
                 latest_anc = patient.anc_visits.order_by("-visit_date").first()
             extractor = MCPFeatureExtractor()
             features = extractor.extract_maternal(patient, latest_anc)
-            assessment.ml_score = float(features[8]) if hasattr(assessment, 'apply_ml_score') else None
+            assessment.ml_score = float(features[8]) if hasattr(assessment, "apply_ml_score") else None
         elif population == "child":
             latest_growth = None
-            if hasattr(patient, 'growth_records'):
+            if hasattr(patient, "growth_records"):
                 latest_growth = patient.growth_records.order_by("-recorded_date").first()
             missed_vaccines = 0
-            if hasattr(patient, 'immunizations'):
+            if hasattr(patient, "immunizations"):
                 missed_vaccines = patient.immunizations.filter(status="missed").count()
             extractor = MCPFeatureExtractor()
             features = extractor.extract_child(patient, latest_growth, missed_vaccines)
-            assessment.ml_score = float(features[30]) if hasattr(assessment, 'apply_ml_score') else None
+            assessment.ml_score = float(features[30]) if hasattr(assessment, "apply_ml_score") else None
 
         assessment.save()
         create_flags_for_assessment(assessment)
 
         if assessment.level in ("medium", "high"):
             try:
+                from flagging.services import auto_schedule_followups
+
                 auto_schedule_followups(assessment)
             except Exception:
                 logger.warning("auto_schedule_followups skipped for MCP task", exc_info=True)

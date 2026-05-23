@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("flagging", "0002_flag_ix_flag_patient_status_flag_ix_flag_type_and_more"),
         ("referrals", "0001_initial"),
@@ -16,9 +15,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddIndex(
             model_name="referral",
-            index=models.Index(
-                fields=["patient", "status"], name="ix_referral_patient_status"
-            ),
+            index=models.Index(fields=["patient", "status"], name="ix_referral_patient_status"),
         ),
         migrations.AddIndex(
             model_name="referral",

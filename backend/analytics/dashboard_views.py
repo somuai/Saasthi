@@ -36,6 +36,7 @@ class SupervisorDashboardSummaryView(APIView):
         super().initial(request, *args, **kwargs)
         if self.allowed_roles and request.user.role not in self.allowed_roles:
             from rest_framework.exceptions import PermissionDenied
+
             raise PermissionDenied("Access restricted to supervisors and admins.")
 
     def get(self, request):
@@ -63,15 +64,29 @@ class FlagCSVExportView(APIView):
         super().initial(request, *args, **kwargs)
         if self.allowed_roles and request.user.role not in self.allowed_roles:
             from rest_framework.exceptions import PermissionDenied
+
             raise PermissionDenied("Access restricted to supervisors and admins.")
 
     def get(self, request):
         patients = for_user_geography(Patient.objects.all(), request.user)
-        flags = Flag.objects.select_related("patient").filter(patient_id__in=patients.values("id")).order_by("-updated_at")
+        flags = (
+            Flag.objects.select_related("patient").filter(patient_id__in=patients.values("id")).order_by("-updated_at")
+        )
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = 'attachment; filename="shaasthi-flags.csv"'
         writer = csv.writer(response)
         writer.writerow(["local_uuid", "patient", "flag_type", "source", "severity", "status", "score", "updated_at"])
         for flag in flags:
-            writer.writerow([flag.local_uuid, flag.patient.full_name, flag.flag_type, flag.source, flag.severity, flag.status, flag.score, flag.updated_at.isoformat()])
+            writer.writerow(
+                [
+                    flag.local_uuid,
+                    flag.patient.full_name,
+                    flag.flag_type,
+                    flag.source,
+                    flag.severity,
+                    flag.status,
+                    flag.score,
+                    flag.updated_at.isoformat(),
+                ]
+            )
         return response

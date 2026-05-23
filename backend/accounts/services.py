@@ -1,6 +1,5 @@
 import csv
 import io
-from datetime import datetime
 
 from django.db import transaction
 

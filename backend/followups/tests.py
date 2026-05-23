@@ -41,7 +41,6 @@ class TestFollowUp:
 
     @pytest.mark.django_db
     def test_cascade_on_patient_delete(self, followup):
-        pk = followup.patient.pk
         followup.patient.delete()
         assert FollowUp.objects.count() == 0
 

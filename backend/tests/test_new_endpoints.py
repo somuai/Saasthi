@@ -1,6 +1,4 @@
 import pytest
-from django.utils import timezone
-from accounts.models import User
 
 from tests.factories import HouseholdFactory, PatientFactory, SupervisorFactory, UserFactory
 
@@ -111,6 +109,7 @@ class TestBulkImport:
         sup = SupervisorFactory()
         api_client.force_authenticate(sup)
         from django.core.files.uploadedfile import SimpleUploadedFile
+
         csv_content = b"phone,full_name,village,block,district\n9111111111,Sunita Devi,Bagbera,Barhampur,Sitapur\n"
         uploaded = SimpleUploadedFile("workers.csv", csv_content, content_type="text/csv")
         resp = api_client.post(self.endpoint, {"file": uploaded})
@@ -119,6 +118,7 @@ class TestBulkImport:
 
     def test_health_worker_cannot_bulk_import(self, api_client):
         from django.core.files.uploadedfile import SimpleUploadedFile
+
         worker = UserFactory()
         api_client.force_authenticate(worker)
         csv_content = b"phone,full_name\n9199999999,Hack\n"

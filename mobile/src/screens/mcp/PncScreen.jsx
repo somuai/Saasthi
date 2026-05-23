@@ -1,12 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -57,9 +50,7 @@ export default function PncScreen() {
 
   useEffect(() => {
     if (patientId) return undefined;
-    const q = database.collections
-      .get("patients")
-      .query(Q.where("is_pregnant", true), Q.where("is_deleted", false));
+    const q = database.collections.get("patients").query(Q.where("is_pregnant", true), Q.where("is_deleted", false));
     const sub = q.observe().subscribe(setPatients);
     return () => sub.unsubscribe();
   }, [database, patientId]);
@@ -73,9 +64,7 @@ export default function PncScreen() {
 
   useEffect(() => {
     if (!patient?.id) return undefined;
-    const mq = database.collections
-      .get("mother_records")
-      .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
+    const mq = database.collections.get("mother_records").query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
     const sub = mq.observe().subscribe((recs) => setMother(recs[0] || null));
     return () => sub.unsubscribe();
   }, [database, patient]);
@@ -188,16 +177,41 @@ export default function PncScreen() {
             );
           })}
         </View>
-        <GovtInput labelHi="भेंट तिथि" label="Visit date (YYYY-MM-DD)" value={form.visitDate} onChangeText={(t) => setForm({ ...form, visitDate: t })} />
-        <GovtInput labelHi="मां का तापमान" label="Mother temp °C" value={form.motherTemp} onChangeText={(t) => setForm({ ...form, motherTemp: t })} keyboardType="decimal-pad" />
-        <ToggleRow labelHi="अत्यधिक रक्तस्राव" labelEn="Excessive bleeding" value={form.excessiveBleeding} onChange={(v) => setForm({ ...form, excessiveBleeding: v })} />
-        <ToggleRow labelHi="स्तनपान" labelEn="Breastfeeding" value={form.breastfeeding} onChange={(v) => setForm({ ...form, breastfeeding: v })} />
-        <GovtInput labelHi="शिशु वजन (kg)" label="Baby weight kg" value={form.babyWeightKg} onChangeText={(t) => setForm({ ...form, babyWeightKg: t })} keyboardType="decimal-pad" />
+        <GovtInput
+          labelHi="भेंट तिथि"
+          label="Visit date (YYYY-MM-DD)"
+          value={form.visitDate}
+          onChangeText={(t) => setForm({ ...form, visitDate: t })}
+        />
+        <GovtInput
+          labelHi="मां का तापमान"
+          label="Mother temp °C"
+          value={form.motherTemp}
+          onChangeText={(t) => setForm({ ...form, motherTemp: t })}
+          keyboardType="decimal-pad"
+        />
+        <ToggleRow
+          labelHi="अत्यधिक रक्तस्राव"
+          labelEn="Excessive bleeding"
+          value={form.excessiveBleeding}
+          onChange={(v) => setForm({ ...form, excessiveBleeding: v })}
+        />
+        <ToggleRow
+          labelHi="स्तनपान"
+          labelEn="Breastfeeding"
+          value={form.breastfeeding}
+          onChange={(v) => setForm({ ...form, breastfeeding: v })}
+        />
+        <GovtInput
+          labelHi="शिशु वजन (kg)"
+          label="Baby weight kg"
+          value={form.babyWeightKg}
+          onChangeText={(t) => setForm({ ...form, babyWeightKg: t })}
+          keyboardType="decimal-pad"
+        />
         <ToggleRow labelHi="बुखार" labelEn="Fever" value={form.fever} onChange={(v) => setForm({ ...form, fever: v })} />
         <GovtInput labelHi="नोट्स" label="Notes" value={form.notes} onChangeText={(t) => setForm({ ...form, notes: t })} multiline />
-        {(form.excessiveBleeding || form.fever) && (
-          <Text style={styles.alert}>Refer to ANM/PHC — danger signs reported</Text>
-        )}
+        {(form.excessiveBleeding || form.fever) && <Text style={styles.alert}>Refer to ANM/PHC — danger signs reported</Text>}
         <GovtButton titleHi="सहेजें" titleEn="Save PNC visit" onPress={savePnc} loading={saving} />
       </ScrollView>
     </View>

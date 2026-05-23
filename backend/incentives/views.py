@@ -23,7 +23,8 @@ class IncentiveLedgerEntryViewSet(viewsets.ModelViewSet):
         if not month_year or len(month_year) != 7 or "-" not in month_year:
             return Response({"detail": "Invalid month_year format. Use YYYY-MM."}, status=status.HTTP_400_BAD_REQUEST)
         incentives = IncentiveLedgerEntry.objects.filter(
-            worker=request.user, month_year=month_year,
+            worker=request.user,
+            month_year=month_year,
         )
         svc = PayslipService()
         pdf_bytes = svc.generate(request.user, incentives, month_year)

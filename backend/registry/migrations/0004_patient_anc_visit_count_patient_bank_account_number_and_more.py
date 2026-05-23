@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("registry", "0003_alter_household_block_alter_household_district_and_more"),
     ]

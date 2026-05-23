@@ -1,12 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import {
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -57,10 +50,7 @@ export default function HomeScreen() {
         .query(Q.where("risk_level", "critical"), Q.where("is_deleted", false))
         .fetchCount();
       setCriticalN(s3);
-      const hh = await database.collections
-        .get("households")
-        .query(Q.where("is_deleted", false))
-        .fetchCount();
+      const hh = await database.collections.get("households").query(Q.where("is_deleted", false)).fetchCount();
       setHouseholdCount(hh);
       const pend = await countPendingRecords();
       dispatch(setPendingCount(pend));
@@ -70,9 +60,13 @@ export default function HomeScreen() {
   }, [database, dispatch]);
 
   useEffect(() => {
-    const sub = database.collections.get("patients").query().observe().subscribe(() => {
-      reload();
-    });
+    const sub = database.collections
+      .get("patients")
+      .query()
+      .observe()
+      .subscribe(() => {
+        reload();
+      });
     reload();
     return () => sub.unsubscribe();
   }, [database, reload]);

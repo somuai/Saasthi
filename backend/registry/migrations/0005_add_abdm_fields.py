@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         (
             "registry",
@@ -32,8 +31,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="patient",
             name="fhir_bundle",
-            field=models.JSONField(
-                blank=True, default=dict, help_text="Cached FHIR Patient bundle"
-            ),
+            field=models.JSONField(blank=True, default=dict, help_text="Cached FHIR Patient bundle"),
         ),
     ]

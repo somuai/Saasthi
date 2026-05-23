@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("registry", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -112,9 +111,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="household",
-            index=models.Index(
-                fields=["village", "is_active"], name="ix_household_village_active"
-            ),
+            index=models.Index(fields=["village", "is_active"], name="ix_household_village_active"),
         ),
         migrations.AddIndex(
             model_name="patient",
@@ -130,8 +127,6 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="patient",
-            index=models.Index(
-                fields=["village", "status"], name="ix_patient_village_status"
-            ),
+            index=models.Index(fields=["village", "status"], name="ix_patient_village_status"),
         ),
     ]

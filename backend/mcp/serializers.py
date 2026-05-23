@@ -48,8 +48,11 @@ class DeliveryRecordSerializer(serializers.ModelSerializer):
         model = DeliveryRecord
         fields = "__all__"
         read_only_fields = ["id", "created_at", "updated_at"]
-        extra_kwargs = {"mother_patient": {"required": False}, "asha_worker": {"required": False},
-                        "child_patient": {"required": False}}
+        extra_kwargs = {
+            "mother_patient": {"required": False},
+            "asha_worker": {"required": False},
+            "child_patient": {"required": False},
+        }
 
     def validate(self, attrs):
         mother_uuid = attrs.pop("mother_patient_local_uuid", None)
@@ -68,8 +71,11 @@ class PNCVisitSerializer(serializers.ModelSerializer):
         model = PNCVisit
         fields = "__all__"
         read_only_fields = ["id", "created_at", "updated_at"]
-        extra_kwargs = {"mother_patient": {"required": False}, "asha_worker": {"required": False},
-                        "delivery_record": {"required": False}}
+        extra_kwargs = {
+            "mother_patient": {"required": False},
+            "asha_worker": {"required": False},
+            "delivery_record": {"required": False},
+        }
 
     def validate(self, attrs):
         mother_uuid = attrs.pop("mother_patient_local_uuid", None)

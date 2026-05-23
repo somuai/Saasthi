@@ -32,7 +32,9 @@ class IncentiveLedgerEntry(models.Model):
     description = models.TextField(blank=True)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     # New fields
-    activity_type = models.CharField(max_length=40, choices=ActivityType.choices, default=ActivityType.SURVEY_COMPLETION)
+    activity_type = models.CharField(
+        max_length=40, choices=ActivityType.choices, default=ActivityType.SURVEY_COMPLETION
+    )
     amount_paise = models.PositiveIntegerField(default=0, help_text="Amount in paise (rupees × 100)")
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
     reference_id = models.UUIDField(null=True, blank=True)

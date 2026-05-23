@@ -36,7 +36,5 @@ export default class Household extends Model {
   @text("lgd_code") lgdCode;
   @text("asha_worker_id") ashaWorkerId;
 
-  @lazy patients = this.collections
-    .get("patients")
-    .query(Q.where("household_id", this.id), Q.where("is_deleted", false));
+  @lazy patients = this.collections.get("patients").query(Q.where("household_id", this.id), Q.where("is_deleted", false));
 }

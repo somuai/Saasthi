@@ -3,6 +3,7 @@
 import pytest
 from risk_engine.engine import compare, resolve_path
 from risk_engine.models import RiskRule
+
 from tests.factories import PatientFactory, RiskRuleFactory, SurveyResponseFactory
 
 # ── Operator Edge Cases ───────────────────────────────────────────────
@@ -66,6 +67,7 @@ class TestResolvePathEdgeCases:
             @property
             def age_years(self):
                 raise TypeError("boom")
+
         val = resolve_path(BadObj(), None, "patient.age_years")
         assert val is None
 
@@ -87,11 +89,13 @@ class TestResolvePathEdgeCases:
 class TestExpectedValue:
     def test_dict_with_value_key(self):
         from risk_engine.engine import expected_value_from_rule
+
         rule = RiskRuleFactory(value={"value": 7.0})
         assert expected_value_from_rule(rule) == 7.0
 
     def test_dict_without_value_key(self):
         from risk_engine.engine import expected_value_from_rule
+
         rule = RiskRuleFactory(value={"some_other_key": True})
         val = expected_value_from_rule(rule)
         assert val == {"some_other_key": True}
@@ -103,15 +107,18 @@ class TestExpectedValue:
 class TestLevelForScore:
     def test_level_for_score_high(self):
         from risk_engine.engine import level_for_score
+
         assert level_for_score(8) == "high"
         assert level_for_score(100) == "high"
 
     def test_level_for_score_medium(self):
         from risk_engine.engine import level_for_score
+
         assert level_for_score(4) == "medium"
         assert level_for_score(7) == "medium"
 
     def test_level_for_score_low(self):
         from risk_engine.engine import level_for_score
+
         assert level_for_score(0) == "low"
         assert level_for_score(3) == "low"

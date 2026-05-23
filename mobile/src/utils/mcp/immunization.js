@@ -22,13 +22,7 @@ export function getImmunizationStatus({ dob, givenCodes = [], asOf = new Date().
       ...item,
       dueDate,
       given,
-      status: given
-        ? "given"
-        : ageAtCheck > item.dueDays + graceDays
-          ? "overdue"
-          : ageAtCheck >= item.dueDays
-            ? "due"
-            : "upcoming",
+      status: given ? "given" : ageAtCheck > item.dueDays + graceDays ? "overdue" : ageAtCheck >= item.dueDays ? "due" : "upcoming",
     };
   });
 }

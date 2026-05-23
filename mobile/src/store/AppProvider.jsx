@@ -8,12 +8,7 @@ import { store } from "./store";
 import { setOnlineStatus } from "../features/sync/syncSlice";
 import { subscribeConnectivity } from "../utils/connectivity";
 import { setUser, setWorkerData, setTokens, setOfflinePilotSession } from "../features/auth/authSlice";
-import {
-  AUTH_USER_KEY,
-  AUTH_WORKER_KEY,
-  clearAuthSession,
-  persistAuthSession,
-} from "../features/auth/authSession";
+import { AUTH_USER_KEY, AUTH_WORKER_KEY, clearAuthSession, persistAuthSession } from "../features/auth/authSession";
 import { DatabaseGate } from "../components/DatabaseGate";
 
 export { clearAuthSession, persistAuthSession };

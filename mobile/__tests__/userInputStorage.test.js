@@ -1,12 +1,7 @@
 /**
  * Static audit: user-input persistence keys stay stable (device smoke in RUNBOOK.md).
  */
-import {
-  AUTH_PENDING_LOCALE_KEY,
-  AUTH_PENDING_PHONE_KEY,
-  AUTH_USER_KEY,
-  AUTH_WORKER_KEY,
-} from "../src/features/auth/authSession";
+import { AUTH_PENDING_LOCALE_KEY, AUTH_PENDING_PHONE_KEY, AUTH_USER_KEY, AUTH_WORKER_KEY } from "../src/features/auth/authSession";
 import { draftKey } from "../src/screens/survey/surveyDraft";
 
 describe("user input storage keys", () => {

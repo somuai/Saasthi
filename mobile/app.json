@@ -7,9 +7,7 @@
     "scheme": "shaasthi",
     "userInterfaceStyle": "light",
     "icon": "./assets/icon.png",
-    "assetBundlePatterns": [
-      "assets/**/*"
-    ],
+    "assetBundlePatterns": ["assets/**/*"],
     "splash": {
       "image": "./assets/shaasthi-logo.png",
       "resizeMode": "contain",
@@ -31,13 +29,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0F766E"
       },
-      "permissions": [
-        "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION",
-        "ACCESS_BACKGROUND_LOCATION",
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE"
-      ]
+      "permissions": ["ACCESS_FINE_LOCATION", "ACCESS_COARSE_LOCATION", "ACCESS_BACKGROUND_LOCATION", "CAMERA", "READ_EXTERNAL_STORAGE"]
     },
     "plugins": [
       "expo-router",
@@ -61,7 +53,8 @@
       "./plugins/withExpoDevMenuSimulatorFix.js",
       "./plugins/withAndroidLocalProperties.js",
       "./plugins/withKotlinInPackageFix.js",
-      "./plugins/withAndroidFlipperNoop.js"
+      "./plugins/withAndroidFlipperNoop.js",
+      "sentry-expo"
     ],
     "experiments": {
       "typedRoutes": false

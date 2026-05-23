@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("risk_engine", "0004_risk_assessment_source_fields"),
     ]

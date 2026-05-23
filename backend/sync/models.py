@@ -29,3 +29,6 @@ class SyncEvent(models.Model):
             models.Index(fields=["received_at"], name="ix_sync_event_received"),
             models.Index(fields=["event_type"], name="ix_sync_event_type"),
         ]
+
+    def __str__(self):
+        return f"SyncEvent [{self.event_type}] {self.model_name}#{self.object_local_uuid} ({self.status})"

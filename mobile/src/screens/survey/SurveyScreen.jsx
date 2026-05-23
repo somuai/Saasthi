@@ -1,14 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Linking,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
@@ -76,9 +67,7 @@ export default function SurveyScreen() {
 
   useEffect(() => {
     if (!patient?.id) return undefined;
-    const mq = database.collections
-      .get("mother_records")
-      .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
+    const mq = database.collections.get("mother_records").query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
     const sub = mq.observe().subscribe((recs) => setMother(recs[0] || null));
     return () => sub.unsubscribe();
   }, [database, patient]);
@@ -130,9 +119,13 @@ export default function SurveyScreen() {
   const mcpData = mother
     ? {
         isHighRisk: mother.isHighRisk,
-        ancVisitCount: [mother.ancVisit1Json, mother.ancVisit2Json, mother.ancVisit3Json, mother.ancVisit4Json, mother.ancVisit5Json].filter(
-          (j) => j && String(j).length > 2
-        ).length,
+        ancVisitCount: [
+          mother.ancVisit1Json,
+          mother.ancVisit2Json,
+          mother.ancVisit3Json,
+          mother.ancVisit4Json,
+          mother.ancVisit5Json,
+        ].filter((j) => j && String(j).length > 2).length,
       }
     : null;
 
@@ -144,8 +137,7 @@ export default function SurveyScreen() {
     riskColor: riskResult.riskColor,
   };
 
-  const hasSerious =
-    form.seriousBreathing || form.seriousChestPain || form.seriousUnableWalk || form.seriousPregnancyComp;
+  const hasSerious = form.seriousBreathing || form.seriousChestPain || form.seriousUnableWalk || form.seriousPregnancyComp;
 
   useEffect(() => {
     if (stepIndex === 4 && hasSerious) setSeriousModal(true);
@@ -374,23 +366,73 @@ export default function SurveyScreen() {
                 </Pressable>
               ))}
             </View>
-            <GovtInput labelHi="ऊंचाई (cm)" labelEn="Height cm" value={form.heightCm} onChangeText={(t) => patch({ heightCm: t })} keyboardType="decimal-pad" />
-            <GovtInput labelHi="वजन (kg)" labelEn="Weight kg" value={form.weightKg} onChangeText={(t) => patch({ weightKg: t })} keyboardType="decimal-pad" />
-            <GovtInput labelHi="Hb (g/dl)" labelEn="Hemoglobin" value={form.hemoglobin} onChangeText={(t) => patch({ hemoglobin: t })} keyboardType="decimal-pad" />
-            <GovtInput labelHi="BP systolic" labelEn="BP systolic" value={form.systolicBp} onChangeText={(t) => patch({ systolicBp: t })} keyboardType="number-pad" />
-            <GovtInput labelHi="BP diastolic" labelEn="BP diastolic" value={form.diastolicBp} onChangeText={(t) => patch({ diastolicBp: t })} keyboardType="number-pad" />
+            <GovtInput
+              labelHi="ऊंचाई (cm)"
+              labelEn="Height cm"
+              value={form.heightCm}
+              onChangeText={(t) => patch({ heightCm: t })}
+              keyboardType="decimal-pad"
+            />
+            <GovtInput
+              labelHi="वजन (kg)"
+              labelEn="Weight kg"
+              value={form.weightKg}
+              onChangeText={(t) => patch({ weightKg: t })}
+              keyboardType="decimal-pad"
+            />
+            <GovtInput
+              labelHi="Hb (g/dl)"
+              labelEn="Hemoglobin"
+              value={form.hemoglobin}
+              onChangeText={(t) => patch({ hemoglobin: t })}
+              keyboardType="decimal-pad"
+            />
+            <GovtInput
+              labelHi="BP systolic"
+              labelEn="BP systolic"
+              value={form.systolicBp}
+              onChangeText={(t) => patch({ systolicBp: t })}
+              keyboardType="number-pad"
+            />
+            <GovtInput
+              labelHi="BP diastolic"
+              labelEn="BP diastolic"
+              value={form.diastolicBp}
+              onChangeText={(t) => patch({ diastolicBp: t })}
+              keyboardType="number-pad"
+            />
           </>
         ) : null}
 
         {stepIndex === 2 ? (
           <>
-            <ToggleRow labelHi="पिछले वर्ष अस्पताल" labelEn="Hospitalized last year" value={form.hospitalizedLastYear} onChange={(v) => patch({ hospitalizedLastYear: v })} />
-            <ToggleRow labelHi="नियमित दवाएं" labelEn="Regular medicines" value={form.regularMedicines} onChange={(v) => patch({ regularMedicines: v })} />
+            <ToggleRow
+              labelHi="पिछले वर्ष अस्पताल"
+              labelEn="Hospitalized last year"
+              value={form.hospitalizedLastYear}
+              onChange={(v) => patch({ hospitalizedLastYear: v })}
+            />
+            <ToggleRow
+              labelHi="नियमित दवाएं"
+              labelEn="Regular medicines"
+              value={form.regularMedicines}
+              onChange={(v) => patch({ regularMedicines: v })}
+            />
             {form.regularMedicines ? (
-              <GovtInput labelHi="दवा का नाम" labelEn="Medicine name" value={form.medicinesName} onChangeText={(t) => patch({ medicinesName: t })} />
+              <GovtInput
+                labelHi="दवा का नाम"
+                labelEn="Medicine name"
+                value={form.medicinesName}
+                onChangeText={(t) => patch({ medicinesName: t })}
+              />
             ) : null}
             {patient.isPregnant ? (
-              <ToggleRow labelHi="पहले C-section" labelEn="Previous C-section" value={form.previousCSection} onChange={(v) => patch({ previousCSection: v })} />
+              <ToggleRow
+                labelHi="पहले C-section"
+                labelEn="Previous C-section"
+                value={form.previousCSection}
+                onChange={(v) => patch({ previousCSection: v })}
+              />
             ) : (
               <Text style={styles.muted}>Pregnancy history — no fetal-sex fields collected.</Text>
             )}
@@ -411,10 +453,30 @@ export default function SurveyScreen() {
 
         {stepIndex === 4 ? (
           <>
-            <ToggleRow labelHi="गंभीर सांस की तकलीफ" labelEn="Severe breathing" value={form.seriousBreathing} onChange={(v) => patch({ seriousBreathing: v })} />
-            <ToggleRow labelHi="लगातार छाती दर्द" labelEn="Continuous chest pain" value={form.seriousChestPain} onChange={(v) => patch({ seriousChestPain: v })} />
-            <ToggleRow labelHi="चल नहीं सकते" labelEn="Unable to walk" value={form.seriousUnableWalk} onChange={(v) => patch({ seriousUnableWalk: v })} />
-            <ToggleRow labelHi="गर्भावस्था जटिलता" labelEn="Pregnancy complication" value={form.seriousPregnancyComp} onChange={(v) => patch({ seriousPregnancyComp: v })} />
+            <ToggleRow
+              labelHi="गंभीर सांस की तकलीफ"
+              labelEn="Severe breathing"
+              value={form.seriousBreathing}
+              onChange={(v) => patch({ seriousBreathing: v })}
+            />
+            <ToggleRow
+              labelHi="लगातार छाती दर्द"
+              labelEn="Continuous chest pain"
+              value={form.seriousChestPain}
+              onChange={(v) => patch({ seriousChestPain: v })}
+            />
+            <ToggleRow
+              labelHi="चल नहीं सकते"
+              labelEn="Unable to walk"
+              value={form.seriousUnableWalk}
+              onChange={(v) => patch({ seriousUnableWalk: v })}
+            />
+            <ToggleRow
+              labelHi="गर्भावस्था जटिलता"
+              labelEn="Pregnancy complication"
+              value={form.seriousPregnancyComp}
+              onChange={(v) => patch({ seriousPregnancyComp: v })}
+            />
             {hasSerious ? (
               <GovtButton titleHi="आपात कॉल" titleEn="Emergency call" onPress={() => setSeriousModal(true)} variant="secondary" />
             ) : null}
@@ -424,15 +486,55 @@ export default function SurveyScreen() {
         {stepIndex === 5 ? (
           <>
             <Text style={styles.section}>जीर्ण / Chronic</Text>
-            <ToggleRow labelHi="बार-बार पेशाब" labelEn="Frequent urination" value={form.chronicFreqUrination} onChange={(v) => patch({ chronicFreqUrination: v })} />
-            <ToggleRow labelHi="अधिक प्यास" labelEn="Excess thirst" value={form.chronicExcessThirst} onChange={(v) => patch({ chronicExcessThirst: v })} />
-            <ToggleRow labelHi="जोड़ों में दर्द" labelEn="Joint pain" value={form.chronicJointPain} onChange={(v) => patch({ chronicJointPain: v })} />
-            <ToggleRow labelHi="ज्ञात BP/DM" labelEn="Known BP/DM" value={form.chronicKnownBpDm} onChange={(v) => patch({ chronicKnownBpDm: v })} />
+            <ToggleRow
+              labelHi="बार-बार पेशाब"
+              labelEn="Frequent urination"
+              value={form.chronicFreqUrination}
+              onChange={(v) => patch({ chronicFreqUrination: v })}
+            />
+            <ToggleRow
+              labelHi="अधिक प्यास"
+              labelEn="Excess thirst"
+              value={form.chronicExcessThirst}
+              onChange={(v) => patch({ chronicExcessThirst: v })}
+            />
+            <ToggleRow
+              labelHi="जोड़ों में दर्द"
+              labelEn="Joint pain"
+              value={form.chronicJointPain}
+              onChange={(v) => patch({ chronicJointPain: v })}
+            />
+            <ToggleRow
+              labelHi="ज्ञात BP/DM"
+              labelEn="Known BP/DM"
+              value={form.chronicKnownBpDm}
+              onChange={(v) => patch({ chronicKnownBpDm: v })}
+            />
             <Text style={styles.section}>संक्रामक / Communicable</Text>
-            <ToggleRow labelHi="2+ सप्ताह खांसी" labelEn="Cough 2+ weeks" value={form.commCough2weeks} onChange={(v) => patch({ commCough2weeks: v })} />
-            <ToggleRow labelHi="3+ दिन बुखार" labelEn="Fever 3+ days" value={form.commFever3days} onChange={(v) => patch({ commFever3days: v })} />
-            <ToggleRow labelHi="संक्रमण/घाव" labelEn="Infection/wounds" value={form.commInfectionWounds} onChange={(v) => patch({ commInfectionWounds: v })} />
-            <ToggleRow labelHi="बीमार से संपर्क" labelEn="Contact with sick" value={form.commContactSick} onChange={(v) => patch({ commContactSick: v })} />
+            <ToggleRow
+              labelHi="2+ सप्ताह खांसी"
+              labelEn="Cough 2+ weeks"
+              value={form.commCough2weeks}
+              onChange={(v) => patch({ commCough2weeks: v })}
+            />
+            <ToggleRow
+              labelHi="3+ दिन बुखार"
+              labelEn="Fever 3+ days"
+              value={form.commFever3days}
+              onChange={(v) => patch({ commFever3days: v })}
+            />
+            <ToggleRow
+              labelHi="संक्रमण/घाव"
+              labelEn="Infection/wounds"
+              value={form.commInfectionWounds}
+              onChange={(v) => patch({ commInfectionWounds: v })}
+            />
+            <ToggleRow
+              labelHi="बीमार से संपर्क"
+              labelEn="Contact with sick"
+              value={form.commContactSick}
+              onChange={(v) => patch({ commContactSick: v })}
+            />
           </>
         ) : null}
 
@@ -463,7 +565,12 @@ export default function SurveyScreen() {
           </View>
           <View style={{ flex: 1 }}>
             {stepIndex < STEPS.length - 1 ? (
-              <GovtButton titleHi="आगे" titleEn="Next" onPress={() => setStepIndex((v) => Math.min(STEPS.length - 1, v + 1))} disabled={stepIndex === 0 && !form.consent} />
+              <GovtButton
+                titleHi="आगे"
+                titleEn="Next"
+                onPress={() => setStepIndex((v) => Math.min(STEPS.length - 1, v + 1))}
+                disabled={stepIndex === 0 && !form.consent}
+              />
             ) : (
               <GovtButton titleHi="सहेजें" titleEn="Save offline" onPress={finish} loading={saving} disabled={!form.consent} />
             )}
@@ -478,7 +585,9 @@ export default function SurveyScreen() {
             <Text style={styles.modalBody}>गंभीर लक्षण — नजदीकी स्वास्थ्य केंद्र या आपात नंबर पर संपर्क करें।</Text>
             {EMERGENCY_NUMBERS.map((n) => (
               <Pressable key={n.tel} style={styles.callBtn} onPress={() => Linking.openURL(`tel:${n.tel}`)}>
-                <Text style={styles.callTxt}>{n.label} — {n.tel}</Text>
+                <Text style={styles.callTxt}>
+                  {n.label} — {n.tel}
+                </Text>
               </Pressable>
             ))}
             <GovtButton titleHi="बंद करें" titleEn="Close" onPress={() => setSeriousModal(false)} />

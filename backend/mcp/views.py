@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 
 from accounts.views import audit
@@ -31,6 +32,8 @@ from .serializers import (
     PNCVisitSerializer,
 )
 
+logger = logging.getLogger(__name__)
+
 SURVEY_SESSION_MAP = {
     ANCVisit: ("anc_visit", "ANCVisit"),
     DeliveryRecord: ("delivery_record", "DeliveryRecord"),
@@ -43,7 +46,7 @@ SURVEY_SESSION_MAP = {
 
 def _create_mcp_session(instance, request_user, session_type, linked_type):
     MCPSurveySession.objects.create(
-        patient=instance.patient if hasattr(instance, 'mother_patient') is False else instance.mother_patient,
+        patient=instance.patient if hasattr(instance, "mother_patient") is False else instance.mother_patient,
         asha_worker=request_user,
         session_date=date.today(),
         session_type=session_type,
@@ -55,17 +58,18 @@ def _create_mcp_session(instance, request_user, session_type, linked_type):
 def _trigger_mcp_risk_assessment(instance, patient, request_user, population, session_type):
     try:
         from risk_engine.tasks import run_mcp_risk_assessment
+
         patient_local_uuid = str(patient.local_uuid)
-        instance_local_uuid = str(getattr(instance, 'local_uuid', ''))
+        instance_local_uuid = str(getattr(instance, "local_uuid", ""))
         run_mcp_risk_assessment.delay(
             patient_local_uuid=patient_local_uuid,
             instance_local_uuid=instance_local_uuid,
-            instance_model=instance._meta.model_name if hasattr(instance, '_meta') else "",
+            instance_model=instance._meta.model_name if hasattr(instance, "_meta") else "",
             population=population,
             session_type=session_type,
         )
     except Exception:
-        pass
+        logger.exception("MCP risk assessment task enqueue failed for patient %s", patient_local_uuid)
 
 
 def _create_incentive(immunization_record, request_user):
@@ -73,6 +77,7 @@ def _create_incentive(immunization_record, request_user):
         return
     try:
         from incentives.models import IncentiveLedgerEntry
+
         amount = 200 if immunization_record.fic_eligible else 100
         entry = IncentiveLedgerEntry.objects.create(
             worker=request_user,
@@ -87,7 +92,7 @@ def _create_incentive(immunization_record, request_user):
         )
         audit(None, "incentives.create", "IncentiveLedgerEntry", entry.local_uuid)
     except Exception:
-        pass
+        logger.exception("Incentive creation failed for immunization %s", immunization_record.local_uuid)
 
 
 class CareInteractionViewSet(viewsets.ModelViewSet):

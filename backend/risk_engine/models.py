@@ -108,17 +108,20 @@ class RiskAssessment(models.Model):
     recommended_action_en = models.TextField(blank=True)
     recommended_action_hi = models.TextField(blank=True)
     recommended_urgency = models.CharField(max_length=32, default="routine", blank=True)
-    recommendation_source = models.CharField(max_length=30, default="rule_template", blank=True,
-                                              help_text="rule_template | gemma4_api | tflite")
-    score_source = models.CharField(max_length=30, default="rule_engine", blank=True,
-                                    help_text="rule_engine | tflite | ml_ensemble")
+    recommendation_source = models.CharField(
+        max_length=30, default="rule_template", blank=True, help_text="rule_template | gemma4_api | tflite"
+    )
+    score_source = models.CharField(
+        max_length=30, default="rule_engine", blank=True, help_text="rule_engine | tflite | ml_ensemble"
+    )
     rule_engine_score = models.IntegerField(null=True, blank=True)
     ml_score = models.FloatField(null=True, blank=True)
     ml_confidence = models.FloatField(null=True, blank=True)
     ml_model_version = models.IntegerField(null=True, blank=True)
 
-    patient_population = models.CharField(max_length=10, default="general", blank=True,
-                                          help_text="general|maternal|child")
+    patient_population = models.CharField(
+        max_length=10, default="general", blank=True, help_text="general|maternal|child"
+    )
     mcp_session_type = models.CharField(max_length=30, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -130,3 +133,6 @@ class RiskAssessment(models.Model):
             models.Index(fields=["level", "created_at"], name="ix_risk_assessment_level"),
             models.Index(fields=["triggered_by_hard_flag"], name="ix_risk_assessment_hard_flag"),
         ]
+
+    def __str__(self):
+        return f"RiskAssessment for patient {self.patient_id}: {self.level} (score={self.total_score})"

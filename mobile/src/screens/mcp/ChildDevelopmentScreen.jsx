@@ -144,7 +144,9 @@ export default function ChildDevelopmentScreen() {
         {records.map((r) => (
           <View key={r.id} style={styles.row}>
             <Text style={styles.pickName}>{r.assessmentDate}</Text>
-            <Text style={styles.muted}>{r.ageMonths} months · referral: {r.referralNeeded ? "yes" : "no"}</Text>
+            <Text style={styles.muted}>
+              {r.ageMonths} months · referral: {r.referralNeeded ? "yes" : "no"}
+            </Text>
           </View>
         ))}
       </ScrollView>

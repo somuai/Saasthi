@@ -11,3 +11,6 @@ class AnalyticsSnapshot(models.Model):
 
     class Meta:
         ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"AnalyticsSnapshot '{self.name}' ({self.local_uuid})"

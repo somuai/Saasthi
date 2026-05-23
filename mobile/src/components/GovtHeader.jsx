@@ -9,13 +9,7 @@ import { OfflineBanner } from "./OfflineBanner";
 import { PilotSyncBanner } from "./PilotSyncBanner";
 import { SyncIndicator } from "./SyncIndicator";
 
-export function GovtHeader({
-  title,
-  titleHi,
-  showBack,
-  showSync,
-  rightComponent,
-}) {
+export function GovtHeader({ title, titleHi, showBack, showSync, rightComponent }) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const hi = titleHi ?? title;
@@ -27,23 +21,28 @@ export function GovtHeader({
       <View style={[styles.bar, { paddingTop: Math.max(insets.top, 8) }]}>
         <View style={[styles.left, showBack && styles.leftCompact]}>
           {showBack ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Go back"
-              onPress={() => router.back()}
-              style={styles.iconBtn}
-            >
+            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.iconBtn}>
               <Ionicons name="arrow-back" size={24} color="#fff" />
             </Pressable>
           ) : null}
           <View style={styles.brandRow}>
             <Image source={require("../../assets/shaasthi-logo.png")} style={styles.brandLogo} resizeMode="contain" />
-            {showBrandText ? <Text style={styles.brand} numberOfLines={1}>SHAASTHI</Text> : null}
+            {showBrandText ? (
+              <Text style={styles.brand} numberOfLines={1}>
+                SHAASTHI
+              </Text>
+            ) : null}
           </View>
         </View>
         <View style={styles.center}>
-          <Text style={styles.title} numberOfLines={1}>{hi}</Text>
-          {titleHi && title && title !== titleHi ? <Text style={styles.sub} numberOfLines={1}>{title}</Text> : null}
+          <Text style={styles.title} numberOfLines={1}>
+            {hi}
+          </Text>
+          {titleHi && title && title !== titleHi ? (
+            <Text style={styles.sub} numberOfLines={1}>
+              {title}
+            </Text>
+          ) : null}
         </View>
         <View style={styles.right}>
           {showSync ? <SyncIndicator /> : null}

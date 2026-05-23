@@ -1,8 +1,4 @@
-import {
-  buildFicIncentiveIfEligible,
-  FIC_CORE_VACCINES,
-  isFicComplete,
-} from "../src/utils/ficIncentive";
+import { buildFicIncentiveIfEligible, FIC_CORE_VACCINES, isFicComplete } from "../src/utils/ficIncentive";
 
 describe("ficIncentive", () => {
   const dob = "2024-01-15";
@@ -23,7 +19,7 @@ describe("ficIncentive", () => {
         dateOfBirth: dob,
         administeredCodes: FIC_CORE_VACCINES,
         existingActionTypes: ["FIC_COMPLETE"],
-      })
+      }),
     ).toBeNull();
   });
 });

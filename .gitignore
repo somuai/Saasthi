@@ -35,6 +35,11 @@ staticfiles/
 *.joblib
 models/*.json
 
+# Firebase
+mobile/google-services.json
+mobile/GoogleService-Info.plist
+firebase-service-account.json
+
 # Local runtime
 tmp/
 logs/

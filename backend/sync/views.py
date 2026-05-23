@@ -10,6 +10,7 @@ from django.utils import timezone as tz
 from flagging.models import Flag
 from flagging.services import dedupe_key
 from followups.models import FollowUp
+from followups.services.gps_service import classify_gps_visit
 from incentives.models import IncentiveLedgerEntry
 from mcp.models import CareInteraction
 from referrals.models import Referral
@@ -49,91 +50,272 @@ TABLE_TO_MODEL = {
 WATERMELON_BASE = {"server_id", "is_synced", "created_at", "updated_at", "is_deleted", "is_mock"}
 
 WATERMELON_COLUMNS = {
-    "patients": WATERMELON_BASE | {
-        "patient_code", "household_id", "name", "age", "gender", "phone",
-        "aadhaar_last4", "has_diabetes", "has_hypertension", "has_tb",
-        "has_asthma", "has_heart_disease", "is_pregnant", "hospitalized_last_year",
-        "regular_medicines", "medicines_name", "risk_score", "risk_level",
-        "last_visited", "asha_worker_server_id", "date_of_birth",
-        "immunization_defaulter", "latest_weight_for_age_z",
+    "patients": WATERMELON_BASE
+    | {
+        "patient_code",
+        "household_id",
+        "name",
+        "age",
+        "gender",
+        "phone",
+        "aadhaar_last4",
+        "has_diabetes",
+        "has_hypertension",
+        "has_tb",
+        "has_asthma",
+        "has_heart_disease",
+        "is_pregnant",
+        "hospitalized_last_year",
+        "regular_medicines",
+        "medicines_name",
+        "risk_score",
+        "risk_level",
+        "last_visited",
+        "asha_worker_server_id",
+        "date_of_birth",
+        "immunization_defaulter",
+        "latest_weight_for_age_z",
     },
-    "households": WATERMELON_BASE | {
-        "household_code", "head_of_family", "address", "village", "block",
-        "district", "gps_lat", "gps_lng", "total_members", "male_count",
-        "female_count", "children_under5", "elderly_above60", "has_toilet",
-        "water_source", "is_bpl", "awc_number", "lgd_code", "asha_worker_id",
+    "households": WATERMELON_BASE
+    | {
+        "household_code",
+        "head_of_family",
+        "address",
+        "village",
+        "block",
+        "district",
+        "gps_lat",
+        "gps_lng",
+        "total_members",
+        "male_count",
+        "female_count",
+        "children_under5",
+        "elderly_above60",
+        "has_toilet",
+        "water_source",
+        "is_bpl",
+        "awc_number",
+        "lgd_code",
+        "asha_worker_id",
     },
-    "survey_responses": WATERMELON_BASE | {
-        "patient_id", "asha_worker_server_id", "survey_date", "visit_type",
-        "asha_observation", "living_condition", "healthcare_access",
-        "symptom_fever_json", "symptom_cough_json", "symptom_breathless_json",
-        "symptom_chest_pain_json", "symptom_weakness_json", "symptom_diarrhea_json",
-        "symptom_vomiting_json", "serious_severe_breathing", "serious_chest_pain",
-        "serious_unable_walk", "serious_pregnancy_comp", "chronic_freq_urination",
-        "chronic_excess_thirst", "chronic_joint_pain", "chronic_known_bp_dm",
-        "comm_cough_2weeks", "comm_fever_3days", "comm_infection_wounds",
-        "comm_contact_sick", "followup_condition", "followup_doctor_visited",
-        "followup_treatment_started", "computed_risk_score", "computed_risk_level",
-        "triggered_factors_json", "ml_model_version", "is_complete", "device_id",
-        "synced_at", "consent_accepted", "consent_version",
+    "survey_responses": WATERMELON_BASE
+    | {
+        "patient_id",
+        "asha_worker_server_id",
+        "survey_date",
+        "visit_type",
+        "asha_observation",
+        "living_condition",
+        "healthcare_access",
+        "symptom_fever_json",
+        "symptom_cough_json",
+        "symptom_breathless_json",
+        "symptom_chest_pain_json",
+        "symptom_weakness_json",
+        "symptom_diarrhea_json",
+        "symptom_vomiting_json",
+        "serious_severe_breathing",
+        "serious_chest_pain",
+        "serious_unable_walk",
+        "serious_pregnancy_comp",
+        "chronic_freq_urination",
+        "chronic_excess_thirst",
+        "chronic_joint_pain",
+        "chronic_known_bp_dm",
+        "comm_cough_2weeks",
+        "comm_fever_3days",
+        "comm_infection_wounds",
+        "comm_contact_sick",
+        "followup_condition",
+        "followup_doctor_visited",
+        "followup_treatment_started",
+        "computed_risk_score",
+        "computed_risk_level",
+        "triggered_factors_json",
+        "ml_model_version",
+        "is_complete",
+        "device_id",
+        "synced_at",
+        "consent_accepted",
+        "consent_version",
     },
-    "follow_ups": WATERMELON_BASE | {
-        "patient_id", "survey_id", "due_date", "completed_date", "is_completed",
-        "is_overdue", "follow_type", "outcome", "notes", "incentive_awarded",
-        "visit_lat", "visit_lng", "visit_accuracy_m", "visit_gps_timestamp",
-        "distance_from_household_m", "gps_verification_status",
+    "follow_ups": WATERMELON_BASE
+    | {
+        "patient_id",
+        "survey_id",
+        "due_date",
+        "completed_date",
+        "is_completed",
+        "is_overdue",
+        "follow_type",
+        "outcome",
+        "notes",
+        "incentive_awarded",
+        "visit_lat",
+        "visit_lng",
+        "visit_accuracy_m",
+        "visit_gps_timestamp",
+        "distance_from_household_m",
+        "gps_verification_status",
     },
-    "flags": WATERMELON_BASE | {
-        "patient_id", "asha_worker_server_id", "flag_type", "severity",
-        "description", "is_resolved", "resolved_at", "resolution_notes",
+    "flags": WATERMELON_BASE
+    | {
+        "patient_id",
+        "asha_worker_server_id",
+        "flag_type",
+        "severity",
+        "description",
+        "is_resolved",
+        "resolved_at",
+        "resolution_notes",
     },
-    "referrals": WATERMELON_BASE | {
-        "patient_id", "provider_name", "provider_type", "disease_category",
-        "referral_date", "status", "outcome", "incentive_awarded",
+    "referrals": WATERMELON_BASE
+    | {
+        "patient_id",
+        "provider_name",
+        "provider_type",
+        "disease_category",
+        "referral_date",
+        "status",
+        "outcome",
+        "incentive_awarded",
     },
-    "mother_records": WATERMELON_BASE | {
-        "patient_id", "mcts_rch_id_mother", "mcts_rch_id_child",
-        "mother_aadhaar_last4", "child_aadhaar_last4", "father_name", "lmp_date",
-        "edd", "gravida", "prev_live_births", "is_high_risk", "is_pmmvy_eligible",
-        "bank_name", "bank_account", "bank_ifsc", "postal_account",
-        "identified_delivery_institution", "anc_visit_1_json", "anc_visit_2_json",
-        "anc_visit_3_json", "anc_visit_4_json", "anc_visit_5_json",
-        "tt_injection_1_date", "tt_injection_2_date", "ifa_tablets_issued",
-        "ifa_dates_json", "calcium_tablets", "albendazole_given", "blood_group",
-        "rh_type", "hiv_screening_date", "hiv_result", "syphilis_date",
-        "syphilis_result", "delivery_date", "delivery_place", "delivery_type",
-        "pregnancy_outcome", "birth_weight_kg", "child_sex", "child_cried_at_birth",
-        "breastfed_within_1hr", "vit_k_given", "birth_registration_no",
-        "pnc_day1_json", "pnc_day3_json", "pnc_day7_json", "pnc_week6_json",
-        "jsy_registered", "jsy_payment_received", "pmmvy_installment_1",
-        "pmmvy_installment_2", "pmmvy_installment_3", "sub_centre_reg_no",
+    "mother_records": WATERMELON_BASE
+    | {
+        "patient_id",
+        "mcts_rch_id_mother",
+        "mcts_rch_id_child",
+        "mother_aadhaar_last4",
+        "child_aadhaar_last4",
+        "father_name",
+        "lmp_date",
+        "edd",
+        "gravida",
+        "prev_live_births",
+        "is_high_risk",
+        "is_pmmvy_eligible",
+        "bank_name",
+        "bank_account",
+        "bank_ifsc",
+        "postal_account",
+        "identified_delivery_institution",
+        "anc_visit_1_json",
+        "anc_visit_2_json",
+        "anc_visit_3_json",
+        "anc_visit_4_json",
+        "anc_visit_5_json",
+        "tt_injection_1_date",
+        "tt_injection_2_date",
+        "ifa_tablets_issued",
+        "ifa_dates_json",
+        "calcium_tablets",
+        "albendazole_given",
+        "blood_group",
+        "rh_type",
+        "hiv_screening_date",
+        "hiv_result",
+        "syphilis_date",
+        "syphilis_result",
+        "delivery_date",
+        "delivery_place",
+        "delivery_type",
+        "pregnancy_outcome",
+        "birth_weight_kg",
+        "child_sex",
+        "child_cried_at_birth",
+        "breastfed_within_1hr",
+        "vit_k_given",
+        "birth_registration_no",
+        "pnc_day1_json",
+        "pnc_day3_json",
+        "pnc_day7_json",
+        "pnc_week6_json",
+        "jsy_registered",
+        "jsy_payment_received",
+        "pmmvy_installment_1",
+        "pmmvy_installment_2",
+        "pmmvy_installment_3",
+        "sub_centre_reg_no",
         "fixed_vhsnd_day",
     },
-    "anc_visit_records": WATERMELON_BASE | {
-        "mother_record_id", "visit_number", "visit_date", "pog_weeks",
-        "weight_kg", "pulse_rate", "bp_systolic", "bp_diastolic", "pallor",
-        "oedema", "jaundice", "complaints", "fundal_height_cm", "lie_presentation",
-        "fetal_movements", "fetal_heart_rate", "hemoglobin_gm", "urine_albumin",
-        "urine_sugar", "ultrasonography_done", "gdm_screening", "is_under_pmsma",
+    "anc_visit_records": WATERMELON_BASE
+    | {
+        "mother_record_id",
+        "visit_number",
+        "visit_date",
+        "pog_weeks",
+        "weight_kg",
+        "pulse_rate",
+        "bp_systolic",
+        "bp_diastolic",
+        "pallor",
+        "oedema",
+        "jaundice",
+        "complaints",
+        "fundal_height_cm",
+        "lie_presentation",
+        "fetal_movements",
+        "fetal_heart_rate",
+        "hemoglobin_gm",
+        "urine_albumin",
+        "urine_sugar",
+        "ultrasonography_done",
+        "gdm_screening",
+        "is_under_pmsma",
     },
-    "immunization_records": WATERMELON_BASE | {
-        "patient_id", "mother_record_id", "vaccine_name", "vaccine_code",
-        "scheduled_date", "administered_date", "is_administered", "is_missed",
-        "missed_reason", "next_due_date", "batch_number", "anm_name", "site",
+    "immunization_records": WATERMELON_BASE
+    | {
+        "patient_id",
+        "mother_record_id",
+        "vaccine_name",
+        "vaccine_code",
+        "scheduled_date",
+        "administered_date",
+        "is_administered",
+        "is_missed",
+        "missed_reason",
+        "next_due_date",
+        "batch_number",
+        "anm_name",
+        "site",
         "adverse_event",
     },
-    "growth_records": WATERMELON_BASE | {
-        "patient_id", "recorded_date", "age_months", "weight_kg", "height_cm",
-        "muac_cm", "weight_for_age_z", "height_for_age_z", "weight_for_height_z",
-        "nutrition_status", "recorded_by", "awc_number",
+    "growth_records": WATERMELON_BASE
+    | {
+        "patient_id",
+        "recorded_date",
+        "age_months",
+        "weight_kg",
+        "height_cm",
+        "muac_cm",
+        "weight_for_age_z",
+        "height_for_age_z",
+        "weight_for_height_z",
+        "nutrition_status",
+        "recorded_by",
+        "awc_number",
     },
-    "child_development": WATERMELON_BASE | {
-        "patient_id", "assessment_date", "age_months", "milestones_json",
-        "warning_signs_json", "assessed_by", "referral_needed",
+    "child_development": WATERMELON_BASE
+    | {
+        "patient_id",
+        "assessment_date",
+        "age_months",
+        "milestones_json",
+        "warning_signs_json",
+        "assessed_by",
+        "referral_needed",
     },
-    "incentive_records": WATERMELON_BASE | {
-        "action_type", "patient_id", "reference_id", "points", "amount_inr",
-        "period_date", "is_approved", "approved_at", "payment_received",
+    "incentive_records": WATERMELON_BASE
+    | {
+        "action_type",
+        "patient_id",
+        "reference_id",
+        "points",
+        "amount_inr",
+        "period_date",
+        "is_approved",
+        "approved_at",
+        "payment_received",
     },
 }
 
@@ -609,7 +791,10 @@ def resolve_fk(data, model_name):
         val = result.pop(wm_field, None)
         if val:
             try:
-                result[django_field] = model_class.objects.get(local_uuid=val)
+                qs = model_class.objects.all()
+                if model_class is Patient:
+                    qs = qs.select_related("household")
+                result[django_field] = qs.get(local_uuid=val)
             except model_class.DoesNotExist:
                 result.pop(django_field, None)
                 logger.warning("sync_push_fk_not_found model=%s fk=%s uuid=%s", model_name, django_field, val)
@@ -636,11 +821,7 @@ def _queryset_for_table(table_name, patient_ids, since):
         qs = Patient.objects.filter(id__in=patient_ids).select_related("household").order_by("updated_at")
         return qs, "patient"
     if table_name == "households":
-        hh_ids = set(
-            Patient.objects.filter(id__in=patient_ids)
-            .values_list("household_id", flat=True)
-            .distinct()
-        )
+        hh_ids = set(Patient.objects.filter(id__in=patient_ids).values_list("household_id", flat=True).distinct())
         qs = Household.objects.filter(id__in=hh_ids, is_active=True).order_by("updated_at")
         return qs, "household"
     if table_name == "survey_responses":
@@ -656,7 +837,11 @@ def _queryset_for_table(table_name, patient_ids, since):
         qs = Referral.objects.filter(patient_id__in=patient_ids).select_related("flag").order_by("updated_at")
         return qs, "referral"
     if table_name == "mother_records":
-        qs = Patient.objects.filter(id__in=patient_ids).order_by("updated_at")
+        qs = (
+            Patient.objects.select_related("household", "asha_worker", "mother_patient", "created_by")
+            .filter(id__in=patient_ids)
+            .order_by("updated_at")
+        )
         return qs, "patient"
     if table_name in ("immunization_records", "growth_records", "anc_visit_records", "child_development"):
         qs = CareInteraction.objects.filter(patient_id__in=patient_ids, protocol=table_name).order_by("updated_at")
@@ -839,9 +1024,11 @@ def delete_patient(local_uuid, user):
 
 
 def upsert_household(local_uuid, data, user):
-    defaults = {k: v for k, v in data.items()
-                if k in {f.name for f in Household._meta.fields}
-                and k not in {"id", "created_at", "updated_at"}}
+    defaults = {
+        k: v
+        for k, v in data.items()
+        if k in {f.name for f in Household._meta.fields} and k not in {"id", "created_at", "updated_at"}
+    }
     obj, _ = Household.objects.update_or_create(local_uuid=local_uuid, defaults=defaults)
     if not obj.created_by_id and user.is_authenticated:
         obj.created_by = user
@@ -957,6 +1144,11 @@ def upsert_follow_up(local_uuid, data, user):
     patient = data.get("patient")
     if not verify_patient_access(patient, user):
         raise PermissionError("No access to patient")
+
+    visit_lat = data.get("visit_lat")
+    visit_lng = data.get("visit_lng")
+    visit_accuracy_m = data.get("visit_accuracy_m")
+
     defaults = {
         "patient": patient,
         "worker": user if user.is_authenticated else None,
@@ -965,13 +1157,24 @@ def upsert_follow_up(local_uuid, data, user):
         "status": data.get("status", FollowUp.Status.PENDING),
         "completion_notes": data.get("notes") or data.get("completion_notes", ""),
         "triggered_by_assessment": None,
-        "visit_lat": data.get("visit_lat"),
-        "visit_lng": data.get("visit_lng"),
-        "visit_accuracy_m": data.get("visit_accuracy_m"),
+        "visit_lat": visit_lat,
+        "visit_lng": visit_lng,
+        "visit_accuracy_m": visit_accuracy_m,
         "visit_gps_timestamp": data.get("visit_gps_timestamp"),
-        "distance_from_household_m": data.get("distance_from_household_m"),
-        "gps_verification_status": data.get("gps_verification_status", "not_captured"),
     }
+
+    # Server-authoritative GPS verification
+    if visit_lat is not None and visit_lng is not None and patient is not None:
+        household = patient.household
+        household_lat = household.lat if household else None
+        household_lng = household.lng if household else None
+        result = classify_gps_visit(visit_lat, visit_lng, household_lat, household_lng, visit_accuracy_m or 0.0)
+        defaults["distance_from_household_m"] = result["distance_m"]
+        defaults["gps_verification_status"] = result["status"]
+    else:
+        defaults["distance_from_household_m"] = None
+        defaults["gps_verification_status"] = FollowUp.GpsStatus.NOT_CAPTURED
+
     if data.get("completed_date") or data.get("completed_at"):
         defaults["completed_at"] = data.get("completed_date") or data["completed_at"]
     obj, _ = FollowUp.objects.update_or_create(local_uuid=local_uuid, defaults=defaults)
@@ -992,11 +1195,9 @@ def upsert_care_interaction(local_uuid, data, user):
         raise PermissionError("No access to patient")
     defaults = {
         "patient": patient,
-        "protocol": (data.get("protocol") or data.get("vaccine_code")
-                     or data.get("vaccine_name", "")),
+        "protocol": (data.get("protocol") or data.get("vaccine_code") or data.get("vaccine_name", "")),
         "notes": data.get("notes", ""),
-        "payload": (data.get("payload") or data.get("milestones_json")
-                    or data.get("warning_signs_json") or {}),
+        "payload": (data.get("payload") or data.get("milestones_json") or data.get("warning_signs_json") or {}),
         "created_by": user if user.is_authenticated else None,
     }
     obj, _ = CareInteraction.objects.update_or_create(local_uuid=local_uuid, defaults=defaults)
@@ -1115,20 +1316,24 @@ class SyncPushView(APIView):
                 continue
             for op in ("created", "updated"):
                 for record in ops.get(op, []):
-                    flat_changes.append({
-                        "event_uuid": record.get("event_uuid"),
-                        "model": model_name,
-                        "local_uuid": record.get("id"),
-                        "deleted": False,
-                        "data": record,
-                    })
+                    flat_changes.append(
+                        {
+                            "event_uuid": record.get("event_uuid"),
+                            "model": model_name,
+                            "local_uuid": record.get("id"),
+                            "deleted": False,
+                            "data": record,
+                        }
+                    )
             for local_uuid in ops.get("deleted", []):
-                flat_changes.append({
-                    "model": model_name,
-                    "local_uuid": local_uuid,
-                    "deleted": True,
-                    "data": {},
-                })
+                flat_changes.append(
+                    {
+                        "model": model_name,
+                        "local_uuid": local_uuid,
+                        "deleted": True,
+                        "data": {},
+                    }
+                )
 
         # Validate and deduplicate
         serializer = SyncPushSerializer(data={"changes": flat_changes, "client_id": device_id})
@@ -1163,12 +1368,14 @@ class SyncPushView(APIView):
                 defaults=event_defaults,
             )
             if not event_created:
-                results.append({
-                    "event_uuid": str(event.local_uuid),
-                    "status": SyncEvent.Status.DUPLICATE,
-                    "model": change["model"],
-                    "local_uuid": local_uuid,
-                })
+                results.append(
+                    {
+                        "event_uuid": str(event.local_uuid),
+                        "status": SyncEvent.Status.DUPLICATE,
+                        "model": change["model"],
+                        "local_uuid": local_uuid,
+                    }
+                )
                 continue
 
             # Process the change
@@ -1188,13 +1395,15 @@ class SyncPushView(APIView):
                         event.status = SyncEvent.Status.ERROR
                         event.message = f"No handler for {change['model']}"
                         event.save(update_fields=["status", "message"])
-                        results.append({
-                            "event_uuid": str(event.local_uuid),
-                            "status": event.status,
-                            "model": change["model"],
-                            "local_uuid": local_uuid,
-                            "message": event.message,
-                        })
+                        results.append(
+                            {
+                                "event_uuid": str(event.local_uuid),
+                                "status": event.status,
+                                "model": change["model"],
+                                "local_uuid": local_uuid,
+                                "message": event.message,
+                            }
+                        )
                         continue
 
                     upsert_fn(local_uuid, resolved_data, request.user)
@@ -1203,81 +1412,99 @@ class SyncPushView(APIView):
                     event.status = SyncEvent.Status.APPLIED
                     event.save(update_fields=["status"])
 
-                results.append({
-                    "event_uuid": str(event.local_uuid),
-                    "status": SyncEvent.Status.APPLIED,
-                    "model": change["model"],
-                    "local_uuid": local_uuid,
-                })
+                results.append(
+                    {
+                        "event_uuid": str(event.local_uuid),
+                        "status": SyncEvent.Status.APPLIED,
+                        "model": change["model"],
+                        "local_uuid": local_uuid,
+                    }
+                )
 
             except PermissionError as exc:
                 event.status = SyncEvent.Status.ERROR
                 event.message = str(exc)
                 event.save(update_fields=["status", "message"])
                 logger.warning("sync_push_permission_denied model=%s local_uuid=%s", change["model"], local_uuid)
-                results.append({
-                    "event_uuid": str(event.local_uuid),
-                    "status": event.status,
-                    "model": change["model"],
-                    "local_uuid": local_uuid,
-                    "message": event.message,
-                })
+                results.append(
+                    {
+                        "event_uuid": str(event.local_uuid),
+                        "status": event.status,
+                        "model": change["model"],
+                        "local_uuid": local_uuid,
+                        "message": event.message,
+                    }
+                )
 
             except Patient.DoesNotExist:
                 event.status = SyncEvent.Status.ERROR
                 event.message = "Referenced patient not found"
                 event.save(update_fields=["status", "message"])
                 logger.warning("sync_push_patient_not_found model=%s local_uuid=%s", change["model"], local_uuid)
-                results.append({
-                    "event_uuid": str(event.local_uuid),
-                    "status": event.status,
-                    "model": change["model"],
-                    "local_uuid": local_uuid,
-                    "message": event.message,
-                })
+                results.append(
+                    {
+                        "event_uuid": str(event.local_uuid),
+                        "status": event.status,
+                        "model": change["model"],
+                        "local_uuid": local_uuid,
+                        "message": event.message,
+                    }
+                )
 
             except (KeyError, ValueError, TypeError) as exc:
                 event.status = SyncEvent.Status.ERROR
                 event.message = f"Invalid data: {exc}"
                 event.save(update_fields=["status", "message"])
-                logger.warning("sync_push_invalid_data model=%s local_uuid=%s error=%s", change["model"], local_uuid, exc)
-                results.append({
-                    "event_uuid": str(event.local_uuid),
-                    "status": event.status,
-                    "model": change["model"],
-                    "local_uuid": local_uuid,
-                    "message": event.message,
-                })
+                logger.warning(
+                    "sync_push_invalid_data model=%s local_uuid=%s error=%s", change["model"], local_uuid, exc
+                )
+                results.append(
+                    {
+                        "event_uuid": str(event.local_uuid),
+                        "status": event.status,
+                        "model": change["model"],
+                        "local_uuid": local_uuid,
+                        "message": event.message,
+                    }
+                )
 
             except IntegrityError:
                 event.status = SyncEvent.Status.ERROR
                 event.message = "Database integrity error"
                 event.save(update_fields=["status", "message"])
                 logger.warning("sync_push_integrity_error model=%s local_uuid=%s", change["model"], local_uuid)
-                results.append({
-                    "event_uuid": str(event.local_uuid),
-                    "status": event.status,
-                    "model": change["model"],
-                    "local_uuid": local_uuid,
-                    "message": event.message,
-                })
+                results.append(
+                    {
+                        "event_uuid": str(event.local_uuid),
+                        "status": event.status,
+                        "model": change["model"],
+                        "local_uuid": local_uuid,
+                        "message": event.message,
+                    }
+                )
 
             except Exception:
                 logger.exception("sync_push_unexpected_error model=%s local_uuid=%s", change["model"], local_uuid)
                 event.status = SyncEvent.Status.ERROR
                 event.message = "Internal server error"
                 event.save(update_fields=["status", "message"])
-                results.append({
-                    "event_uuid": str(event.local_uuid),
-                    "status": event.status,
-                    "model": change["model"],
-                    "local_uuid": local_uuid,
-                    "message": event.message,
-                })
+                results.append(
+                    {
+                        "event_uuid": str(event.local_uuid),
+                        "status": event.status,
+                        "model": change["model"],
+                        "local_uuid": local_uuid,
+                        "message": event.message,
+                    }
+                )
                 raise  # Re-raise to roll back the transaction
 
-        logger.info("sync_push_done device_id=%s change_count=%d survey_upserted=%s",
-                     device_id, len(flat_changes), survey_upserted)
+        logger.info(
+            "sync_push_done device_id=%s change_count=%d survey_upserted=%s",
+            device_id,
+            len(flat_changes),
+            survey_upserted,
+        )
 
         response_payload = {"results": results, "status": "synced"}
         if survey_upserted:

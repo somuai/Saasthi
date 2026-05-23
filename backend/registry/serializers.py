@@ -42,7 +42,15 @@ class MapPatientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Patient
         fields = [
-            "id", "local_uuid", "full_name", "phone", "gender", "age_years",
-            "village", "status", "pregnancy_status",
-            "household_lat", "household_lng",
+            "id",
+            "local_uuid",
+            "full_name",
+            "phone",
+            "gender",
+            "age_years",
+            "village",
+            "status",
+            "pregnancy_status",
+            "household_lat",
+            "household_lng",
         ]

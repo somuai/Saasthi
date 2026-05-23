@@ -10,7 +10,9 @@ export function useSpeechInput(onResult) {
   onResultRef.current = onResult;
 
   useEffect(() => {
-    Voice.isAvailable().then((available) => setIsSupported(available)).catch(() => setIsSupported(false));
+    Voice.isAvailable()
+      .then((available) => setIsSupported(available))
+      .catch(() => setIsSupported(false));
   }, []);
 
   useEffect(() => {
@@ -45,7 +47,9 @@ export function useSpeechInput(onResult) {
   }, []);
 
   const stopListening = useCallback(() => {
-    Voice.stop().then(() => setIsListening(false)).catch(() => {});
+    Voice.stop()
+      .then(() => setIsListening(false))
+      .catch(() => {});
   }, []);
 
   return { isListening, isSupported, transcript, error, startListening, stopListening };

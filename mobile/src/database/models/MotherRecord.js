@@ -75,7 +75,5 @@ export default class MotherRecord extends Model {
 
   @relation("patients", "patient_id") patient;
 
-  @lazy ancVisits = this.collections
-    .get("anc_visit_records")
-    .query(Q.where("mother_record_id", this.id), Q.sortBy("visit_number", Q.asc));
+  @lazy ancVisits = this.collections.get("anc_visit_records").query(Q.where("mother_record_id", this.id), Q.sortBy("visit_number", Q.asc));
 }

@@ -15,7 +15,7 @@ function writeLocalProperties() {
   if (!sdk) {
     console.error(
       "[android] Android SDK not found. Install Android Studio and set ANDROID_HOME, e.g.\n" +
-        "  export ANDROID_HOME=$HOME/Library/Android/sdk"
+        "  export ANDROID_HOME=$HOME/Library/Android/sdk",
     );
     return false;
   }

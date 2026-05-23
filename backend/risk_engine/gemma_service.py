@@ -10,7 +10,7 @@ GEMMA_API_KEY = os.getenv("GEMMA_API_KEY") or os.getenv("GOOGLE_API_KEY")
 MODEL_ID = os.getenv("GEMMA_MODEL_ID", "gemma-4-e2b-it")
 
 
-MATERNAL_SYSTEM_PROMPT = """You are a maternal health assistant for ASHA workers 
+MATERNAL_SYSTEM_PROMPT = """You are a maternal health assistant for ASHA workers
 in rural India under the National Health Mission (NHM) and Janani Suraksha Yojana (JSY).
 
 CLINICAL PROTOCOLS TO FOLLOW:
@@ -33,7 +33,7 @@ LANGUAGE:
 If photo provided: describe visible signs (pallor, oedema, jaundice, rash)
 and factor into recommendation."""
 
-CHILD_SYSTEM_PROMPT = """You are a child health assistant for ASHA workers 
+CHILD_SYSTEM_PROMPT = """You are a child health assistant for ASHA workers
 in rural India under IMNCI (Integrated Management of Neonatal and Childhood Illness)
 and the Universal Immunization Programme (UIP).
 
@@ -70,7 +70,7 @@ class GemmaService:
 
     def __new__(cls, *args, **kwargs):
         if not cls._instance:
-            cls._instance = super(GemmaService, cls).__new__(cls, *args, **kwargs)
+            cls._instance = super().__new__(cls, *args, **kwargs)
             cls._instance.client = None
             cls._instance.api_key = None
         return cls._instance
@@ -82,6 +82,7 @@ class GemmaService:
             return
         try:
             from google import genai
+
             self.client = genai.Client(api_key=api_key)
             logger.info("Gemma Service initialized with google.genai client.")
         except ImportError:
@@ -89,8 +90,14 @@ class GemmaService:
         except Exception:
             logger.exception("Failed to configure Google Gen AI client.")
 
-    def generate(self, patient_context: dict, assessment: dict, photo_base64: str = None,
-                 population: str = "general", clinical_context: dict = None) -> dict | None:
+    def generate(
+        self,
+        patient_context: dict,
+        assessment: dict,
+        photo_base64: str = None,
+        population: str = "general",
+        clinical_context: dict = None,
+    ) -> dict | None:
         api_key = self.api_key or GEMMA_API_KEY
 
         name = patient_context.get("name", "Unknown Patient")
@@ -99,8 +106,6 @@ class GemmaService:
         level = assessment.get("level", "low")
         factors = assessment.get("explanations", [])[:4]
         triggered_by_hard_flag = assessment.get("triggered_by_hard_flag", False)
-
-        factors_str = ", ".join([f.get("name", "") for f in factors])
 
         system_instruction = {
             "maternal": MATERNAL_SYSTEM_PROMPT,
@@ -154,39 +159,37 @@ class GemmaService:
         factors_desc = " and ".join([f.get("name", "").lower() for f in factors[:2]])
         desc_en = f" due to {factors_desc}" if factors_desc else ""
         desc_hi = (
-            f" ({', '.join([f.get('rule_label_hi', f.get('name', '')) for f in factors[:2]])})"
-            if factors_desc
-            else ""
+            f" ({', '.join([f.get('rule_label_hi', f.get('name', '')) for f in factors[:2]])})" if factors_desc else ""
         )
 
-        if level == "critical":
-            return {
+        return {
+            "critical": {
                 "english": f"EMERGENCY{desc_en}: Patient shows critical symptoms. Refer to District Hospital immediately for clinical evaluation.",
                 "hindi": f"आपातकालीन स्थिति{desc_hi}: रोगी में गंभीर लक्षण दिख रहे हैं। तुरंत जिला अस्पताल भेजें।",
                 "source": "gemma4_api",
                 "model": MODEL_ID,
-            }
-        elif level == "high":
-            return {
+            },
+            "high": {
                 "english": f"High risk health status{desc_en}. Refer patient to Primary Health Centre (PHC) within 24 hours.",
                 "hindi": f"उच्च जोखिम स्थिति{desc_hi}। रोगी को 24 घंटे के भीतर प्राथमिक स्वास्थ्य केंद्र (PHC) भेजें।",
                 "source": "gemma4_api",
                 "model": MODEL_ID,
-            }
-        elif level == "medium":
-            return {
+            },
+            "medium": {
                 "english": f"Moderate risk alert{desc_en}. Schedule a PHC visit within 3 days and monitor vitals daily.",
                 "hindi": f"मध्यम जोखिम सतर्कता{desc_hi}। 3 दिनों के भीतर PHC विजिट शेड्यूल करें और रोज़ स्वास्थ्य की निगरानी करें।",
                 "source": "gemma4_api",
                 "model": MODEL_ID,
-            }
-        else:
-            return {
+            },
+        }.get(
+            level,
+            {
                 "english": "Low risk health status. Monitor symptoms and follow up in two weeks during routine visit.",
                 "hindi": "सामान्य स्वास्थ्य स्थिति। लक्षणों की निगरानी रखें और दो सप्ताह में सामान्य जांच करें।",
                 "source": "gemma4_api",
                 "model": MODEL_ID,
-            }
+            },
+        )
 
     async def _call_api(self, system_instruction: str, prompt: str, photo_base64: str = None) -> dict | None:
         from google import genai
@@ -201,6 +204,7 @@ class GemmaService:
         ]
         if photo_base64:
             import base64
+
             try:
                 img_data = base64.b64decode(photo_base64)
                 contents.append(

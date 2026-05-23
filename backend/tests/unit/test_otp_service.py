@@ -7,6 +7,7 @@ from accounts.models import OTPChallenge, User
 from django.conf import settings
 from django.utils import timezone
 from freezegun import freeze_time
+
 from tests.factories import UserFactory
 
 # ── Helper ────────────────────────────────────────────────────────────
@@ -102,9 +103,7 @@ class TestOTPRateLimit:
                 expires_at=timezone.now() + timedelta(minutes=10),
             )
         with freeze_time("2026-05-01 11:00:00"):
-            valid = OTPChallenge.objects.filter(
-                phone=phone, consumed_at__isnull=True, expires_at__gt=timezone.now()
-            )
+            valid = OTPChallenge.objects.filter(phone=phone, consumed_at__isnull=True, expires_at__gt=timezone.now())
             assert valid.count() == 0
 
 
@@ -117,6 +116,7 @@ class TestOTPRoleAccess:
 
     def test_supervisor_can_login(self):
         from tests.factories import SupervisorFactory
+
         sup = SupervisorFactory()
         assert sup.is_active
         assert sup.role == User.Role.SUPERVISOR

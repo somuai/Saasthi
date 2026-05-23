@@ -15,9 +15,7 @@ User = get_user_model()
 def resolve_worker(phone):
     reg = WorkerRegistration.objects.filter(phone=phone, is_active=True).first()
     if not reg:
-        raise serializers.ValidationError(
-            "This number is not registered. Contact your ANM supervisor."
-        )
+        raise serializers.ValidationError("This number is not registered. Contact your ANM supervisor.")
     user, created = User.objects.get_or_create(
         phone=phone,
         defaults={
@@ -115,9 +113,18 @@ class WorkerRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = WorkerRegistration
         fields = [
-            "id", "phone", "full_name", "supervisor", "supervisor_name",
-            "village", "block", "district", "region", "is_active",
-            "created_at", "updated_at",
+            "id",
+            "phone",
+            "full_name",
+            "supervisor",
+            "supervisor_name",
+            "village",
+            "block",
+            "district",
+            "region",
+            "is_active",
+            "created_at",
+            "updated_at",
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
 
@@ -130,5 +137,17 @@ class WorkerRegistrationSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ["id", "local_uuid", "username", "phone", "first_name", "last_name", "role", "region", "district", "block", "village"]
+        fields = [
+            "id",
+            "local_uuid",
+            "username",
+            "phone",
+            "first_name",
+            "last_name",
+            "role",
+            "region",
+            "district",
+            "block",
+            "village",
+        ]
         read_only_fields = ["id", "local_uuid"]

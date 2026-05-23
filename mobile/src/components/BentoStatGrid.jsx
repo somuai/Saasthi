@@ -27,7 +27,7 @@ BentoStatGrid.propTypes = {
       labelHi: PropTypes.string.isRequired,
       labelEn: PropTypes.string.isRequired,
       color: PropTypes.string,
-    })
+    }),
   ).isRequired,
 };
 

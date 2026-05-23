@@ -12,14 +12,8 @@ export function VoiceInputButton({ onTranscript, isListening, isSupported, onSta
       onPress={isListening ? onStop : onStart}
       accessibilityLabel={isListening ? "Stop recording" : "Start voice input"}
     >
-      <Ionicons
-        name={isListening ? "mic" : "mic-outline"}
-        size={22}
-        color={isListening ? "#fff" : COLORS.primary}
-      />
-      <Text style={[styles.label, isListening && styles.labelActive]}>
-        {isListening ? "बोल रहे… / Listening…" : "बोलें / Speak"}
-      </Text>
+      <Ionicons name={isListening ? "mic" : "mic-outline"} size={22} color={isListening ? "#fff" : COLORS.primary} />
+      <Text style={[styles.label, isListening && styles.labelActive]}>{isListening ? "बोल रहे… / Listening…" : "बोलें / Speak"}</Text>
     </Pressable>
   );
 }

@@ -1,25 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import PropTypes from "prop-types";
 import MapView, { Callout, Marker, PROVIDER_DEFAULT } from "react-native-maps";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { COLORS } from "../../constants/colors";
 import { FEATURES } from "../../constants/featureFlags";
 import { GovtHeader } from "../../components/GovtHeader";
-import { apiUrl } from "../../services/api";
+import { apiUrl } from "../../constants/api";
 import { getAccessToken } from "../../services/auth";
 
 const INITIAL_REGION = { latitude: 20.5937, longitude: 78.9629, latitudeDelta: 4, longitudeDelta: 4 };
 
-const GENDER_ICONS = { female: "woman", male: "man", other: "person", unknown: "person" };
 const GENDER_COLORS = { female: "#E91E63", male: "#2196F3", other: "#9C27B0", unknown: "#757575" };
 
 export default function MapScreen() {
@@ -30,6 +23,10 @@ export default function MapScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(null);
   const [selectedMarker, setSelectedMarker] = useState(null);
+
+  useEffect(() => {
+    Location.requestForegroundPermissionsAsync();
+  }, []);
 
   const fetchMapData = useCallback(async () => {
     try {
@@ -53,7 +50,9 @@ export default function MapScreen() {
     setRefreshing(false);
   }, [fetchMapData]);
 
-  useEffect(() => { fetchMapData(); }, [fetchMapData]);
+  useEffect(() => {
+    fetchMapData();
+  }, [fetchMapData]);
 
   if (!FEATURES.OFFLINE_MAP) return null;
 
@@ -85,12 +84,14 @@ export default function MapScreen() {
         >
           {patients.map((pt) => {
             if (pt.household_lat == null || pt.household_lng == null) return null;
+            const isSelected = selectedMarker === pt.id;
             const color = GENDER_COLORS[pt.gender] || COLORS.primary;
             return (
               <Marker
                 key={pt.id || pt.local_uuid}
                 coordinate={{ latitude: pt.household_lat, longitude: pt.household_lng }}
-                pinColor={color}
+                pinColor={isSelected ? COLORS.accent : color}
+                opacity={selectedMarker && !isSelected ? 0.5 : 1}
                 onPress={() => setSelectedMarker(pt.id)}
               >
                 <Callout onPress={() => router.push(`/patients/${pt.id}`)}>
@@ -106,9 +107,7 @@ export default function MapScreen() {
         </MapView>
       )}
       <View style={styles.legend}>
-        <Text style={styles.legendTitle}>
-          {patients.length} लाभार्थी / Patients
-        </Text>
+        <Text style={styles.legendTitle}>{patients.length} लाभार्थी / Patients</Text>
         <View style={styles.legendRow}>
           <MarkerIcon color={GENDER_COLORS.female} />
           <Text style={styles.legendLabel}>महिला</Text>
@@ -123,6 +122,7 @@ export default function MapScreen() {
 function MarkerIcon({ color }) {
   return <View style={[styles.markerDot, { backgroundColor: color }]} />;
 }
+MarkerIcon.propTypes = { color: PropTypes.string.isRequired };
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
@@ -130,8 +130,12 @@ const styles = StyleSheet.create({
   errorBox: { flex: 1, alignItems: "center", justifyContent: "center", padding: 32 },
   errorText: { color: COLORS.danger, fontSize: 14, marginTop: 8, textAlign: "center" },
   retryBtn: {
-    marginTop: 16, paddingHorizontal: 24, paddingVertical: 12,
-    backgroundColor: COLORS.primary, borderRadius: 8, minHeight: 48,
+    marginTop: 16,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
+    minHeight: 48,
     justifyContent: "center",
   },
   retryText: { color: "#fff", fontWeight: "700", fontSize: 14, textAlign: "center" },
@@ -140,9 +144,16 @@ const styles = StyleSheet.create({
   calloutDetail: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 4 },
   calloutLink: { color: COLORS.accent, fontSize: 12, fontWeight: "700" },
   legend: {
-    position: "absolute", bottom: 16, left: 16, right: 16,
-    backgroundColor: COLORS.card, borderRadius: 12, padding: 12,
-    shadowOpacity: 0.15, shadowRadius: 8, elevation: 4,
+    position: "absolute",
+    bottom: 16,
+    left: 16,
+    right: 16,
+    backgroundColor: COLORS.card,
+    borderRadius: 12,
+    padding: 12,
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
   },
   legendTitle: { fontWeight: "700", fontSize: 13, marginBottom: 8 },
   legendRow: { flexDirection: "row", alignItems: "center", gap: 16 },

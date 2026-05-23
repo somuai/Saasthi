@@ -138,9 +138,7 @@ export default function EarningsScreen() {
         </Text>
         {FEATURES.PDF_PAYSLIP && (
           <Pressable style={styles.pdfBtn} onPress={handleDownloadPayslip} disabled={downloading}>
-            <Text style={styles.pdfTxt}>
-              {downloading ? "Downloading… / डाउनलोड हो रहा…" : `PDF — ${currentMonth} / पेस्लिप डाउनलोड`}
-            </Text>
+            <Text style={styles.pdfTxt}>{downloading ? "Downloading… / डाउनलोड हो रहा…" : `PDF — ${currentMonth} / पेस्लिप डाउनलोड`}</Text>
           </Pressable>
         )}
       </View>
@@ -178,7 +176,9 @@ export default function EarningsScreen() {
                 </View>
               </View>
               <Text style={styles.actionEn}>{lbl.en}</Text>
-              <Text style={styles.meta}>+{item.points} pts · ₹{item.amountInr}</Text>
+              <Text style={styles.meta}>
+                +{item.points} pts · ₹{item.amountInr}
+              </Text>
             </View>
           );
         }}

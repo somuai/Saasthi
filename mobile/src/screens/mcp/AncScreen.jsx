@@ -1,12 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -50,9 +43,7 @@ export default function AncScreen() {
 
   useEffect(() => {
     if (patientId) return undefined;
-    const q = database.collections
-      .get("patients")
-      .query(Q.where("is_pregnant", true), Q.where("is_deleted", false));
+    const q = database.collections.get("patients").query(Q.where("is_pregnant", true), Q.where("is_deleted", false));
     const sub = q.observe().subscribe(setPatients);
     return () => sub.unsubscribe();
   }, [database, patientId]);
@@ -66,9 +57,7 @@ export default function AncScreen() {
 
   useEffect(() => {
     if (!patient?.id) return undefined;
-    const mq = database.collections
-      .get("mother_records")
-      .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
+    const mq = database.collections.get("mother_records").query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
     const sub = mq.observe().subscribe((recs) => setMother(recs[0] || null));
     return () => sub.unsubscribe();
   }, [database, patient]);
@@ -90,10 +79,7 @@ export default function AncScreen() {
   const edd = lmp ? isoFromDate(calculateEDD(lmp)) : "—";
   const dueDates = lmp ? getANCDueDates(lmp) : {};
 
-  const currentVisit = useMemo(
-    () => visits.find((v) => v.visitNumber === activeVisit),
-    [visits, activeVisit]
-  );
+  const currentVisit = useMemo(() => visits.find((v) => v.visitNumber === activeVisit), [visits, activeVisit]);
 
   useEffect(() => {
     if (currentVisit) {
@@ -230,11 +216,7 @@ export default function AncScreen() {
             r.ttInjection1Date = form.tt1Date || r.ttInjection1Date;
             r.ttInjection2Date = form.tt2Date || r.ttInjection2Date;
             r.ifaTabletsIssued = form.ifaTablets ? Number(form.ifaTablets) : r.ifaTabletsIssued;
-            r.isHighRisk =
-              Number(form.bpSystolic) >= 140 ||
-              Number(form.hemoglobinGm) < 11 ||
-              form.oedema ||
-              form.jaundice;
+            r.isHighRisk = Number(form.bpSystolic) >= 140 || Number(form.hemoglobinGm) < 11 || form.oedema || form.jaundice;
             r.isSynced = false;
             r.updatedAt = now;
           });
@@ -246,16 +228,15 @@ export default function AncScreen() {
     }
   }
 
-  const alert =
-    Number(form.bpSystolic) >= 140 || Number(form.hemoglobinGm) < 11
-      ? "High risk — refer to ANM/PHC"
-      : null;
+  const alert = Number(form.bpSystolic) >= 140 || Number(form.hemoglobinGm) < 11 ? "High risk — refer to ANM/PHC" : null;
 
   return (
     <View style={styles.page}>
       <GovtHeader titleHi="एएनसी" title={`ANC — ${patient.name}`} showBack showSync />
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
-        <Text style={styles.meta}>POG {pog}w · EDD {edd}</Text>
+        <Text style={styles.meta}>
+          POG {pog}w · EDD {edd}
+        </Text>
         <View style={styles.tabs}>
           {VISITS.map((n) => {
             const done = visits.some((v) => v.visitNumber === n && v.visitDate);
@@ -272,19 +253,71 @@ export default function AncScreen() {
             );
           })}
         </View>
-        <GovtInput labelHi="LMP (YYYY-MM-DD)" label="LMP date" value={form.lmpDate} onChangeText={(t) => setForm({ ...form, lmpDate: t })} />
-        <GovtInput labelHi="वजन (kg)" label="Weight" value={form.weightKg} onChangeText={(t) => setForm({ ...form, weightKg: t })} keyboardType="decimal-pad" />
-        <GovtInput labelHi="BP systolic" label="BP systolic" value={form.bpSystolic} onChangeText={(t) => setForm({ ...form, bpSystolic: t })} keyboardType="number-pad" />
-        <GovtInput labelHi="BP diastolic" label="BP diastolic" value={form.bpDiastolic} onChangeText={(t) => setForm({ ...form, bpDiastolic: t })} keyboardType="number-pad" />
-        <GovtInput labelHi="Hb (g/dl)" label="Hemoglobin" value={form.hemoglobinGm} onChangeText={(t) => setForm({ ...form, hemoglobinGm: t })} keyboardType="decimal-pad" />
-        <GovtInput labelHi="नाड़ी" label="Pulse rate" value={form.pulseRate} onChangeText={(t) => setForm({ ...form, pulseRate: t })} keyboardType="number-pad" />
-        <GovtInput labelHi="भ्रूण HR" label="Fetal heart rate" value={form.fetalHeartRate} onChangeText={(t) => setForm({ ...form, fetalHeartRate: t })} keyboardType="number-pad" />
+        <GovtInput
+          labelHi="LMP (YYYY-MM-DD)"
+          label="LMP date"
+          value={form.lmpDate}
+          onChangeText={(t) => setForm({ ...form, lmpDate: t })}
+        />
+        <GovtInput
+          labelHi="वजन (kg)"
+          label="Weight"
+          value={form.weightKg}
+          onChangeText={(t) => setForm({ ...form, weightKg: t })}
+          keyboardType="decimal-pad"
+        />
+        <GovtInput
+          labelHi="BP systolic"
+          label="BP systolic"
+          value={form.bpSystolic}
+          onChangeText={(t) => setForm({ ...form, bpSystolic: t })}
+          keyboardType="number-pad"
+        />
+        <GovtInput
+          labelHi="BP diastolic"
+          label="BP diastolic"
+          value={form.bpDiastolic}
+          onChangeText={(t) => setForm({ ...form, bpDiastolic: t })}
+          keyboardType="number-pad"
+        />
+        <GovtInput
+          labelHi="Hb (g/dl)"
+          label="Hemoglobin"
+          value={form.hemoglobinGm}
+          onChangeText={(t) => setForm({ ...form, hemoglobinGm: t })}
+          keyboardType="decimal-pad"
+        />
+        <GovtInput
+          labelHi="नाड़ी"
+          label="Pulse rate"
+          value={form.pulseRate}
+          onChangeText={(t) => setForm({ ...form, pulseRate: t })}
+          keyboardType="number-pad"
+        />
+        <GovtInput
+          labelHi="भ्रूण HR"
+          label="Fetal heart rate"
+          value={form.fetalHeartRate}
+          onChangeText={(t) => setForm({ ...form, fetalHeartRate: t })}
+          keyboardType="number-pad"
+        />
         <ToggleRow labelHi="सूजन (oedema)" labelEn="Oedema" value={form.oedema} onChange={(v) => setForm({ ...form, oedema: v })} />
         <ToggleRow labelHi="पीलिया" labelEn="Jaundice" value={form.jaundice} onChange={(v) => setForm({ ...form, jaundice: v })} />
-        <ToggleRow labelHi="PMSMA के अंतर्गत" labelEn="Under PMSMA" value={form.isUnderPmsma} onChange={(v) => setForm({ ...form, isUnderPmsma: v })} />
+        <ToggleRow
+          labelHi="PMSMA के अंतर्गत"
+          labelEn="Under PMSMA"
+          value={form.isUnderPmsma}
+          onChange={(v) => setForm({ ...form, isUnderPmsma: v })}
+        />
         <GovtInput labelHi="TT-1 तिथि" label="TT dose 1 date" value={form.tt1Date} onChangeText={(t) => setForm({ ...form, tt1Date: t })} />
         <GovtInput labelHi="TT-2 तिथि" label="TT dose 2 date" value={form.tt2Date} onChangeText={(t) => setForm({ ...form, tt2Date: t })} />
-        <GovtInput labelHi="IFA गोलियां" label="IFA tablets issued" value={form.ifaTablets} onChangeText={(t) => setForm({ ...form, ifaTablets: t })} keyboardType="number-pad" />
+        <GovtInput
+          labelHi="IFA गोलियां"
+          label="IFA tablets issued"
+          value={form.ifaTablets}
+          onChangeText={(t) => setForm({ ...form, ifaTablets: t })}
+          keyboardType="number-pad"
+        />
         {alert ? <Text style={styles.alert}>{alert}</Text> : null}
         <GovtButton titleHi="सहेजें" titleEn="Save visit" onPress={saveVisit} loading={saving} />
       </ScrollView>

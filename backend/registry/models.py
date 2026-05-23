@@ -1,6 +1,7 @@
 import uuid
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
@@ -30,6 +31,12 @@ class Household(models.Model):
             models.Index(fields=["region", "district", "block"], name="ix_household_geo"),
         ]
 
+    def clean(self):
+        if self.lat is not None and not (-90 <= self.lat <= 90):
+            raise ValidationError({"lat": "Latitude must be between -90 and 90."})
+        if self.lng is not None and not (-180 <= self.lng <= 180):
+            raise ValidationError({"lng": "Longitude must be between -180 and 180."})
+
     def __str__(self):
         code = self.household_code or f"HH-{self.local_uuid}"
         return f"{code} ({self.village or self.block or 'Unknown'})"
@@ -46,8 +53,8 @@ class Patient(models.Model):
     household = models.ForeignKey(Household, null=True, blank=True, related_name="patients", on_delete=models.SET_NULL)
     full_name = models.CharField(max_length=180)
     name_hi = models.CharField(max_length=180, blank=True)
-    phone = models.CharField(max_length=32, blank=True)
-    gender = models.CharField(max_length=16, choices=Gender.choices, default=Gender.UNKNOWN)
+    phone = models.CharField(max_length=32, blank=True, db_index=True)
+    gender = models.CharField(max_length=16, choices=Gender.choices, default=Gender.UNKNOWN, db_index=True)
     date_of_birth = models.DateField(null=True, blank=True)
     relationship_to_head = models.CharField(max_length=50, blank=True)
     region = models.CharField(max_length=120, blank=True, db_index=True)
@@ -56,7 +63,10 @@ class Patient(models.Model):
     village = models.CharField(max_length=120, blank=True, db_index=True)
     status = models.CharField(max_length=32, default="active", db_index=True)
     asha_worker = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
         related_name="assigned_patients",
     )
     diabetes = models.BooleanField(default=False)
@@ -84,7 +94,9 @@ class Patient(models.Model):
     edd = models.DateField(null=True, blank=True)
     is_high_risk_pregnancy = models.BooleanField(default=False)
     anc_visit_count = models.IntegerField(default=0)
-    mother_patient = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="children")
+    mother_patient = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="children", db_index=True
+    )
     birth_weight_kg = models.FloatField(null=True, blank=True)
     birth_place = models.CharField(max_length=100, null=True, blank=True)
     birth_registration_number = models.CharField(max_length=30, null=True, blank=True)
@@ -96,11 +108,14 @@ class Patient(models.Model):
 
     metadata = models.JSONField(default=dict, blank=True)
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL,
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
         related_name="created_patients",
     )
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
 
     class Meta:
         indexes = [
@@ -116,7 +131,11 @@ class Patient(models.Model):
         if not self.date_of_birth:
             return None
         today = timezone.localdate()
-        return today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+        return (
+            today.year
+            - self.date_of_birth.year
+            - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+        )
 
     def __str__(self):
         return self.full_name

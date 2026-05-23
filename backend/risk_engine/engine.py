@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
@@ -10,6 +11,8 @@ from django.db.models import Q, Sum
 from django.utils import timezone
 
 from .models import RiskAssessment, RiskRule
+
+logger = logging.getLogger(__name__)
 
 
 def resolve_path(patient, survey_response, field_path: str) -> Any:
@@ -55,12 +58,10 @@ def resolve_path(patient, survey_response, field_path: str) -> Any:
             for part in parts[1:]:
                 if obj is None:
                     return None
-                if isinstance(obj, dict):
-                    obj = obj.get(part)
-                else:
-                    obj = getattr(obj, part, None)
+                obj = obj.get(part) if isinstance(obj, dict) else getattr(obj, part, None)
             return obj
-    except Exception:
+    except (KeyError, AttributeError, TypeError):
+        logger.warning("resolve_value failed for path=%s patient=%s", field_path, patient, exc_info=True)
         return None
     return None
 
@@ -189,11 +190,7 @@ class RiskEngine:
 
     def get_max_theoretical_score(self, as_of=None) -> int:
         as_of = self._as_of(as_of)
-        total = (
-            self._active_rules_queryset(as_of)
-            .filter(is_hard_flag=False)
-            .aggregate(total=Sum("weight"))["total"]
-        )
+        total = self._active_rules_queryset(as_of).filter(is_hard_flag=False).aggregate(total=Sum("weight"))["total"]
         return total or 1
 
     def build_rules_snapshot(self, rules) -> list:
@@ -309,15 +306,15 @@ class RiskEngine:
                     normalized_score=100,
                     primary_category=rule.category or RiskRule.Category.CRITICAL,
                     secondary_categories=[],
-            recommended_action_en=rec_en,
-            recommended_action_hi=rec_hi,
-            recommended_urgency="immediate",
-            recommendation_source=rule.flag_type if rule.is_hard_flag else "rule_template",
-            score_source="rule_engine",
-            rule_engine_score=0,
-            ml_score=None,
-            ml_confidence=None,
-            ml_model_version=None,
+                    recommended_action_en=rec_en,
+                    recommended_action_hi=rec_hi,
+                    recommended_urgency="immediate",
+                    recommendation_source=rule.flag_type if rule.is_hard_flag else "rule_template",
+                    score_source="rule_engine",
+                    rule_engine_score=0,
+                    ml_score=None,
+                    ml_confidence=None,
+                    ml_model_version=None,
                 )
 
         total_score = 0

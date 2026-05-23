@@ -6,10 +6,7 @@ const fs = require("fs");
 const path = require("path");
 
 const ROOT = path.join(__dirname, "..");
-const SWIFT_FILE = path.join(
-  ROOT,
-  "node_modules/expo-dev-menu/ios/DevMenuViewController.swift"
-);
+const SWIFT_FILE = path.join(ROOT, "node_modules/expo-dev-menu/ios/DevMenuViewController.swift");
 
 const OLD = "    let isSimulator = TARGET_IPHONE_SIMULATOR > 0";
 const NEW = `#if targetEnvironment(simulator)

@@ -16,6 +16,9 @@
     "web": "expo start --web",
     "test": "jest --watchAll=false",
     "verify": "npm test && cd .. && make eval-offline",
+    "lint": "eslint . --ext .js,.jsx",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "postinstall": "node scripts/patch-expo-dev-menu.js && node scripts/patch-android-kotlin-package.js && node scripts/patch-android-flipper.js",
     "eas:build:dev:ios": "eas build --profile development --platform ios",
     "eas:build:dev:android": "eas build --profile development --platform android"
@@ -64,8 +67,16 @@
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",
-    "@babel/plugin-proposal-decorators": "^7.24.0",
+    "@babel/eslint-parser": "^7.28.6",
+    "@babel/plugin-proposal-decorators": "^7.29.0",
+    "eslint": "^8.57.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^4.6.2",
+    "expo-application": "^56.0.3",
+    "expo-device": "^56.0.4",
     "jest": "^29.7.0",
-    "jest-expo": "~50.0.4"
+    "jest-expo": "~50.0.4",
+    "prettier": "^3.8.3",
+    "sentry-expo": "^7.2.0"
   }
 }

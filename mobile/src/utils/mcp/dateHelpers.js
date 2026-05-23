@@ -19,9 +19,7 @@ export function calculateAgeYears(dob, asOf = new Date().toISOString()) {
   const birth = toDate(dob);
   const at = toDate(asOf);
   let age = at.getFullYear() - birth.getFullYear();
-  const birthdayPassed =
-    at.getMonth() > birth.getMonth() ||
-    (at.getMonth() === birth.getMonth() && at.getDate() >= birth.getDate());
+  const birthdayPassed = at.getMonth() > birth.getMonth() || (at.getMonth() === birth.getMonth() && at.getDate() >= birth.getDate());
   if (!birthdayPassed) age -= 1;
   return age;
 }

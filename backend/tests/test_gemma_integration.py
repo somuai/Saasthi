@@ -1,4 +1,5 @@
 """Validate Gemma 4 service integration — mock fallback + Celery task."""
+
 import pytest
 from risk_engine.gemma_service import MODEL_ID, GemmaService
 from risk_engine.tasks import enhance_with_gemma4
@@ -22,6 +23,7 @@ class TestGemmaMockFallback:
         assert result["source"] == "gemma4_api"
         assert result["model"] == MODEL_ID
         import re
+
         assert re.search(r"[\u0900-\u097F]", result["hindi"])
 
     def test_mock_critical_level(self):
@@ -57,10 +59,13 @@ class TestGemmaMockFallback:
     def test_mock_with_factors_in_message(self):
         result = self.service.generate(
             {"name": "Test", "age": 30, "village": "Village"},
-            {"level": "high", "explanations": [
-                {"name": "Diabetes", "rule_label_hi": "मधुमेह"},
-                {"name": "Hypertension", "rule_label_hi": "उच्च रक्तचाप"},
-            ]},
+            {
+                "level": "high",
+                "explanations": [
+                    {"name": "Diabetes", "rule_label_hi": "मधुमेह"},
+                    {"name": "Hypertension", "rule_label_hi": "उच्च रक्तचाप"},
+                ],
+            },
         )
         assert "diabetes" in result["english"].lower() or "hypertension" in result["english"].lower()
 
@@ -76,6 +81,7 @@ class TestGemmaMockFallback:
 
     def test_no_api_key_logs_warning(self, caplog):
         import logging
+
         caplog.set_level(logging.WARNING)
         service = GemmaService()
         service.init_gemma("")

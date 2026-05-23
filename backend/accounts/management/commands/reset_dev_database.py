@@ -39,9 +39,7 @@ class Command(BaseCommand):
             db_path = Path(settings.BASE_DIR) / db_path
 
         if db_path.exists() and not options["yes"]:
-            self.stdout.write(
-                self.style.WARNING(f"This will delete {db_path} and all local data.")
-            )
+            self.stdout.write(self.style.WARNING(f"This will delete {db_path} and all local data."))
             confirm = input("Type 'yes' to continue: ")
             if confirm.strip().lower() != "yes":
                 raise CommandError("Aborted")

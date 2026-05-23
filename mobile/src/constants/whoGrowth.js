@@ -23,7 +23,9 @@ export function weightForAgeZ(weightKg, ageMonths) {
   const w = Number(weightKg);
   const m = Number(ageMonths);
   if (!w || m < 0) return null;
-  const keys = Object.keys(WHO_WFA_MEDIAN_BOYS).map(Number).sort((a, b) => a - b);
+  const keys = Object.keys(WHO_WFA_MEDIAN_BOYS)
+    .map(Number)
+    .sort((a, b) => a - b);
   let median = WHO_WFA_MEDIAN_BOYS[keys[keys.length - 1]];
   for (let i = 0; i < keys.length; i += 1) {
     if (m <= keys[i]) {
@@ -49,8 +51,7 @@ export function whoChartBandLines(chartWidth = 280, chartHeight = 120) {
   const ages = Object.keys(WHO_WFA_MEDIAN_BOYS)
     .map(Number)
     .sort((a, b) => a - b);
-  const maxW =
-    Math.max(...ages.map((a) => WHO_WFA_MEDIAN_BOYS[a] + 2 * WHO_WFA_SD_BOYS), 1) * 1.1;
+  const maxW = Math.max(...ages.map((a) => WHO_WFA_MEDIAN_BOYS[a] + 2 * WHO_WFA_SD_BOYS), 1) * 1.1;
   const toPoint = (ageIdx, weightKg) => {
     const x = 20 + (ageIdx / Math.max(ages.length - 1, 1)) * (chartWidth - 40);
     const y = chartHeight - 10 - (weightKg / maxW) * (chartHeight - 20);

@@ -1,11 +1,5 @@
 import { MODEL_VERSION, RISK_LEVEL_COLORS, RISK_LEVEL_HINDI } from "./riskConstants";
-import {
-  ancVisitCountFromMcp,
-  hasModerateAnemiaFromMcp,
-  hasSevereAnemiaFromMcp,
-  isAncUnderUtilized,
-  latestAncHb,
-} from "./mcpRiskRules";
+import { ancVisitCountFromMcp, hasModerateAnemiaFromMcp, hasSevereAnemiaFromMcp, isAncUnderUtilized, latestAncHb } from "./mcpRiskRules";
 
 function getRiskLevel(score) {
   if (score <= 25) return "low";
@@ -177,10 +171,7 @@ export const RISK_RULES = [
     labelEn: "Diabetes/BP Symptoms",
     category: "chronic",
     weight: 12,
-    check: (p, s) =>
-      s?.chronic_freq_urination === true ||
-      s?.chronic_excess_thirst === true ||
-      s?.chronicKnownBpDm === true,
+    check: (p, s) => s?.chronic_freq_urination === true || s?.chronic_excess_thirst === true || s?.chronicKnownBpDm === true,
   },
   {
     factor: "has_tb",

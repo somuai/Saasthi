@@ -13,9 +13,7 @@ export async function registerBackgroundSync() {
         try {
           const { syncWithServer } = await import("./sync");
           const result = await syncWithServer();
-          return result.success
-            ? BackgroundFetch.BackgroundFetchResult.NewData
-            : BackgroundFetch.BackgroundFetchResult.NoData;
+          return result.success ? BackgroundFetch.BackgroundFetchResult.NewData : BackgroundFetch.BackgroundFetchResult.NoData;
         } catch {
           return BackgroundFetch.BackgroundFetchResult.Failed;
         }

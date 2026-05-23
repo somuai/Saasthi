@@ -1,191 +1,190 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Shaasthi - ASHA Digital Health Platform</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
-        }
-        body {
-            font-family: 'Roboto Flex', sans-serif;
-            margin: 0;
-            padding: 0;
-            overflow: hidden;
-        }
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Shaasthi - ASHA Digital Health Platform</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&amp;display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 48;
+      }
+      body {
+        font-family: "Roboto Flex", sans-serif;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+      }
     </style>
-<script id="tailwind-config">
+    <script id="tailwind-config">
       tailwind.config = {
         darkMode: "class",
         theme: {
           extend: {
-            "colors": {
-                    "surface": "#F5F5F7",
-                    "surface-dim": "#D9D9D9",
-                    "surface-bright": "#F5F5F7",
-                    "surface-container-lowest": "#FFFFFF",
-                    "surface-container-low": "#E8E8E8",
-                    "surface-container": "#D9D9D9",
-                    "surface-container-high": "#D2CECF",
-                    "surface-container-highest": "#C8C4C5",
-                    "on-surface": "#1A1A2E",
-                    "on-surface-variant": "#6B6B6B",
-                    "inverse-surface": "#2E3132",
-                    "inverse-on-surface": "#F5F5F7",
-                    "outline": "#9E9E9E",
-                    "outline-variant": "#D2CECF",
-                    "surface-tint": "#5974BD",
-                    "primary": "#416CAF",
-                    "on-primary": "#FFFFFF",
-                    "primary-container": "#2E5290",
-                    "on-primary-container": "#E8EDF5",
-                    "inverse-primary": "#5974BD",
-                    "secondary": "#5974BD",
-                    "on-secondary": "#FFFFFF",
-                    "secondary-container": "#E8EDF5",
-                    "on-secondary-container": "#416CAF",
-                    "tertiary": "#F7A5BE",
-                    "on-tertiary": "#1A1A2E",
-                    "tertiary-container": "#FFF0F5",
-                    "on-tertiary-container": "#FF0000",
-                    "error": "#FF0000",
-                    "on-error": "#FFFFFF",
-                    "error-container": "#FFE5E5",
-                    "on-error-container": "#CC0000",
-                    "primary-fixed": "#E8EDF5",
-                    "primary-fixed-dim": "#B0C4E0",
-                    "on-primary-fixed": "#2E5290",
-                    "on-primary-fixed-variant": "#416CAF",
-                    "secondary-fixed": "#E8EDF5",
-                    "secondary-fixed-dim": "#B0BDE0",
-                    "on-secondary-fixed": "#3D5A9E",
-                    "on-secondary-fixed-variant": "#5974BD",
-                    "tertiary-fixed": "#FFF0F5",
-                    "tertiary-fixed-dim": "#F7A5BE",
-                    "on-tertiary-fixed": "#CC0000",
-                    "on-tertiary-fixed-variant": "#FF0000",
-                    "background": "#F5F5F7",
-                    "on-background": "#1A1A2E",
-                    "surface-variant": "#D9D9D9"
+            colors: {
+              surface: "#F5F5F7",
+              "surface-dim": "#D9D9D9",
+              "surface-bright": "#F5F5F7",
+              "surface-container-lowest": "#FFFFFF",
+              "surface-container-low": "#E8E8E8",
+              "surface-container": "#D9D9D9",
+              "surface-container-high": "#D2CECF",
+              "surface-container-highest": "#C8C4C5",
+              "on-surface": "#1A1A2E",
+              "on-surface-variant": "#6B6B6B",
+              "inverse-surface": "#2E3132",
+              "inverse-on-surface": "#F5F5F7",
+              outline: "#9E9E9E",
+              "outline-variant": "#D2CECF",
+              "surface-tint": "#5974BD",
+              primary: "#416CAF",
+              "on-primary": "#FFFFFF",
+              "primary-container": "#2E5290",
+              "on-primary-container": "#E8EDF5",
+              "inverse-primary": "#5974BD",
+              secondary: "#5974BD",
+              "on-secondary": "#FFFFFF",
+              "secondary-container": "#E8EDF5",
+              "on-secondary-container": "#416CAF",
+              tertiary: "#F7A5BE",
+              "on-tertiary": "#1A1A2E",
+              "tertiary-container": "#FFF0F5",
+              "on-tertiary-container": "#FF0000",
+              error: "#FF0000",
+              "on-error": "#FFFFFF",
+              "error-container": "#FFE5E5",
+              "on-error-container": "#CC0000",
+              "primary-fixed": "#E8EDF5",
+              "primary-fixed-dim": "#B0C4E0",
+              "on-primary-fixed": "#2E5290",
+              "on-primary-fixed-variant": "#416CAF",
+              "secondary-fixed": "#E8EDF5",
+              "secondary-fixed-dim": "#B0BDE0",
+              "on-secondary-fixed": "#3D5A9E",
+              "on-secondary-fixed-variant": "#5974BD",
+              "tertiary-fixed": "#FFF0F5",
+              "tertiary-fixed-dim": "#F7A5BE",
+              "on-tertiary-fixed": "#CC0000",
+              "on-tertiary-fixed-variant": "#FF0000",
+              background: "#F5F5F7",
+              "on-background": "#1A1A2E",
+              "surface-variant": "#D9D9D9",
             },
-            "borderRadius": {
-                    "DEFAULT": "0.25rem",
-                    "lg": "0.5rem",
-                    "xl": "0.75rem",
-                    "full": "9999px"
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
             },
-            "spacing": {
-                    "touch-target": "48px",
-                    "gutter": "16px",
-                    "section-margin": "24px",
-                    "stack-gap": "12px",
-                    "container-padding": "16px"
+            spacing: {
+              "touch-target": "48px",
+              gutter: "16px",
+              "section-margin": "24px",
+              "stack-gap": "12px",
+              "container-padding": "16px",
             },
-            "fontFamily": {
-                    "headline-md": ["Roboto Flex"],
-                    "label-hindi": ["Roboto Flex"],
-                    "headline-lg": ["Roboto Flex"],
-                    "body-lg": ["Roboto Flex"],
-                    "label-lg": ["Roboto Flex"],
-                    "body-md": ["Roboto Flex"],
-                    "headline-sm": ["Roboto Flex"]
+            fontFamily: {
+              "headline-md": ["Roboto Flex"],
+              "label-hindi": ["Roboto Flex"],
+              "headline-lg": ["Roboto Flex"],
+              "body-lg": ["Roboto Flex"],
+              "label-lg": ["Roboto Flex"],
+              "body-md": ["Roboto Flex"],
+              "headline-sm": ["Roboto Flex"],
             },
-            "fontSize": {
-                    "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "700"}],
-                    "label-hindi": ["14px", {"lineHeight": "22px", "letterSpacing": "0px", "fontWeight": "400"}],
-                    "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "0px", "fontWeight": "700"}],
-                    "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
-                    "label-lg": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
-                    "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
-                    "headline-sm": ["16px", {"lineHeight": "24px", "letterSpacing": "0.1px", "fontWeight": "700"}]
-            }
+            fontSize: {
+              "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "0px", fontWeight: "700" }],
+              "label-hindi": ["14px", { lineHeight: "22px", letterSpacing: "0px", fontWeight: "400" }],
+              "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "0px", fontWeight: "700" }],
+              "body-lg": ["16px", { lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400" }],
+              "label-lg": ["12px", { lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500" }],
+              "body-md": ["14px", { lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400" }],
+              "headline-sm": ["16px", { lineHeight: "24px", letterSpacing: "0.1px", fontWeight: "700" }],
+            },
           },
         },
-      }
+      };
     </script>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
+    <style>
+      body {
+        min-height: max(884px, 100dvh);
+      }
+    </style>
   </head>
-<body class="bg-[#0D1B2A] min-h-screen flex flex-col justify-between items-center text-center px-gutter py-section-margin">
-<!-- Status Bar Simulation -->
-<div class="fixed top-0 left-0 w-full flex justify-between px-4 py-2 opacity-80 pointer-events-none">
-<span class="text-white text-[12px] font-medium">10:45 AM</span>
-<div class="flex gap-2 text-white">
-<span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
-<span class="material-symbols-outlined text-[14px]">wifi</span>
-<span class="material-symbols-outlined text-[14px]">battery_std</span>
-</div>
-</div>
-<!-- Top Section (30%) - Government Identity -->
-<header class="h-[265px] flex flex-col items-center justify-center pt-8">
-<div class="mb-4">
-<img alt="Ashoka Lion Capital" class="h-24 w-auto brightness-0 invert" data-alt="The official State Emblem of India, the Ashoka Lion Capital, rendered in high-contrast white against a dark navy background. The sculpture shows four lions standing back to back, symbolizing power, courage, and confidence. The style is flat and professional, conveying the gravity and institutional authority of a national government body." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6yFwM5BPSiUpIeF7vfP828Wt1f_n3-XVsjP_bB8dWzklUP7T-wfUkJ_FGL7xgfbpbmRoY-cfHfCRQXWWEYQPsBboTL_v7Yl2XZR-V_xXbV5CwzrIHHrYRibxf0ba2zCAjFm32S6iXf4lJXj19HwJI1PzSoYwXJCp484Wf2Mx0dSzSQMBwDrTmiB7kKC7rjwyNVgiADjg_F-5XQGWs5CeoY5UIJ_400ENmvEJbOQ7iylTQBu0hKXnR50JDTVsinJYb32uEAeNHB5mv"/>
-</div>
-<div class="flex flex-col gap-1">
-<h2 class="font-body-md text-body-md text-outline-variant tracking-wider uppercase">
-                Ministry of Health &amp; Family Welfare
-            </h2>
-<h3 class="font-body-md text-body-md text-outline-variant font-medium">
-                National Health Mission
-            </h3>
-</div>
-</header>
-<!-- Middle Section (40%) - App Branding -->
-<main class="h-[353px] flex flex-col items-center justify-center">
-<div class="mb-6 relative">
-<div class="bg-white/10 p-6 rounded-full border border-white/20">
-<div class="w-20 h-20 flex items-center justify-center bg-white rounded-2xl shadow-xl">
-<span class="material-symbols-outlined text-[#0D1B2A] text-5xl" style="font-variation-settings: 'FILL' 1;">
-                        health_and_safety
-                    </span>
-</div>
-</div>
-<!-- Decorative pulse effect -->
-<div class="absolute inset-0 rounded-full border border-white/5 scale-150"></div>
-</div>
-<h1 class="font-headline-lg text-[32px] text-white tracking-tight mb-2">
-            Shaasthi
-        </h1>
-<div class="flex flex-col gap-1">
-<p class="font-body-lg text-body-lg text-secondary-fixed-dim">
-                ASHA Digital Health Platform
-            </p>
-<p class="font-label-hindi text-label-hindi text-outline-variant opacity-90">
-                आशा स्वास्थ्य डिजिटल मंच
-            </p>
-</div>
-</main>
-<!-- Bottom Section (30%) - Progress and Footer -->
-<footer class="h-[265px] w-full max-w-sm flex flex-col items-center justify-end pb-8">
-<div class="w-full mb-10">
-<div class="flex justify-between items-end mb-2">
-<span class="font-body-md text-body-md text-outline-variant">
-                    Loading services...
-                </span>
-<span class="font-label-lg text-label-lg text-secondary-fixed-dim">
-                    65%
-                </span>
-</div>
-<div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
-<div class="h-full bg-[#1A6B72] rounded-full" style="width: 65%;"></div>
-</div>
-</div>
-<div class="flex flex-col gap-1 opacity-60">
-<p class="font-label-lg text-label-lg text-white">
-                Powered by NIC
-            </p>
-<p class="font-label-lg text-label-lg text-outline-variant">
-                Version 1.0.0
-            </p>
-</div>
-</footer>
-<!-- Suppressed Nav Shell Content (As per instructions for Splash screens) -->
-</body></html>
+  <body class="bg-[#0D1B2A] min-h-screen flex flex-col justify-between items-center text-center px-gutter py-section-margin">
+    <!-- Status Bar Simulation -->
+    <div class="fixed top-0 left-0 w-full flex justify-between px-4 py-2 opacity-80 pointer-events-none">
+      <span class="text-white text-[12px] font-medium">10:45 AM</span>
+      <div class="flex gap-2 text-white">
+        <span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+        <span class="material-symbols-outlined text-[14px]">wifi</span>
+        <span class="material-symbols-outlined text-[14px]">battery_std</span>
+      </div>
+    </div>
+    <!-- Top Section (30%) - Government Identity -->
+    <header class="h-[265px] flex flex-col items-center justify-center pt-8">
+      <div class="mb-4">
+        <img
+          alt="Ashoka Lion Capital"
+          class="h-24 w-auto brightness-0 invert"
+          data-alt="The official State Emblem of India, the Ashoka Lion Capital, rendered in high-contrast white against a dark navy background. The sculpture shows four lions standing back to back, symbolizing power, courage, and confidence. The style is flat and professional, conveying the gravity and institutional authority of a national government body."
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6yFwM5BPSiUpIeF7vfP828Wt1f_n3-XVsjP_bB8dWzklUP7T-wfUkJ_FGL7xgfbpbmRoY-cfHfCRQXWWEYQPsBboTL_v7Yl2XZR-V_xXbV5CwzrIHHrYRibxf0ba2zCAjFm32S6iXf4lJXj19HwJI1PzSoYwXJCp484Wf2Mx0dSzSQMBwDrTmiB7kKC7rjwyNVgiADjg_F-5XQGWs5CeoY5UIJ_400ENmvEJbOQ7iylTQBu0hKXnR50JDTVsinJYb32uEAeNHB5mv"
+        />
+      </div>
+      <div class="flex flex-col gap-1">
+        <h2 class="font-body-md text-body-md text-outline-variant tracking-wider uppercase">Ministry of Health &amp; Family Welfare</h2>
+        <h3 class="font-body-md text-body-md text-outline-variant font-medium">National Health Mission</h3>
+      </div>
+    </header>
+    <!-- Middle Section (40%) - App Branding -->
+    <main class="h-[353px] flex flex-col items-center justify-center">
+      <div class="mb-6 relative">
+        <div class="bg-white/10 p-6 rounded-full border border-white/20">
+          <div class="w-20 h-20 flex items-center justify-center bg-white rounded-2xl shadow-xl">
+            <span class="material-symbols-outlined text-[#0D1B2A] text-5xl" style="font-variation-settings: &quot;FILL&quot; 1">
+              health_and_safety
+            </span>
+          </div>
+        </div>
+        <!-- Decorative pulse effect -->
+        <div class="absolute inset-0 rounded-full border border-white/5 scale-150"></div>
+      </div>
+      <h1 class="font-headline-lg text-[32px] text-white tracking-tight mb-2">Shaasthi</h1>
+      <div class="flex flex-col gap-1">
+        <p class="font-body-lg text-body-lg text-secondary-fixed-dim">ASHA Digital Health Platform</p>
+        <p class="font-label-hindi text-label-hindi text-outline-variant opacity-90">आशा स्वास्थ्य डिजिटल मंच</p>
+      </div>
+    </main>
+    <!-- Bottom Section (30%) - Progress and Footer -->
+    <footer class="h-[265px] w-full max-w-sm flex flex-col items-center justify-end pb-8">
+      <div class="w-full mb-10">
+        <div class="flex justify-between items-end mb-2">
+          <span class="font-body-md text-body-md text-outline-variant"> Loading services... </span>
+          <span class="font-label-lg text-label-lg text-secondary-fixed-dim"> 65% </span>
+        </div>
+        <div class="h-1.5 w-full bg-white/10 rounded-full overflow-hidden">
+          <div class="h-full bg-[#1A6B72] rounded-full" style="width: 65%"></div>
+        </div>
+      </div>
+      <div class="flex flex-col gap-1 opacity-60">
+        <p class="font-label-lg text-label-lg text-white">Powered by NIC</p>
+        <p class="font-label-lg text-label-lg text-outline-variant">Version 1.0.0</p>
+      </div>
+    </footer>
+    <!-- Suppressed Nav Shell Content (As per instructions for Splash screens) -->
+  </body>
+</html>

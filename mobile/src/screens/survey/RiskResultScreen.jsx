@@ -33,7 +33,10 @@ const URGENCY_LABELS = {
 };
 
 function inferCategory(factors, riskLevel) {
-  const text = (factors || []).map((f) => `${f.labelHi || ""} ${f.label || ""}`).join(" ").toLowerCase();
+  const text = (factors || [])
+    .map((f) => `${f.labelHi || ""} ${f.label || ""}`)
+    .join(" ")
+    .toLowerCase();
   if (text.includes("cough") || text.includes("fever") || text.includes("खांसी") || text.includes("बुखार")) {
     return "communicable";
   }
@@ -106,7 +109,7 @@ export default function RiskResultScreen() {
           </View>
         </View>
 
-        {(recHi || recEn) ? (
+        {recHi || recEn ? (
           <View style={styles.recCard}>
             <Text style={styles.recTitleHi}>सिफारिश</Text>
             <Text style={styles.recTitleEn}>Recommendation</Text>
@@ -114,7 +117,13 @@ export default function RiskResultScreen() {
             <Text style={styles.recTextEn}>{recEn}</Text>
             <View style={styles.sourceRow}>
               <View style={[styles.sourceBadge, { backgroundColor: sourceInfo.color + "20", borderColor: sourceInfo.color }]}>
-                <Ionicons name={recommendationSource === "gemma4_api" ? "sparkles" : recommendationSource === "tflite" ? "phone-portrait" : "settings"} size={12} color={sourceInfo.color} />
+                <Ionicons
+                  name={
+                    recommendationSource === "gemma4_api" ? "sparkles" : recommendationSource === "tflite" ? "phone-portrait" : "settings"
+                  }
+                  size={12}
+                  color={sourceInfo.color}
+                />
                 <Text style={[styles.sourceText, { color: sourceInfo.color }]}>{sourceInfo.en}</Text>
               </View>
             </View>

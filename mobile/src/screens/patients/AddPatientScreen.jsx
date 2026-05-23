@@ -45,7 +45,9 @@ export default function AddPatientScreen() {
       if (!form.name || !form.age || form.gender == null) return;
     }
     if (step === 1) {
-      if ([form.hasDiabetes, form.hasHypertension, form.isPregnant, form.hospitalizedLastYear, form.regularMedicines].some((x) => x === null))
+      if (
+        [form.hasDiabetes, form.hasHypertension, form.isPregnant, form.hospitalizedLastYear, form.regularMedicines].some((x) => x === null)
+      )
         return;
     }
     setStep((s) => Math.min(2, s + 1));
@@ -78,7 +80,7 @@ export default function AddPatientScreen() {
             hospitalizedLastYear: form.hospitalizedLastYear,
           },
           null,
-          null
+          null,
         );
         const patient = await database.collections.get("patients").create((p) => {
           p.patientCode = `P-${now.toString(36)}`;
@@ -151,36 +153,102 @@ export default function AddPatientScreen() {
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         {step === 0 ? (
           <>
-            <GovtInput labelHi="पूरा नाम" labelEn="Full Name" required value={form.name} onChangeText={(t) => setForm((f) => ({ ...f, name: t }))} />
-            <GovtInput labelHi="उम्र" labelEn="Age" required value={form.age} onChangeText={(t) => setForm((f) => ({ ...f, age: t }))} keyboardType="numeric" />
+            <GovtInput
+              labelHi="पूरा नाम"
+              labelEn="Full Name"
+              required
+              value={form.name}
+              onChangeText={(t) => setForm((f) => ({ ...f, name: t }))}
+            />
+            <GovtInput
+              labelHi="उम्र"
+              labelEn="Age"
+              required
+              value={form.age}
+              onChangeText={(t) => setForm((f) => ({ ...f, age: t }))}
+              keyboardType="numeric"
+            />
             <Text style={styles.label}>लिंग / Gender *</Text>
             <View style={styles.row}>
               {["M", "F", "O"].map((g) => (
-                <Pressable key={g} style={[styles.gender, form.gender === g && styles.genderOn]} onPress={() => setForm((f) => ({ ...f, gender: g }))}>
-                  <Text style={[styles.genderTxt, form.gender === g && { color: "#fff" }]}>{g === "M" ? "पुरुष" : g === "F" ? "महिला" : "अन्य"}</Text>
+                <Pressable
+                  key={g}
+                  style={[styles.gender, form.gender === g && styles.genderOn]}
+                  onPress={() => setForm((f) => ({ ...f, gender: g }))}
+                >
+                  <Text style={[styles.genderTxt, form.gender === g && { color: "#fff" }]}>
+                    {g === "M" ? "पुरुष" : g === "F" ? "महिला" : "अन्य"}
+                  </Text>
                 </Pressable>
               ))}
             </View>
-            <GovtInput labelHi="मोबाइल" labelEn="Phone" value={form.phone} onChangeText={(t) => setForm((f) => ({ ...f, phone: t }))} keyboardType="phone-pad" prefix="+91" />
+            <GovtInput
+              labelHi="मोबाइल"
+              labelEn="Phone"
+              value={form.phone}
+              onChangeText={(t) => setForm((f) => ({ ...f, phone: t }))}
+              keyboardType="phone-pad"
+              prefix="+91"
+            />
           </>
         ) : null}
         {step === 1 ? (
           <>
-            <ToggleRow labelHi="मधुमेह" labelEn="Diabetes" value={form.hasDiabetes} onChange={(v) => setForm((f) => ({ ...f, hasDiabetes: v }))} />
-            <ToggleRow labelHi="उच्च रक्तचाप" labelEn="Hypertension" value={form.hasHypertension} onChange={(v) => setForm((f) => ({ ...f, hasHypertension: v }))} />
-            <ToggleRow labelHi="गर्भवती?" labelEn="Pregnant?" value={form.isPregnant} onChange={(v) => setForm((f) => ({ ...f, isPregnant: v }))} />
-            <ToggleRow labelHi="पिछले साल अस्पताल?" labelEn="Hospitalized last year?" value={form.hospitalizedLastYear} onChange={(v) => setForm((f) => ({ ...f, hospitalizedLastYear: v }))} />
-            <ToggleRow labelHi="नियमित दवाई?" labelEn="Regular medicines?" value={form.regularMedicines} onChange={(v) => setForm((f) => ({ ...f, regularMedicines: v }))} />
+            <ToggleRow
+              labelHi="मधुमेह"
+              labelEn="Diabetes"
+              value={form.hasDiabetes}
+              onChange={(v) => setForm((f) => ({ ...f, hasDiabetes: v }))}
+            />
+            <ToggleRow
+              labelHi="उच्च रक्तचाप"
+              labelEn="Hypertension"
+              value={form.hasHypertension}
+              onChange={(v) => setForm((f) => ({ ...f, hasHypertension: v }))}
+            />
+            <ToggleRow
+              labelHi="गर्भवती?"
+              labelEn="Pregnant?"
+              value={form.isPregnant}
+              onChange={(v) => setForm((f) => ({ ...f, isPregnant: v }))}
+            />
+            <ToggleRow
+              labelHi="पिछले साल अस्पताल?"
+              labelEn="Hospitalized last year?"
+              value={form.hospitalizedLastYear}
+              onChange={(v) => setForm((f) => ({ ...f, hospitalizedLastYear: v }))}
+            />
+            <ToggleRow
+              labelHi="नियमित दवाई?"
+              labelEn="Regular medicines?"
+              value={form.regularMedicines}
+              onChange={(v) => setForm((f) => ({ ...f, regularMedicines: v }))}
+            />
             {form.regularMedicines ? (
-              <GovtInput labelHi="दवाई" labelEn="Medicine name" value={form.medicinesName} onChangeText={(t) => setForm((f) => ({ ...f, medicinesName: t }))} />
+              <GovtInput
+                labelHi="दवाई"
+                labelEn="Medicine name"
+                value={form.medicinesName}
+                onChangeText={(t) => setForm((f) => ({ ...f, medicinesName: t }))}
+              />
             ) : null}
           </>
         ) : null}
         {step === 2 ? (
           <>
             <GovtInput labelHi="गांव" labelEn="Village" value={form.village} onChangeText={(t) => setForm((f) => ({ ...f, village: t }))} />
-            <GovtInput labelHi="परिवार प्रमुख" labelEn="Head of family" value={form.headOfFamily} onChangeText={(t) => setForm((f) => ({ ...f, headOfFamily: t }))} />
-            <ToggleRow labelHi="सहमতি" labelEn="Consent to record" value={form.consent} onChange={(v) => setForm((f) => ({ ...f, consent: v }))} />
+            <GovtInput
+              labelHi="परिवार प्रमुख"
+              labelEn="Head of family"
+              value={form.headOfFamily}
+              onChangeText={(t) => setForm((f) => ({ ...f, headOfFamily: t }))}
+            />
+            <ToggleRow
+              labelHi="सहमতি"
+              labelEn="Consent to record"
+              value={form.consent}
+              onChange={(v) => setForm((f) => ({ ...f, consent: v }))}
+            />
           </>
         ) : null}
       </ScrollView>
@@ -241,4 +309,3 @@ const styles = StyleSheet.create({
   nextBtn: { flex: 1, minHeight: 52, borderRadius: 8, backgroundColor: COLORS.accent, alignItems: "center", justifyContent: "center" },
   nextTxt: { color: "#fff", fontWeight: "800", fontSize: 16 },
 });
-

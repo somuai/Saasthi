@@ -99,4 +99,3 @@ def auto_schedule_followups(assessment):
         },
     )
     return [followup]
-

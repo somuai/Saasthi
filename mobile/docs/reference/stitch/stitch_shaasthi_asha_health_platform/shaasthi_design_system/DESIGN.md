@@ -1,94 +1,94 @@
 ---
 name: Shaasthi Design System
 colors:
-  surface: '#F5F5F7'
-  surface-dim: '#D9D9D9'
-  surface-bright: '#F5F5F7'
-  surface-container-lowest: '#FFFFFF'
-  surface-container-low: '#E8E8E8'
-  surface-container: '#D9D9D9'
-  surface-container-high: '#D2CECF'
-  surface-container-highest: '#C8C4C5'
-  on-surface: '#1A1A2E'
-  on-surface-variant: '#6B6B6B'
-  inverse-surface: '#2E3132'
-  inverse-on-surface: '#F5F5F7'
-  outline: '#9E9E9E'
-  outline-variant: '#D2CECF'
-  surface-tint: '#5974BD'
-  primary: '#416CAF'
-  on-primary: '#FFFFFF'
-  primary-container: '#2E5290'
-  on-primary-container: '#E8EDF5'
-  inverse-primary: '#5974BD'
-  secondary: '#5974BD'
-  on-secondary: '#FFFFFF'
-  secondary-container: '#E8EDF5'
-  on-secondary-container: '#416CAF'
-  tertiary: '#F7A5BE'
-  on-tertiary: '#1A1A2E'
-  tertiary-container: '#FFF0F5'
-  on-tertiary-container: '#FF0000'
-  error: '#FF0000'
-  on-error: '#FFFFFF'
-  error-container: '#FFE5E5'
-  on-error-container: '#CC0000'
-  primary-fixed: '#E8EDF5'
-  primary-fixed-dim: '#B0C4E0'
-  on-primary-fixed: '#2E5290'
-  on-primary-fixed-variant: '#416CAF'
-  secondary-fixed: '#E8EDF5'
-  secondary-fixed-dim: '#B0BDE0'
-  on-secondary-fixed: '#3D5A9E'
-  on-secondary-fixed-variant: '#5974BD'
-  tertiary-fixed: '#FFF0F5'
-  tertiary-fixed-dim: '#F7A5BE'
-  on-tertiary-fixed: '#CC0000'
-  on-tertiary-fixed-variant: '#FF0000'
-  background: '#F5F5F7'
-  on-background: '#1A1A2E'
-  surface-variant: '#D9D9D9'
+  surface: "#F5F5F7"
+  surface-dim: "#D9D9D9"
+  surface-bright: "#F5F5F7"
+  surface-container-lowest: "#FFFFFF"
+  surface-container-low: "#E8E8E8"
+  surface-container: "#D9D9D9"
+  surface-container-high: "#D2CECF"
+  surface-container-highest: "#C8C4C5"
+  on-surface: "#1A1A2E"
+  on-surface-variant: "#6B6B6B"
+  inverse-surface: "#2E3132"
+  inverse-on-surface: "#F5F5F7"
+  outline: "#9E9E9E"
+  outline-variant: "#D2CECF"
+  surface-tint: "#5974BD"
+  primary: "#416CAF"
+  on-primary: "#FFFFFF"
+  primary-container: "#2E5290"
+  on-primary-container: "#E8EDF5"
+  inverse-primary: "#5974BD"
+  secondary: "#5974BD"
+  on-secondary: "#FFFFFF"
+  secondary-container: "#E8EDF5"
+  on-secondary-container: "#416CAF"
+  tertiary: "#F7A5BE"
+  on-tertiary: "#1A1A2E"
+  tertiary-container: "#FFF0F5"
+  on-tertiary-container: "#FF0000"
+  error: "#FF0000"
+  on-error: "#FFFFFF"
+  error-container: "#FFE5E5"
+  on-error-container: "#CC0000"
+  primary-fixed: "#E8EDF5"
+  primary-fixed-dim: "#B0C4E0"
+  on-primary-fixed: "#2E5290"
+  on-primary-fixed-variant: "#416CAF"
+  secondary-fixed: "#E8EDF5"
+  secondary-fixed-dim: "#B0BDE0"
+  on-secondary-fixed: "#3D5A9E"
+  on-secondary-fixed-variant: "#5974BD"
+  tertiary-fixed: "#FFF0F5"
+  tertiary-fixed-dim: "#F7A5BE"
+  on-tertiary-fixed: "#CC0000"
+  on-tertiary-fixed-variant: "#FF0000"
+  background: "#F5F5F7"
+  on-background: "#1A1A2E"
+  surface-variant: "#D9D9D9"
 typography:
   headline-lg:
     fontFamily: Roboto Flex
     fontSize: 24px
-    fontWeight: '700'
+    fontWeight: "700"
     lineHeight: 32px
     letterSpacing: 0px
   headline-md:
     fontFamily: Roboto Flex
     fontSize: 20px
-    fontWeight: '700'
+    fontWeight: "700"
     lineHeight: 28px
     letterSpacing: 0px
   headline-sm:
     fontFamily: Roboto Flex
     fontSize: 16px
-    fontWeight: '700'
+    fontWeight: "700"
     lineHeight: 24px
     letterSpacing: 0.1px
   body-lg:
     fontFamily: Roboto Flex
     fontSize: 16px
-    fontWeight: '400'
+    fontWeight: "400"
     lineHeight: 24px
     letterSpacing: 0.5px
   body-md:
     fontFamily: Roboto Flex
     fontSize: 14px
-    fontWeight: '400'
+    fontWeight: "400"
     lineHeight: 20px
     letterSpacing: 0.25px
   label-lg:
     fontFamily: Roboto Flex
     fontSize: 12px
-    fontWeight: '500'
+    fontWeight: "500"
     lineHeight: 16px
     letterSpacing: 0.5px
   label-hindi:
     fontFamily: Roboto Flex
     fontSize: 14px
-    fontWeight: '400'
+    fontWeight: "400"
     lineHeight: 22px
     letterSpacing: 0px
 rounded:
@@ -124,9 +124,10 @@ This design system employs a high-contrast, professional palette designed for re
 
 ## Typography
 
-The typography system relies on **Roboto Flex** for its exceptional legibility and systematic scaling on Android platforms. 
+The typography system relies on **Roboto Flex** for its exceptional legibility and systematic scaling on Android platforms.
 
 For **Bilingual Support**, English and Hindi labels are treated with a clear hierarchy:
+
 - English serves as the primary label in `headline-sm` or `body-md`.
 - Hindi translations are placed immediately below or beside the English text using the `label-hindi` style, often in a slightly lighter gray to maintain focus while ensuring comprehension.
 - **Headings** always use the Primary Navy color to anchor the page, while **Subtitles** and secondary info use a mid-tone gray (#5F6368).
@@ -159,20 +160,25 @@ The shape language is professional and modern, utilizing **Rounded** corners to 
 ## Components
 
 ### Buttons & Chips
+
 - **Primary Button:** Pill-shaped, solid Teal background with white text. Height: 48dp.
 - **Secondary Button:** Outlined (1px Teal) with Teal text.
 - **Chips:** Pill-shaped, light gray background. Used for status indicators (e.g., "High Risk") or filters.
 
 ### Cards
+
 - **Data Cards:** 12px rounded corners, 1px light border, no shadow. Contains a mix of Navy headings and Gray body text.
 - **Action Cards:** Feature a Primary Navy icon on the left to denote the card's purpose (e.g., "Add Patient").
 
 ### Form Elements
-- **Input Fields:** Filled style with a bottom-line indicator (Material 3 style) or 8px rounded outlines. 
+
+- **Input Fields:** Filled style with a bottom-line indicator (Material 3 style) or 8px rounded outlines.
 - **Tap Targets:** Checkboxes and Radio buttons must be contained within 48dp rows to ensure easy selection in the field.
 
 ### Progress Bars
+
 - **Linear Progress:** Used to track patient milestones. Teal for active progress, Success Green for completion. 4px height with rounded caps.
 
 ### Bilingual Labels
+
 - All critical labels must include the Hindi equivalent in a secondary typographic weight directly beneath the English term to assist users who are more comfortable with local scripts.

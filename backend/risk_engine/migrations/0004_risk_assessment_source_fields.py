@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("risk_engine", "0003_alter_riskassessment_rules_snapshot_mlmodelversion"),
     ]

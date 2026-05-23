@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -33,15 +24,17 @@ function CompletionBar({ value }) {
 function SectionCard({ step, title, subtitle, children }) {
   return (
     <View style={styles.sectionCard}>
-        <View style={styles.sectionHead}>
-          <View style={styles.stepBadge}>
-            <Text style={styles.stepBadgeText}>{step}</Text>
-          </View>
-          <View style={styles.sectionTitleWrap}>
-          <Text style={styles.section} numberOfLines={2}>{title}</Text>
-          {subtitle ? <Text style={styles.sectionHint}>{subtitle}</Text> : null}
-          </View>
+      <View style={styles.sectionHead}>
+        <View style={styles.stepBadge}>
+          <Text style={styles.stepBadgeText}>{step}</Text>
         </View>
+        <View style={styles.sectionTitleWrap}>
+          <Text style={styles.section} numberOfLines={2}>
+            {title}
+          </Text>
+          {subtitle ? <Text style={styles.sectionHint}>{subtitle}</Text> : null}
+        </View>
+      </View>
       {children}
     </View>
   );
@@ -101,9 +94,7 @@ export default function McpRegistrationScreen() {
 
   useEffect(() => {
     if (patientId || mode !== "select") return undefined;
-    const q = database.collections
-      .get("patients")
-      .query(Q.where("is_deleted", false));
+    const q = database.collections.get("patients").query(Q.where("is_deleted", false));
     const sub = q.observe().subscribe(setPatients);
     return () => sub.unsubscribe();
   }, [database, patientId, mode]);
@@ -117,9 +108,7 @@ export default function McpRegistrationScreen() {
 
   useEffect(() => {
     if (!patient?.id) return undefined;
-    const mq = database.collections
-      .get("mother_records")
-      .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
+    const mq = database.collections.get("mother_records").query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
     const sub = mq.observe().subscribe((recs) => setMother(recs[0] || null));
     return () => sub.unsubscribe();
   }, [database, patient]);
@@ -263,9 +252,7 @@ export default function McpRegistrationScreen() {
                 </View>
                 <View style={styles.heroText}>
                   <Text style={styles.heroTitle}>Start MCP in two taps</Text>
-                  <Text style={styles.heroSubtitle}>
-                    पहले मौजूदा मरीज चुनें, या नया गर्भवती रिकॉर्ड बनाएं।
-                  </Text>
+                  <Text style={styles.heroSubtitle}>पहले मौजूदा मरीज चुनें, या नया गर्भवती रिकॉर्ड बनाएं।</Text>
                 </View>
               </View>
               <Pressable style={styles.newBtn} onPress={() => setMode("form")}>
@@ -286,7 +273,9 @@ export default function McpRegistrationScreen() {
               </View>
               <View style={styles.pickBody}>
                 <Text style={styles.pickName}>{item.name}</Text>
-                <Text style={styles.pickMeta}>{item.patientCode || "No code"} · {item.age || "?"} yrs</Text>
+                <Text style={styles.pickMeta}>
+                  {item.patientCode || "No code"} · {item.age || "?"} yrs
+                </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={COLORS.textHint} />
             </Pressable>
@@ -302,17 +291,8 @@ export default function McpRegistrationScreen() {
       behavior={Platform.OS === "ios" ? "padding" : undefined}
       keyboardVerticalOffset={Platform.OS === "ios" ? 12 : 0}
     >
-      <GovtHeader
-        titleHi="MCP पंजीकरण"
-        title={patient ? patient.name : "New registration"}
-        showBack
-        showSync
-      />
-      <ScrollView
-        style={styles.scrollContainer}
-        contentContainerStyle={styles.scroll}
-        keyboardShouldPersistTaps="handled"
-      >
+      <GovtHeader titleHi="MCP पंजीकरण" title={patient ? patient.name : "New registration"} showBack showSync />
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
         <View style={styles.formIntro}>
           <View style={styles.formIntroRow}>
             <View style={styles.formIntroCopy}>
@@ -330,53 +310,114 @@ export default function McpRegistrationScreen() {
           title="Patient Details / मरीज विवरण"
           subtitle={patient ? "Existing patient selected" : "Create the mother profile first"}
         >
-        {!patient ? (
-          <>
-            <GovtInput labelHi="नाम" label="Name" value={form.name} onChangeText={(t) => setField("name", t)} required />
-            <GovtInput labelHi="उम्र" label="Age (years)" value={form.age} onChangeText={(t) => setField("age", t)} keyboardType="number-pad" />
-            <GovtInput labelHi="फ़ोन" label="Phone" value={form.phone} onChangeText={(t) => setField("phone", t)} keyboardType="phone-pad" />
-            <GovtInput labelHi="कोड" label="Patient code" value={form.patientCode} onChangeText={(t) => setField("patientCode", t)} placeholder="Auto-created if blank" />
-          </>
-        ) : (
-          <View style={styles.selectedPatient}>
-            <Text style={styles.pickName}>{patient.name}</Text>
-            <Text style={styles.pickMeta}>{patient.patientCode || "No code"} · {patient.age || "?"} yrs</Text>
-          </View>
-        )}
+          {!patient ? (
+            <>
+              <GovtInput labelHi="नाम" label="Name" value={form.name} onChangeText={(t) => setField("name", t)} required />
+              <GovtInput
+                labelHi="उम्र"
+                label="Age (years)"
+                value={form.age}
+                onChangeText={(t) => setField("age", t)}
+                keyboardType="number-pad"
+              />
+              <GovtInput
+                labelHi="फ़ोन"
+                label="Phone"
+                value={form.phone}
+                onChangeText={(t) => setField("phone", t)}
+                keyboardType="phone-pad"
+              />
+              <GovtInput
+                labelHi="कोड"
+                label="Patient code"
+                value={form.patientCode}
+                onChangeText={(t) => setField("patientCode", t)}
+                placeholder="Auto-created if blank"
+              />
+            </>
+          ) : (
+            <View style={styles.selectedPatient}>
+              <Text style={styles.pickName}>{patient.name}</Text>
+              <Text style={styles.pickMeta}>
+                {patient.patientCode || "No code"} · {patient.age || "?"} yrs
+              </Text>
+            </View>
+          )}
         </SectionCard>
 
-        <SectionCard
-          step="2"
-          title="Pregnancy / गर्भावस्था"
-          subtitle="Use YYYY-MM-DD so EDD is calculated automatically"
-        >
-        <GovtInput labelHi="LMP तिथि" label="LMP date (YYYY-MM-DD)" value={form.lmpDate} onChangeText={(t) => setField("lmpDate", t)} required placeholder="2026-05-22" />
-        {lmp ? <Text style={styles.meta}>{edd ? `EDD: ${edd}` : "Enter a complete date: YYYY-MM-DD"}</Text> : null}
-        <GovtInput labelHi="गर्भ संख्या" label="Gravida" value={form.gravida} onChangeText={(t) => setField("gravida", t)} keyboardType="number-pad" required />
-        <GovtInput labelHi="पिछले जीवित जन्म" label="Previous live births" value={form.prevLiveBirths} onChangeText={(t) => setField("prevLiveBirths", t)} keyboardType="number-pad" />
-        <GovtInput labelHi="पिता का नाम" label="Father's name" value={form.fatherName} onChangeText={(t) => setField("fatherName", t)} />
-        <ToggleRow labelHi="उच्च जोखिम" labelEn="High risk" value={form.isHighRisk} onChange={(v) => setField("isHighRisk", v)} />
+        <SectionCard step="2" title="Pregnancy / गर्भावस्था" subtitle="Use YYYY-MM-DD so EDD is calculated automatically">
+          <GovtInput
+            labelHi="LMP तिथि"
+            label="LMP date (YYYY-MM-DD)"
+            value={form.lmpDate}
+            onChangeText={(t) => setField("lmpDate", t)}
+            required
+            placeholder="2026-05-22"
+          />
+          {lmp ? <Text style={styles.meta}>{edd ? `EDD: ${edd}` : "Enter a complete date: YYYY-MM-DD"}</Text> : null}
+          <GovtInput
+            labelHi="गर्भ संख्या"
+            label="Gravida"
+            value={form.gravida}
+            onChangeText={(t) => setField("gravida", t)}
+            keyboardType="number-pad"
+            required
+          />
+          <GovtInput
+            labelHi="पिछले जीवित जन्म"
+            label="Previous live births"
+            value={form.prevLiveBirths}
+            onChangeText={(t) => setField("prevLiveBirths", t)}
+            keyboardType="number-pad"
+          />
+          <GovtInput labelHi="पिता का नाम" label="Father's name" value={form.fatherName} onChangeText={(t) => setField("fatherName", t)} />
+          <ToggleRow labelHi="उच्च जोखिम" labelEn="High risk" value={form.isHighRisk} onChange={(v) => setField("isHighRisk", v)} />
         </SectionCard>
 
-        <SectionCard
-          step="3"
-          title="Benefits / योजना"
-          subtitle="Capture JSY, PMMVY and bank details only if available"
-        >
-        <ToggleRow labelHi="JSY पंजीकृत" labelEn="JSY registered" value={form.jsyRegistered} onChange={(v) => setField("jsyRegistered", v)} />
-        <ToggleRow labelHi="PMMVY पात्र" labelEn="PMMVY eligible" value={form.isPmmvyEligible} onChange={(v) => setField("isPmmvyEligible", v)} />
-        <GovtInput labelHi="बैंक नाम" label="Bank name" value={form.bankName} onChangeText={(t) => setField("bankName", t)} />
-        <GovtInput labelHi="खाता संख्या" label="Account number" value={form.bankAccount} onChangeText={(t) => setField("bankAccount", t)} keyboardType="number-pad" />
-        <GovtInput labelHi="IFSC कोड" label="IFSC code" value={form.bankIfsc} onChangeText={(t) => setField("bankIfsc", t.toUpperCase())} autoCapitalize="characters" />
+        <SectionCard step="3" title="Benefits / योजना" subtitle="Capture JSY, PMMVY and bank details only if available">
+          <ToggleRow
+            labelHi="JSY पंजीकृत"
+            labelEn="JSY registered"
+            value={form.jsyRegistered}
+            onChange={(v) => setField("jsyRegistered", v)}
+          />
+          <ToggleRow
+            labelHi="PMMVY पात्र"
+            labelEn="PMMVY eligible"
+            value={form.isPmmvyEligible}
+            onChange={(v) => setField("isPmmvyEligible", v)}
+          />
+          <GovtInput labelHi="बैंक नाम" label="Bank name" value={form.bankName} onChangeText={(t) => setField("bankName", t)} />
+          <GovtInput
+            labelHi="खाता संख्या"
+            label="Account number"
+            value={form.bankAccount}
+            onChangeText={(t) => setField("bankAccount", t)}
+            keyboardType="number-pad"
+          />
+          <GovtInput
+            labelHi="IFSC कोड"
+            label="IFSC code"
+            value={form.bankIfsc}
+            onChangeText={(t) => setField("bankIfsc", t.toUpperCase())}
+            autoCapitalize="characters"
+          />
         </SectionCard>
 
-        <SectionCard
-          step="4"
-          title="Delivery Plan / प्रसव योजना"
-          subtitle="This helps follow-up and referral planning"
-        >
-        <GovtInput labelHi="चिन्हित संस्था" label="Identified delivery institution" value={form.identifiedDeliveryInstitution} onChangeText={(t) => setField("identifiedDeliveryInstitution", t)} />
-        <GovtButton titleHi="पंजीकरण सहेजें" titleEn="Save registration" onPress={saveRegistration} loading={saving} disabled={!canSave} />
+        <SectionCard step="4" title="Delivery Plan / प्रसव योजना" subtitle="This helps follow-up and referral planning">
+          <GovtInput
+            labelHi="चिन्हित संस्था"
+            label="Identified delivery institution"
+            value={form.identifiedDeliveryInstitution}
+            onChangeText={(t) => setField("identifiedDeliveryInstitution", t)}
+          />
+          <GovtButton
+            titleHi="पंजीकरण सहेजें"
+            titleEn="Save registration"
+            onPress={saveRegistration}
+            loading={saving}
+            disabled={!canSave}
+          />
         </SectionCard>
       </ScrollView>
     </KeyboardAvoidingView>

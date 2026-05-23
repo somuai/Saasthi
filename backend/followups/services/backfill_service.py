@@ -3,14 +3,11 @@ import io
 from datetime import datetime
 
 from django.db import transaction
-
-from accounts.models import User
 from registry.models import FollowUp
 
 
 def classify_backfill_status(patient):
     """Determine backfill status for a patient created via CSV import."""
-    from registry.models import RiskLevel
 
     fu = FollowUp.objects.filter(patient=patient).order_by("-created_at").first()
     if not fu:
@@ -45,7 +42,7 @@ def import_historical_patients_csv(csv_content, created_by_user):
     if missing:
         return {**results, "errors": [f"Missing columns: {', '.join(sorted(missing))}"]}
 
-    from registry.models import Patient, RiskLevel
+    from registry.models import Patient
 
     with transaction.atomic():
         for i, row in enumerate(rows, start=2):

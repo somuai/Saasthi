@@ -65,7 +65,7 @@ async function main() {
     console.error(
       "[android] Metro is not running on port 8081.\n" +
         "  In another terminal: cd mobile && npm run start:dev\n" +
-        "  (Do not use plain npm start — use --localhost for the emulator.)"
+        "  (Do not use plain npm start — use --localhost for the emulator.)",
     );
     process.exit(1);
   }
@@ -73,11 +73,10 @@ async function main() {
   const deepLink = `${SCHEME}://expo-development-client/?url=${encodeURIComponent(METRO_URL)}`;
   console.log(`[android] launching ${formatDevice(device)} dev client → ${METRO_URL}`);
 
-  const r = spawnSync(
-    adb,
-    ["-s", device.serial, "shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", deepLink],
-    { env, encoding: "utf8" }
-  );
+  const r = spawnSync(adb, ["-s", device.serial, "shell", "am", "start", "-a", "android.intent.action.VIEW", "-d", deepLink], {
+    env,
+    encoding: "utf8",
+  });
 
   if (r.status !== 0) {
     console.error((r.stderr || r.stdout || "adb launch failed").trim());

@@ -10,6 +10,7 @@ import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { SplashScreen } from "../src/components/SplashScreen";
 import { UpdateRequiredScreen } from "../src/components/UpdateRequiredScreen";
 import { useAppVersion } from "../src/hooks/useAppVersion";
+import "../src/utils/sentry";
 
 function AuthGuard({ children }) {
   const user = useSelector((s) => s.auth.user);
@@ -65,19 +66,19 @@ export default function RootLayout() {
   return (
     <AppProvider>
       <ErrorBoundary>
-      <AuthGuard>
-        <StatusBar style="light" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: COLORS.background },
-          }}
-        >
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
-      </AuthGuard>
+        <AuthGuard>
+          <StatusBar style="light" />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: COLORS.background },
+            }}
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen name="(auth)" />
+            <Stack.Screen name="(tabs)" />
+          </Stack>
+        </AuthGuard>
       </ErrorBoundary>
     </AppProvider>
   );

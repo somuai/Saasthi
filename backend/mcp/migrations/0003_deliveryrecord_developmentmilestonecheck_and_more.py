@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("mcp", "0002_careinteraction_ix_ci_patient_protocol_and_more"),
         ("registry", "0003_alter_household_block_alter_household_district_and_more"),
@@ -622,12 +621,8 @@ class Migration(migrations.Migration):
             options={
                 "ordering": ["patient", "visit_number"],
                 "indexes": [
-                    models.Index(
-                        fields=["patient", "visit_number"], name="ix_anc_patient_visit"
-                    ),
-                    models.Index(
-                        fields=["patient", "visit_date"], name="ix_anc_patient_date"
-                    ),
+                    models.Index(fields=["patient", "visit_number"], name="ix_anc_patient_visit"),
+                    models.Index(fields=["patient", "visit_date"], name="ix_anc_patient_date"),
                 ],
             },
         ),
@@ -652,39 +647,27 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="developmentmilestonecheck",
-            index=models.Index(
-                fields=["any_warning_sign"], name="ix_milestone_warning"
-            ),
+            index=models.Index(fields=["any_warning_sign"], name="ix_milestone_warning"),
         ),
         migrations.AddIndex(
             model_name="growthrecord",
-            index=models.Index(
-                fields=["patient", "recorded_date"], name="ix_growth_patient_date"
-            ),
+            index=models.Index(fields=["patient", "recorded_date"], name="ix_growth_patient_date"),
         ),
         migrations.AddIndex(
             model_name="growthrecord",
-            index=models.Index(
-                fields=["nutritional_status"], name="ix_growth_nutrition"
-            ),
+            index=models.Index(fields=["nutritional_status"], name="ix_growth_nutrition"),
         ),
         migrations.AddIndex(
             model_name="ifacompliance",
-            index=models.Index(
-                fields=["patient", "year_month"], name="ix_ifa_patient_month"
-            ),
+            index=models.Index(fields=["patient", "year_month"], name="ix_ifa_patient_month"),
         ),
         migrations.AddIndex(
             model_name="immunizationrecord",
-            index=models.Index(
-                fields=["patient", "status"], name="ix_immunization_patient_status"
-            ),
+            index=models.Index(fields=["patient", "status"], name="ix_immunization_patient_status"),
         ),
         migrations.AddIndex(
             model_name="immunizationrecord",
-            index=models.Index(
-                fields=["scheduled_date", "status"], name="ix_immu_sched_status"
-            ),
+            index=models.Index(fields=["scheduled_date", "status"], name="ix_immu_sched_status"),
         ),
         migrations.AddConstraint(
             model_name="immunizationrecord",
@@ -695,9 +678,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="mcpsurveysession",
-            index=models.Index(
-                fields=["patient", "session_date"], name="ix_mcp_session_patient_date"
-            ),
+            index=models.Index(fields=["patient", "session_date"], name="ix_mcp_session_patient_date"),
         ),
         migrations.AddIndex(
             model_name="mcpsurveysession",
@@ -705,9 +686,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="pncvisit",
-            index=models.Index(
-                fields=["mother_patient", "visit_timing"], name="ix_pnc_mother_timing"
-            ),
+            index=models.Index(fields=["mother_patient", "visit_timing"], name="ix_pnc_mother_timing"),
         ),
         migrations.AddIndex(
             model_name="pncvisit",

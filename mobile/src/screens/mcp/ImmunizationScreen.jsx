@@ -62,9 +62,7 @@ export default function ImmunizationScreen() {
   useEffect(() => {
     try {
       if (!patient?.id) return undefined;
-      const rq = database.collections
-        .get("immunization_records")
-        .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
+      const rq = database.collections.get("immunization_records").query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
       const sub = rq.observe().subscribe(setRecords);
       return () => sub.unsubscribe();
     } catch (e) {
@@ -215,7 +213,7 @@ export default function ImmunizationScreen() {
 
   const fic = ficProgress(
     patient?.dateOfBirth,
-    records.filter((r) => r.isAdministered).map((r) => r.vaccineCode)
+    records.filter((r) => r.isAdministered).map((r) => r.vaccineCode),
   );
 
   return (

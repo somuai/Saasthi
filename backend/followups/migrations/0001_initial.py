@@ -8,7 +8,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -161,15 +160,11 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="followup",
-            index=models.Index(
-                fields=["worker", "scheduled_date"], name="ix_followup_worker_date"
-            ),
+            index=models.Index(fields=["worker", "scheduled_date"], name="ix_followup_worker_date"),
         ),
         migrations.AddIndex(
             model_name="followup",
-            index=models.Index(
-                fields=["patient", "status"], name="ix_followup_patient_status"
-            ),
+            index=models.Index(fields=["patient", "status"], name="ix_followup_patient_status"),
         ),
         migrations.AddIndex(
             model_name="followup",
@@ -177,14 +172,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="visitrecord",
-            index=models.Index(
-                fields=["worker", "visit_date"], name="ix_visit_worker_date"
-            ),
+            index=models.Index(fields=["worker", "visit_date"], name="ix_visit_worker_date"),
         ),
         migrations.AddIndex(
             model_name="visitrecord",
-            index=models.Index(
-                fields=["patient", "visit_date"], name="ix_visit_patient_date"
-            ),
+            index=models.Index(fields=["patient", "visit_date"], name="ix_visit_patient_date"),
         ),
     ]

@@ -37,10 +37,7 @@ export async function persistPendingLogin({ phone, locale }) {
 }
 
 export async function readPendingLogin() {
-  const [phone, locale] = await Promise.all([
-    AsyncStorage.getItem(AUTH_PENDING_PHONE_KEY),
-    AsyncStorage.getItem(AUTH_PENDING_LOCALE_KEY),
-  ]);
+  const [phone, locale] = await Promise.all([AsyncStorage.getItem(AUTH_PENDING_PHONE_KEY), AsyncStorage.getItem(AUTH_PENDING_LOCALE_KEY)]);
   return { phone: phone || "", locale: locale || "hi" };
 }
 
@@ -50,8 +47,5 @@ export async function clearPendingLogin() {
 
 export async function clearAuthSession() {
   await AsyncStorage.multiRemove([AUTH_USER_KEY, AUTH_WORKER_KEY, AUTH_PENDING_PHONE_KEY, AUTH_PENDING_LOCALE_KEY]);
-  await Promise.allSettled([
-    SecureStore.deleteItemAsync(SECURE_ACCESS_KEY),
-    SecureStore.deleteItemAsync(SECURE_REFRESH_KEY),
-  ]);
+  await Promise.allSettled([SecureStore.deleteItemAsync(SECURE_ACCESS_KEY), SecureStore.deleteItemAsync(SECURE_REFRESH_KEY)]);
 }

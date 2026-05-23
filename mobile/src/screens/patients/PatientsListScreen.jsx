@@ -76,11 +76,7 @@ export default function PatientsListScreen() {
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
         {FILTERS.map((c) => (
-          <Pressable
-            key={c.id}
-            onPress={() => setFilter(c.id)}
-            style={[styles.chip, filter === c.id && styles.chipOn]}
-          >
+          <Pressable key={c.id} onPress={() => setFilter(c.id)} style={[styles.chip, filter === c.id && styles.chipOn]}>
             <Text style={[styles.chipTxt, filter === c.id && styles.chipTxtOn]}>
               {c.hi} / {c.en}
             </Text>
@@ -96,9 +92,7 @@ export default function PatientsListScreen() {
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={
-          <Text style={styles.empty}>कोई मरीज नहीं / No patients yet — Add from +</Text>
-        }
+        ListEmptyComponent={<Text style={styles.empty}>कोई मरीज नहीं / No patients yet — Add from +</Text>}
         renderItem={({ item }) => <PatientCard patient={item} />}
       />
       <Pressable style={styles.fab} onPress={() => router.push("/(tabs)/patients/add")} accessibilityLabel="Add patient">

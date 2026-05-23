@@ -168,7 +168,9 @@ export default function GrowthScreen() {
         </Svg>
         {records.slice(-3).map((r) => (
           <View key={r.id} style={styles.row}>
-            <Text>{r.recordedDate?.slice(0, 10)} — {r.weightKg} kg</Text>
+            <Text>
+              {r.recordedDate?.slice(0, 10)} — {r.weightKg} kg
+            </Text>
             <Text style={styles.statusTag}>{nutritionLabel(r.nutritionStatus)}</Text>
           </View>
         ))}
@@ -177,11 +179,11 @@ export default function GrowthScreen() {
         <GovtInput labelHi="वजन (kg)" label="Weight kg" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
         <GovtInput labelHi="ऊंचाई (cm)" label="Height cm" value={height} onChangeText={setHeight} keyboardType="decimal-pad" />
         {previewZ != null ? (
-          <Text style={styles.z}>WFA z-score: {previewZ} — {nutritionLabel(previewStatus)}</Text>
+          <Text style={styles.z}>
+            WFA z-score: {previewZ} — {nutritionLabel(previewStatus)}
+          </Text>
         ) : null}
-        {(previewStatus === "sam" || previewStatus === "mam") && (
-          <Text style={styles.alert}>SAM/MAM flag — refer to AWC/PHC</Text>
-        )}
+        {(previewStatus === "sam" || previewStatus === "mam") && <Text style={styles.alert}>SAM/MAM flag — refer to AWC/PHC</Text>}
         <GovtButton titleHi="सहेजें" titleEn="Save" onPress={saveRecord} loading={saving} />
       </ScrollView>
     </View>

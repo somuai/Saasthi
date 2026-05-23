@@ -15,7 +15,9 @@ class HouseholdViewSet(viewsets.ModelViewSet):
     filterset_fields = ["region", "district", "block", "village"]
 
     def get_queryset(self):
-        return for_user_geography(Household.objects.all().order_by("-updated_at"), self.request.user)
+        return for_user_geography(
+            Household.objects.select_related("created_by").all().order_by("-updated_at"), self.request.user
+        )
 
     def perform_create(self, serializer):
         obj = serializer.save(created_by=self.request.user)
@@ -41,7 +43,12 @@ class PatientViewSet(viewsets.ModelViewSet):
     search_fields = ["full_name", "phone"]
 
     def get_queryset(self):
-        return for_user_geography(Patient.objects.all().order_by("-updated_at"), self.request.user)
+        return for_user_geography(
+            Patient.objects.select_related("household", "asha_worker", "mother_patient", "created_by")
+            .all()
+            .order_by("-updated_at"),
+            self.request.user,
+        )
 
     def perform_create(self, serializer):
         kwargs = {"created_by": self.request.user}
@@ -62,8 +69,13 @@ class PatientViewSet(viewsets.ModelViewSet):
 
     @action(detail=False, methods=["get"])
     def map_data(self, request):
-        qs = self.get_queryset().select_related("household").filter(
-            household__lat__isnull=False, household__lng__isnull=False,
+        qs = (
+            self.get_queryset()
+            .select_related("household")
+            .filter(
+                household__lat__isnull=False,
+                household__lng__isnull=False,
+            )
         )
         page = self.paginate_queryset(qs)
         if page is not None:

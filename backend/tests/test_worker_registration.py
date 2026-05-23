@@ -108,6 +108,7 @@ def test_patient_auto_assigns_asha_worker(api_client):
     worker = UserFactory()
     api_client.force_authenticate(user=worker)
     from registry.models import Patient
+
     resp = api_client.post(
         "/api/v1/registry/patients/",
         {"full_name": "Test Patient", "gender": "female"},
@@ -135,7 +136,9 @@ def test_unassigned_workers_endpoint(api_client):
 def test_claim_worker_creates_registration_and_activates(api_client):
     sup = SupervisorFactory()
     orphan = UserFactory(
-        phone="+919000000001", requires_review=True, is_active=False,
+        phone="+919000000001",
+        requires_review=True,
+        is_active=False,
     )
 
     api_client.force_authenticate(user=sup)

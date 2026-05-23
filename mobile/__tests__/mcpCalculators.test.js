@@ -34,8 +34,9 @@ describe("MCP immunization and growth helpers", () => {
       asOf: "2026-05-18T00:00:00.000Z",
     });
     expect(status.find((item) => item.code === "penta_1").status).toBe("overdue");
-    expect(getDueVaccines({ dob: "2026-03-01", givenCodes: ["bcg", "opv_0"], asOf: "2026-05-18T00:00:00.000Z" }))
-      .toEqual(expect.arrayContaining([expect.objectContaining({ code: "penta_1" })]));
+    expect(getDueVaccines({ dob: "2026-03-01", givenCodes: ["bcg", "opv_0"], asOf: "2026-05-18T00:00:00.000Z" })).toEqual(
+      expect.arrayContaining([expect.objectContaining({ code: "penta_1" })]),
+    );
   });
 
   it("calculates BMI and simplified growth status", () => {

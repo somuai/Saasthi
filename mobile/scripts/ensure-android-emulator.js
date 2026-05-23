@@ -12,7 +12,7 @@ if (!sdk) {
       "3. Device Manager → Create Virtual Device (e.g. Pixel 6, API 34)\n" +
       "4. Add to ~/.zshrc:\n" +
       "   export ANDROID_HOME=$HOME/Library/Android/sdk\n" +
-      "   export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools\n"
+      "   export PATH=$PATH:$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools\n",
   );
   process.exit(1);
 }
@@ -81,7 +81,7 @@ async function main() {
   if (avds.length === 0) {
     console.error(
       "\n[android] No AVD found. In Android Studio → Device Manager → Create Device\n" +
-        "  Name it Shaasthi_API_34 (API 34) or set ANDROID_AVD=YourAvdName\n"
+        "  Name it Shaasthi_API_34 (API 34) or set ANDROID_AVD=YourAvdName\n",
     );
     process.exit(1);
   }

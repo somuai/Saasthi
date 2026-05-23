@@ -78,10 +78,7 @@ class RuleValidator:
         field_path = rule_data.get("field_path", "")
         operator = rule_data.get("operator")
         expected = rule_data.get("value", {})
-        if isinstance(expected, dict) and "value" in expected:
-            expected_scalar = expected["value"]
-        else:
-            expected_scalar = expected
+        expected_scalar = expected["value"] if isinstance(expected, dict) and "value" in expected else expected
 
         for rule in self._active_rules_for_path(field_path):
             existing_expected = expected_value_from_rule(rule)
@@ -102,8 +99,7 @@ class RuleValidator:
                         conflicting_rule_id=rule.id,
                         conflict_type="overlapping",
                         message=(
-                            f"Overlaps with rule #{rule.id}: "
-                            f"{rule.field_path} {rule.operator} {existing_expected}."
+                            f"Overlaps with rule #{rule.id}: {rule.field_path} {rule.operator} {existing_expected}."
                         ),
                     )
                 )
@@ -126,8 +122,7 @@ class RuleValidator:
                     conflicting_rule_id=None,
                     conflict_type="missing_message",
                     message=(
-                        "Hard flag rules should have hard_flag_message_en "
-                        "to explain the emergency to ASHA workers."
+                        "Hard flag rules should have hard_flag_message_en to explain the emergency to ASHA workers."
                     ),
                 )
             )

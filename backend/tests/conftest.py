@@ -72,4 +72,5 @@ def patient(household, worker):
 @pytest.fixture
 def seed_risk_rules():
     from django.core.management import call_command
+
     call_command("seed_risk_rules")

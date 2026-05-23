@@ -132,22 +132,30 @@ def test_push_dedup_by_event_uuid(auth_client):
 def test_push_update_same_local_uuid(auth_client):
     """Different event_uuid, same local_uuid should update the record."""
     puid = uuid.uuid4()
-    create_payload = push_payload({
-        "patients": {
-            "created": [{"id": str(puid), "full_name": "Original", "gender": "female", "event_uuid": str(uuid.uuid4())}],
-            "updated": [],
-            "deleted": [],
+    create_payload = push_payload(
+        {
+            "patients": {
+                "created": [
+                    {"id": str(puid), "full_name": "Original", "gender": "female", "event_uuid": str(uuid.uuid4())}
+                ],
+                "updated": [],
+                "deleted": [],
+            }
         }
-    })
+    )
     auth_client.post("/api/v1/sync/push/", create_payload, format="json")
 
-    update_payload = push_payload({
-        "patients": {
-            "created": [],
-            "updated": [{"id": str(puid), "full_name": "Updated", "gender": "female", "event_uuid": str(uuid.uuid4())}],
-            "deleted": [],
+    update_payload = push_payload(
+        {
+            "patients": {
+                "created": [],
+                "updated": [
+                    {"id": str(puid), "full_name": "Updated", "gender": "female", "event_uuid": str(uuid.uuid4())}
+                ],
+                "deleted": [],
+            }
         }
-    })
+    )
     resp = auth_client.post("/api/v1/sync/push/", update_payload, format="json")
 
     assert resp.data["results"][0]["status"] == SyncEvent.Status.APPLIED
@@ -166,9 +174,7 @@ def test_push_delete_patient(auth_client):
     assert Patient.objects.filter(local_uuid=puid).exists()
 
     # Delete via sync
-    delete_payload = push_payload({
-        "patients": {"created": [], "updated": [], "deleted": [str(puid)]}
-    })
+    delete_payload = push_payload({"patients": {"created": [], "updated": [], "deleted": [str(puid)]}})
     resp = auth_client.post("/api/v1/sync/push/", delete_payload, format="json")
 
     assert resp.status_code == 200
@@ -181,22 +187,22 @@ def test_push_delete_household_soft(auth_client):
     huid = uuid.uuid4()
     auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "households": {
-                "created": [{"id": str(huid), "household_code": "HH-001"}],
-                "updated": [],
-                "deleted": [],
+        push_payload(
+            {
+                "households": {
+                    "created": [{"id": str(huid), "household_code": "HH-001"}],
+                    "updated": [],
+                    "deleted": [],
+                }
             }
-        }),
+        ),
         format="json",
     )
     assert Household.objects.filter(local_uuid=huid, is_active=True).exists()
 
     resp = auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "households": {"created": [], "updated": [], "deleted": [str(huid)]}
-        }),
+        push_payload({"households": {"created": [], "updated": [], "deleted": [str(huid)]}}),
         format="json",
     )
 
@@ -268,6 +274,7 @@ def test_push_survey_response_sets_synced_at(auth_client, sample_patient):
     }
     auth_client.post("/api/v1/sync/push/", push_payload(changes), format="json")
     from surveys.models import SurveyResponse
+
     sr = SurveyResponse.objects.get(local_uuid=suid)
     assert sr.synced_at is not None
 
@@ -283,9 +290,18 @@ def test_pull_returns_data(auth_client):
     assert "changes" in resp.data
     assert "timestamp" in resp.data
     all_tables = [
-        "patients", "households", "survey_responses", "follow_ups",
-        "flags", "referrals", "mother_records", "immunization_records",
-        "growth_records", "incentive_records", "anc_visit_records", "child_development",
+        "patients",
+        "households",
+        "survey_responses",
+        "follow_ups",
+        "flags",
+        "referrals",
+        "mother_records",
+        "immunization_records",
+        "growth_records",
+        "incentive_records",
+        "anc_visit_records",
+        "child_development",
     ]
     for table in all_tables:
         assert table in resp.data["changes"]
@@ -349,30 +365,37 @@ def test_push_household_fk_on_patient(auth_client):
     huid = uuid.uuid4()
     auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "households": {
-                "created": [{"id": str(huid), "household_code": "HH-FK"}],
-                "updated": [],
-                "deleted": [],
+        push_payload(
+            {
+                "households": {
+                    "created": [{"id": str(huid), "household_code": "HH-FK"}],
+                    "updated": [],
+                    "deleted": [],
+                }
             }
-        }),
+        ),
         format="json",
     )
 
     puid = uuid.uuid4()
     resp = auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "patients": {
-                "created": [{
-                    "id": str(puid),
-                    "full_name": "FK Patient",
-                    "household_id": str(huid),
-                    "village": "Test",
-                }],
-                "updated": [], "deleted": [],
+        push_payload(
+            {
+                "patients": {
+                    "created": [
+                        {
+                            "id": str(puid),
+                            "full_name": "FK Patient",
+                            "household_id": str(huid),
+                            "village": "Test",
+                        }
+                    ],
+                    "updated": [],
+                    "deleted": [],
+                }
             }
-        }),
+        ),
         format="json",
     )
 
@@ -501,9 +524,7 @@ def test_pull_deletes_include_sync_event_deletes(auth_client, sample_patient):
     # Delete the patient via sync push
     resp = auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "patients": {"created": [], "updated": [], "deleted": [str(puid)]}
-        }),
+        push_payload({"patients": {"created": [], "updated": [], "deleted": [str(puid)]}}),
         format="json",
     )
     assert resp.status_code == 200
@@ -520,12 +541,15 @@ def test_pull_household_deleted_via_is_active(auth_client):
     huid = uuid.uuid4()
     auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "households": {
-                "created": [{"id": str(huid), "household_code": "HH-DEL"}],
-                "updated": [], "deleted": [],
+        push_payload(
+            {
+                "households": {
+                    "created": [{"id": str(huid), "household_code": "HH-DEL"}],
+                    "updated": [],
+                    "deleted": [],
+                }
             }
-        }),
+        ),
         format="json",
     )
 
@@ -547,24 +571,30 @@ def test_push_and_pull_follow_up(auth_client, sample_patient):
 
     resp = auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "follow_ups": {
-                "created": [{
-                    "id": str(fuid),
-                    "patient_id": str(puid),
-                    "due_date": "2026-06-01",
-                    "urgency": "routine",
-                    "notes": "Test follow up",
-                }],
-                "updated": [], "deleted": [],
+        push_payload(
+            {
+                "follow_ups": {
+                    "created": [
+                        {
+                            "id": str(fuid),
+                            "patient_id": str(puid),
+                            "due_date": "2026-06-01",
+                            "urgency": "routine",
+                            "notes": "Test follow up",
+                        }
+                    ],
+                    "updated": [],
+                    "deleted": [],
+                }
             }
-        }),
+        ),
         format="json",
     )
     assert resp.status_code == 200
     assert resp.data["results"][0]["status"] == SyncEvent.Status.APPLIED
 
     from followups.models import FollowUp
+
     fu = FollowUp.objects.get(local_uuid=fuid)
     assert fu.patient_id == sample_patient.id
 
@@ -583,22 +613,28 @@ def test_push_and_pull_referral(auth_client, sample_patient):
 
     resp = auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "referrals": {
-                "created": [{
-                    "id": str(ruid),
-                    "patient_id": str(puid),
-                    "destination": "PHC Test",
-                    "reason": "High risk",
-                }],
-                "updated": [], "deleted": [],
+        push_payload(
+            {
+                "referrals": {
+                    "created": [
+                        {
+                            "id": str(ruid),
+                            "patient_id": str(puid),
+                            "destination": "PHC Test",
+                            "reason": "High risk",
+                        }
+                    ],
+                    "updated": [],
+                    "deleted": [],
+                }
             }
-        }),
+        ),
         format="json",
     )
     assert resp.status_code == 200
 
     from referrals.models import Referral
+
     ref = Referral.objects.get(local_uuid=ruid)
     assert ref.patient_id == sample_patient.id
 
@@ -617,18 +653,23 @@ def test_push_and_pull_flag(auth_client, sample_patient):
 
     resp = auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "flags": {
-                "created": [{
-                    "id": str(flag_uid),
-                    "patient_id": str(puid),
-                    "flag_type": "clinical_risk",
-                    "severity": "high",
-                    "source": "sync",
-                }],
-                "updated": [], "deleted": [],
+        push_payload(
+            {
+                "flags": {
+                    "created": [
+                        {
+                            "id": str(flag_uid),
+                            "patient_id": str(puid),
+                            "flag_type": "clinical_risk",
+                            "severity": "high",
+                            "source": "sync",
+                        }
+                    ],
+                    "updated": [],
+                    "deleted": [],
+                }
             }
-        }),
+        ),
         format="json",
     )
     assert resp.status_code == 200
@@ -648,22 +689,28 @@ def test_push_incentive_then_pull(auth_client):
 
     resp = auth_client.post(
         "/api/v1/sync/push/",
-        push_payload({
-            "incentive_records": {
-                "created": [{
-                    "id": str(iuid),
-                    "action_type": "survey_completion",
-                    "points": 10,
-                    "period_date": "2026-05",
-                }],
-                "updated": [], "deleted": [],
+        push_payload(
+            {
+                "incentive_records": {
+                    "created": [
+                        {
+                            "id": str(iuid),
+                            "action_type": "survey_completion",
+                            "points": 10,
+                            "period_date": "2026-05",
+                        }
+                    ],
+                    "updated": [],
+                    "deleted": [],
+                }
             }
-        }),
+        ),
         format="json",
     )
     assert resp.status_code == 200
 
     from incentives.models import IncentiveLedgerEntry
+
     entry = IncentiveLedgerEntry.objects.get(local_uuid=iuid)
     assert entry.activity_type == "survey_completion"
 

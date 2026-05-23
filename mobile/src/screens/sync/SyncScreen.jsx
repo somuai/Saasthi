@@ -98,9 +98,7 @@ export default function SyncScreen() {
       <Text style={styles.sub}>आखरी सिंक / Last sync: {timeAgo(lastSyncedAt)}</Text>
       <View style={styles.netRow}>
         <View style={[styles.netDot, { backgroundColor: isOnline ? COLORS.success : COLORS.danger }]} />
-        <Text style={styles.netTxt}>
-          {isOnline ? "ऑनलाइन / Online" : "ऑफलाइन / Offline"}
-        </Text>
+        <Text style={styles.netTxt}>{isOnline ? "ऑनलाइन / Online" : "ऑफलाइन / Offline"}</Text>
       </View>
       <Text style={styles.api}>API: {API_BASE_URL}</Text>
       <View style={styles.card}>
@@ -110,9 +108,7 @@ export default function SyncScreen() {
           <View style={[styles.progressFill, { width: `${syncedPct}%` }]} />
         </View>
         <Text style={styles.progressLbl}>{syncedPct}% synced (estimate)</Text>
-        {isOfflinePilot ? (
-          <Text style={styles.warn}>पायलट ऑफलाइन लॉगिन — सर्वर OTP से सिंक चालू करें</Text>
-        ) : null}
+        {isOfflinePilot ? <Text style={styles.warn}>पायलट ऑफलाइन लॉगिन — सर्वर OTP से सिंक चालू करें</Text> : null}
         {lastError ? <Text style={styles.err}>{formatSyncFailureMessage(lastError)}</Text> : null}
       </View>
 
@@ -140,11 +136,7 @@ export default function SyncScreen() {
         <Text style={styles.allClear}>सब सिंक है / All records synced</Text>
       )}
 
-      <Pressable
-        style={[styles.btn, (!isOnline || isSyncing) && styles.btnDis]}
-        disabled={!isOnline || isSyncing}
-        onPress={runSync}
-      >
+      <Pressable style={[styles.btn, (!isOnline || isSyncing) && styles.btnDis]} disabled={!isOnline || isSyncing} onPress={runSync}>
         <Text style={styles.btnTxt}>{isSyncing ? "सिंक हो रहा है…" : "अभी सिंक करें / Sync Now"}</Text>
       </Pressable>
 

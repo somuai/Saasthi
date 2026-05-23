@@ -1,4 +1,5 @@
 """Risk engine tests — hard flags, scoring, snapshot, categories, temporal."""
+
 from datetime import date, timedelta
 
 import pytest
@@ -10,6 +11,7 @@ from risk_engine.engine import (
     resolve_path,
 )
 from risk_engine.models import RiskRule
+
 from tests.factories import PatientFactory, RiskRuleFactory, SurveyResponseFactory
 
 # ── Resolve Path ──────────────────────────────────────────────────────
@@ -331,7 +333,17 @@ class TestRulesSnapshot:
         result = engine.evaluate(patient, None)
         if result.rules_snapshot:
             entry = result.rules_snapshot[0]
-            for key in ("id", "code", "field_path", "operator", "weight", "category", "is_hard_flag", "rule_label_en", "rule_label_hi"):
+            for key in (
+                "id",
+                "code",
+                "field_path",
+                "operator",
+                "weight",
+                "category",
+                "is_hard_flag",
+                "rule_label_en",
+                "rule_label_hi",
+            ):
                 assert key in entry
 
 
@@ -378,6 +390,7 @@ class TestExplanations:
 class TestTemporalSafety:
     def test_rule_created_after_survey_excluded(self, seed_risk_rules):
         from django.utils import timezone
+
         engine = RiskEngine()
         patient = PatientFactory()
         survey = SurveyResponseFactory(
@@ -447,6 +460,7 @@ class TestRecommendations:
 
     def test_recommendations_have_hindi(self, seed_risk_rules):
         import re
+
         patient = PatientFactory()
         engine = RiskEngine()
         result = engine.evaluate(patient, None)

@@ -25,9 +25,9 @@ export function getANCDueDates(lmpDate) {
 export function calculateANCStatus(ancVisits = []) {
   const completed = ancVisits.filter((v) => v?.visitDate).length;
   const target = 4;
-  const sorted = [...ancVisits].filter((v) => v?.visitDate).sort(
-    (a, b) => parseISO(a.visitDate).getTime() - parseISO(b.visitDate).getTime()
-  );
+  const sorted = [...ancVisits]
+    .filter((v) => v?.visitDate)
+    .sort((a, b) => parseISO(a.visitDate).getTime() - parseISO(b.visitDate).getTime());
   const last = sorted[sorted.length - 1];
   const nextDue = last ? addDays(parseISO(last.visitDate), 56) : null;
   return {

@@ -52,8 +52,7 @@ export function prefillHistoryFromPatient(form, patient) {
     hospitalizedLastYear: patient.hospitalizedLastYear ?? form.hospitalizedLastYear,
     regularMedicines: patient.regularMedicines ?? form.regularMedicines,
     medicinesName: patient.medicinesName || form.medicinesName,
-    chronicKnownBpDm:
-      patient.hasDiabetes || patient.hasHypertension || form.chronicKnownBpDm,
+    chronicKnownBpDm: patient.hasDiabetes || patient.hasHypertension || form.chronicKnownBpDm,
     previousCSection: form.previousCSection,
   };
 }
@@ -121,8 +120,7 @@ export function detectTbRisk(form) {
 }
 
 export function computeSubmitSideEffects(form, riskResult, patient) {
-  const hasSerious =
-    form.seriousBreathing || form.seriousChestPain || form.seriousUnableWalk || form.seriousPregnancyComp;
+  const hasSerious = form.seriousBreathing || form.seriousChestPain || form.seriousUnableWalk || form.seriousPregnancyComp;
   const tbRisk = detectTbRisk(form);
   const flags = [];
   const followUps = [];

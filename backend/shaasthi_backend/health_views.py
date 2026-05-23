@@ -10,6 +10,7 @@ def health_check(request):
     data = {"status": "ok", "version": getattr(settings, "APP_VERSION", "0.1.0")}
     try:
         from django.db import connections
+
         connections["default"].cursor().execute("SELECT 1")
         data["database"] = "ok"
     except Exception as exc:
@@ -19,6 +20,7 @@ def health_check(request):
 
     try:
         from celery import current_app
+
         insp = current_app.control.inspect()
         ping = insp.ping()
         if ping:

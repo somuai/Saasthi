@@ -59,6 +59,9 @@ class OTPChallenge(models.Model):
     def is_valid(self):
         return self.consumed_at is None and self.expires_at > timezone.now() and self.attempts < 5
 
+    def __str__(self):
+        return f"OTP to {self.phone} for {self.purpose}"
+
 
 class AuthSession(models.Model):
     worker = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="auth_sessions", on_delete=models.CASCADE)
@@ -87,9 +90,12 @@ class WorkerRegistration(models.Model):
     phone = models.CharField(max_length=32, unique=True, db_index=True)
     full_name = models.CharField(max_length=255)
     supervisor = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name="registered_workers",
+        User,
+        on_delete=models.CASCADE,
+        related_name="registered_workers",
         limit_choices_to={"role": "supervisor"},
-        null=True, blank=True,
+        null=True,
+        blank=True,
     )
     village = models.CharField(max_length=120, blank=True, default="")
     block = models.CharField(max_length=120, blank=True, default="")
@@ -97,7 +103,11 @@ class WorkerRegistration(models.Model):
     region = models.CharField(max_length=120, blank=True, default="")
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(
-        User, on_delete=models.SET_NULL, null=True, blank=True, related_name="+",
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="+",
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -127,3 +137,6 @@ class AuditLog(models.Model):
             models.Index(fields=["action", "created_at"], name="ix_audit_action_created"),
             models.Index(fields=["actor", "created_at"], name="ix_audit_actor_created"),
         ]
+
+    def __str__(self):
+        return f"{self.action} on {self.resource_type}#{self.resource_id} by {self.actor_id}"

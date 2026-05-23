@@ -1,4 +1,5 @@
 """MCP clinical tests — maternal/child hard flags, WHO z-scores, immunizations, feature extractor."""
+
 from datetime import date, timedelta
 
 import numpy as np
@@ -7,6 +8,7 @@ from mcp.models import (
     DevelopmentMilestoneCheck,
 )
 from risk_engine.mcp_feature_extractor import MCPFeatureExtractor
+
 from tests.factories import (
     ANCVisitFactory,
     GrowthRecordFactory,
@@ -24,13 +26,16 @@ class TestMaternalHardFlags:
     def test_severe_anaemia_hard_flag_hb_below_7(self, seed_risk_rules):
         anc = ANCVisitFactory(hemoglobin_gms=6.8)
         from risk_engine.engine import RiskEngine
+
         engine = RiskEngine()
         result = engine.evaluate(anc.patient, None)
         assert result.triggered_by_hard_flag is False
 
     def test_absent_fetal_movements_survey_hard_flag(self, seed_risk_rules):
         from risk_engine.engine import RiskEngine
+
         from tests.factories import SurveyResponseFactory
+
         patient = PatientFactory()
         survey = SurveyResponseFactory(answers={"reduced_fetal_movement": True})
         engine = RiskEngine()
@@ -40,13 +45,16 @@ class TestMaternalHardFlags:
     def test_severe_hypertension_hard_flag_bp_over_160(self, seed_risk_rules):
         anc = ANCVisitFactory(bp_systolic=165, bp_diastolic=112)
         from risk_engine.engine import RiskEngine
+
         engine = RiskEngine()
         result = engine.evaluate(anc.patient, None)
         assert result.triggered_by_hard_flag is False
 
     def test_reduced_fetal_movement_triggered(self, seed_risk_rules):
         from risk_engine.engine import RiskEngine
+
         from tests.factories import SurveyResponseFactory
+
         patient = PatientFactory()
         survey = SurveyResponseFactory(answers={"reduced_fetal_movement": True})
         engine = RiskEngine()
@@ -56,7 +64,9 @@ class TestMaternalHardFlags:
 
     def test_moderate_anaemia_scores_but_not_hard_flag(self, seed_risk_rules):
         from risk_engine.engine import RiskEngine
+
         from tests.factories import SurveyResponseFactory
+
         patient = PatientFactory()
         survey = SurveyResponseFactory(answers={"fever": True})
         engine = RiskEngine()
@@ -65,6 +75,7 @@ class TestMaternalHardFlags:
 
     def test_normal_pregnancy_low_risk(self, seed_risk_rules):
         from risk_engine.engine import RiskEngine
+
         patient = PatientFactory(
             metadata={"pregnancy_status": True},
             anc_visit_count=3,
@@ -86,6 +97,7 @@ class TestMaternalHardFlags:
 class TestChildHardFlags:
     def test_severe_acute_malnutrition_flag(self, seed_risk_rules):
         from risk_engine.engine import RiskEngine
+
         growth = GrowthRecordFactory(
             wfa_z_score=-3.5,
             nutritional_status="severe_underweight",
@@ -96,6 +108,7 @@ class TestChildHardFlags:
 
     def test_moderate_underweight_not_hard_flag(self, seed_risk_rules):
         from risk_engine.engine import RiskEngine
+
         growth = GrowthRecordFactory(
             wfa_z_score=-2.3,
             nutritional_status="mod_underweight",
@@ -106,7 +119,9 @@ class TestChildHardFlags:
 
     def test_newborn_convulsions_flag(self, seed_risk_rules):
         from risk_engine.engine import RiskEngine
+
         from tests.factories import SurveyResponseFactory
+
         patient = PatientFactory()
         survey = SurveyResponseFactory(answers={"convulsions": True})
         engine = RiskEngine()
@@ -224,21 +239,25 @@ class TestMCPFeatureExtractor:
 class TestImmunizationSchedule:
     def test_bcg_at_birth(self):
         from risk_engine.scripts.seed_mcp_risk_rules import HARD_FLAG_RULES
+
         bcg_counts = [r for r in HARD_FLAG_RULES if "bleeding" in r.get("code", "")]
         assert len(bcg_counts) >= 1
 
     def test_mcp_hard_flags_defined_for_maternal(self):
         from risk_engine.scripts.seed_mcp_risk_rules import HARD_FLAG_RULES
+
         maternal_flags = [r for r in HARD_FLAG_RULES if r.get("category") == "maternal"]
         assert len(maternal_flags) >= 4
 
     def test_mcp_hard_flags_have_hindi(self):
         from risk_engine.scripts.seed_mcp_risk_rules import HARD_FLAG_RULES
+
         for flag in HARD_FLAG_RULES:
             assert flag.get("hard_flag_message_hi")
 
     def test_mcp_scoring_rules_have_hindi_labels(self):
         from risk_engine.scripts.seed_mcp_risk_rules import SCORING_RULES
+
         for rule in SCORING_RULES:
             assert rule.get("rule_label_hi"), f"Missing Hindi for {rule.get('code')}"
 
@@ -252,13 +271,16 @@ class TestPNCClinical:
     def test_normal_pnc_no_hard_flag(self, seed_risk_rules):
         pnc = PNCVisitFactory()
         from risk_engine.engine import RiskEngine
+
         engine = RiskEngine()
         result = engine.evaluate(pnc.mother_patient, None)
         assert result.triggered_by_hard_flag is False
 
     def test_pnc_baby_convulsions_in_survey(self, seed_risk_rules):
         from risk_engine.engine import RiskEngine
+
         from tests.factories import SurveyResponseFactory
+
         patient = PatientFactory()
         survey = SurveyResponseFactory(answers={"convulsions": True})
         engine = RiskEngine()
@@ -274,5 +296,6 @@ class TestPNCClinical:
 class TestWHOGrowth:
     def test_mcp_hard_flags_have_hindi_messages(self):
         from risk_engine.scripts.seed_mcp_risk_rules import HARD_FLAG_RULES
+
         for flag in HARD_FLAG_RULES:
             assert flag.get("hard_flag_message_hi")

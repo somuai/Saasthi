@@ -1,14 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDispatch } from "react-redux";
@@ -18,13 +9,7 @@ import { endpoints } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
 import { OtpInputRow } from "../../components/OtpInputRow";
 import { TricolorStripe } from "../../components/TricolorStripe";
-import {
-  verifyOtp,
-  setTokens,
-  setUser,
-  setWorkerData,
-  setOfflinePilotSession,
-} from "../../features/auth/authSlice";
+import { verifyOtp, setTokens, setUser, setWorkerData, setOfflinePilotSession } from "../../features/auth/authSlice";
 import {
   isInvalidOtpError,
   clearPendingLogin,
@@ -264,25 +249,14 @@ export default function OtpScreen() {
               <Text style={styles.devHintTxt}>Dev OTP: {devOtp} (tap to fill)</Text>
             </Pressable>
           ) : null}
-          <OtpInputRow
-            value={otp}
-            onChange={setOtp}
-            onComplete={handleVerify}
-            autoFocus
-          />
+          <OtpInputRow value={otp} onChange={setOtp} onComplete={handleVerify} autoFocus />
           {error ? <Text style={styles.error}>{error}</Text> : null}
           {canResend ? (
             <Pressable onPress={handleResend} disabled={resending} style={styles.resendBtn}>
-              {resending ? (
-                <ActivityIndicator color={COLORS.accent} />
-              ) : (
-                <Text style={styles.resendActive}>फिर से भेजें / Resend OTP</Text>
-              )}
+              {resending ? <ActivityIndicator color={COLORS.accent} /> : <Text style={styles.resendActive}>फिर से भेजें / Resend OTP</Text>}
             </Pressable>
           ) : (
-            <Text style={styles.resend}>
-              OTP फिर से भेजें / Resend in 0:{String(timer).padStart(2, "0")}
-            </Text>
+            <Text style={styles.resend}>OTP फिर से भेजें / Resend in 0:{String(timer).padStart(2, "0")}</Text>
           )}
           <Pressable
             style={[styles.verify, otp.length < 6 || loading ? styles.verifyDisabled : null]}

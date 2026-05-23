@@ -10,16 +10,8 @@ export function UpdateRequiredScreen({ updateUrl }) {
     <View style={styles.root}>
       <Ionicons name="cloud-offline-outline" size={64} color={COLORS.warning} />
       <Text style={styles.heading}>अपडेट आवश्यक / Update Required</Text>
-      <Text style={styles.body}>
-        कृपया नया संस्करण डाउनलोड करें / Please download the latest version.
-      </Text>
-      {updateUrl && (
-        <GovtButton
-          titleHi="अपडेट करें"
-          titleEn="Update"
-          onPress={() => Linking.openURL(updateUrl)}
-        />
-      )}
+      <Text style={styles.body}>कृपया नया संस्करण डाउनलोड करें / Please download the latest version.</Text>
+      {updateUrl && <GovtButton titleHi="अपडेट करें" titleEn="Update" onPress={() => Linking.openURL(updateUrl)} />}
     </View>
   );
 }

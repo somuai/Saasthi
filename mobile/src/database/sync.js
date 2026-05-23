@@ -140,9 +140,7 @@ export async function syncWithServer() {
           device_id: await getDeviceId(),
           app_version: Constants.expoConfig?.version || "0.1.0",
         });
-        const pushErrors = (data?.results || []).filter(
-          (r) => r.status === "error"
-        );
+        const pushErrors = (data?.results || []).filter((r) => r.status === "error");
         if (pushErrors.length > 0) {
           const errorList = pushErrors.map((r) => ({
             id: r.local_uuid,

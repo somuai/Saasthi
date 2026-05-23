@@ -143,10 +143,7 @@ export default function FollowupsScreen() {
           const on = d === selectedDay;
           const overdue = d < today && count > 0;
           return (
-            <Pressable
-              style={[styles.dayChip, on && styles.dayChipOn, overdue && styles.dayChipLate]}
-              onPress={() => setSelectedDay(d)}
-            >
+            <Pressable style={[styles.dayChip, on && styles.dayChipOn, overdue && styles.dayChipLate]} onPress={() => setSelectedDay(d)}>
               <Text style={[styles.dayTxt, on && styles.dayTxtOn]}>{d.slice(8)}</Text>
               <Text style={[styles.dayMo, on && styles.dayTxtOn]}>{d.slice(5, 7)}</Text>
               {count > 0 ? <View style={styles.dot} /> : null}
@@ -160,9 +157,7 @@ export default function FollowupsScreen() {
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={
-          <Text style={styles.empty}>इस दिन कोई फॉलो-अप नहीं / No follow-ups on {selectedDay}</Text>
-        }
+        ListEmptyComponent={<Text style={styles.empty}>इस दिन कोई फॉलो-अप नहीं / No follow-ups on {selectedDay}</Text>}
         renderItem={({ item }) => {
           const p = patients[item.patientId];
           const overdue = item.dueDate < today;

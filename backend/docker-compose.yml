@@ -84,6 +84,24 @@ services:
     volumes:
       - .:/app
 
+  celery_beat:
+    build: .
+    command: celery -A shaasthi_backend beat -l info --schedule=/data/celerybeat-schedule
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-false}
+      DATABASE_URL: ${DATABASE_URL:-postgres://shaasthi:shaasthi@db:5432/shaasthi}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL:-redis://redis:6379/0}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/app
+      - shaasthi_beat_data:/data
+
   nginx:
     profiles: ["prod"]
     image: nginx:1.27-alpine
@@ -96,3 +114,4 @@ services:
 
 volumes:
   shaasthi_postgres:
+  shaasthi_beat_data:

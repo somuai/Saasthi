@@ -5,9 +5,7 @@ const contractsDir = path.resolve(__dirname, "../../contracts");
 
 describe("sync contract fixtures", () => {
   it("pull response matches Watermelon table keys", () => {
-    const pull = JSON.parse(
-      fs.readFileSync(path.join(contractsDir, "sync-watermelon-pull.example.json"), "utf8")
-    );
+    const pull = JSON.parse(fs.readFileSync(path.join(contractsDir, "sync-watermelon-pull.example.json"), "utf8"));
     expect(pull).toHaveProperty("timestamp");
     expect(pull).toHaveProperty("changes");
     const expected = [
@@ -26,7 +24,7 @@ describe("sync contract fixtures", () => {
     ];
     for (const table of expected) {
       expect(pull.changes[table]).toEqual(
-        expect.objectContaining({ created: expect.any(Array), updated: expect.any(Array), deleted: expect.any(Array) })
+        expect.objectContaining({ created: expect.any(Array), updated: expect.any(Array), deleted: expect.any(Array) }),
       );
     }
   });

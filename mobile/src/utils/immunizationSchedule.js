@@ -62,9 +62,7 @@ export function getDaysOverdue(dueDate) {
 /** administeredList: array of vaccine_code strings */
 export function getNextDueVaccine(vaccineDates, administeredList = []) {
   const admin = new Set(administeredList);
-  const entries = Object.entries(vaccineDates).sort(
-    ([, a], [, b]) => toDate(a).getTime() - toDate(b).getTime()
-  );
+  const entries = Object.entries(vaccineDates).sort(([, a], [, b]) => toDate(a).getTime() - toDate(b).getTime());
   for (const [code, due] of entries) {
     if (!admin.has(code) && !isBefore(toDate(due), addDays(new Date(), -1))) {
       return { code, dueDate: toDate(due) };

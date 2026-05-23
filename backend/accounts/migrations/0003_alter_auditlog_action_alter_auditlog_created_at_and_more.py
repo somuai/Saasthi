@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0002_authsession"),
     ]
@@ -73,14 +72,10 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="auditlog",
-            index=models.Index(
-                fields=["action", "created_at"], name="ix_audit_action_created"
-            ),
+            index=models.Index(fields=["action", "created_at"], name="ix_audit_action_created"),
         ),
         migrations.AddIndex(
             model_name="auditlog",
-            index=models.Index(
-                fields=["actor", "created_at"], name="ix_audit_actor_created"
-            ),
+            index=models.Index(fields=["actor", "created_at"], name="ix_audit_actor_created"),
         ),
     ]

@@ -6,9 +6,7 @@ def backfill_orphaned_users(apps, schema_editor):
     FollowUp = apps.get_model("followups", "FollowUp")
     Patient = apps.get_model("registry", "Patient")
 
-    orphaned = User.objects.filter(
-        role="health_worker", is_active=False, requires_review=True
-    ).order_by("id")
+    orphaned = User.objects.filter(role="health_worker", is_active=False, requires_review=True).order_by("id")
 
     for user in orphaned:
         phone = user.phone

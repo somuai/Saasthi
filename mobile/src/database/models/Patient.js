@@ -50,9 +50,7 @@ export default class Patient extends Model {
 
   @relation("households", "household_id") household;
 
-  @lazy surveys = this.collections
-    .get("survey_responses")
-    .query(Q.where("patient_id", this.id), Q.sortBy("created_at", Q.desc));
+  @lazy surveys = this.collections.get("survey_responses").query(Q.where("patient_id", this.id), Q.sortBy("created_at", Q.desc));
 
   @lazy openFollowUps = this.collections
     .get("follow_ups")

@@ -85,9 +85,7 @@ class RiskRuleViewSet(viewsets.ModelViewSet):
 
         from .engine import compare, resolve_path
 
-        surveys = list(
-            SurveyResponse.objects.select_related("patient").order_by("-created_at")[:sample_size]
-        )
+        surveys = list(SurveyResponse.objects.select_related("patient").order_by("-created_at")[:sample_size])
         would_fire_count = 0
         sample_matches = []
 
@@ -95,10 +93,7 @@ class RiskRuleViewSet(viewsets.ModelViewSet):
             patient = survey.patient
             actual_value = resolve_path(patient, survey, data["field_path"])
             expected = data.get("value") or {}
-            if isinstance(expected, dict) and "value" in expected:
-                expected_scalar = expected["value"]
-            else:
-                expected_scalar = expected
+            expected_scalar = expected["value"] if isinstance(expected, dict) and "value" in expected else expected
             if compare(actual_value, data["operator"], expected_scalar):
                 would_fire_count += 1
                 if len(sample_matches) < 5:
@@ -164,9 +159,7 @@ class RiskAssessmentViewSet(viewsets.ModelViewSet):
         if not for_user_geography(Patient.objects.filter(pk=patient.pk), request.user).exists():
             raise PermissionDenied("No access to this patient")
 
-        assessment = (
-            self.get_queryset().filter(patient=patient).order_by("-created_at").first()
-        )
+        assessment = self.get_queryset().filter(patient=patient).order_by("-created_at").first()
         if not assessment:
             raise NotFound("No assessment found for this patient")
         return Response(build_assessment_response(assessment))
@@ -190,9 +183,7 @@ class RiskAssessmentViewSet(viewsets.ModelViewSet):
         if not for_user_geography(Patient.objects.filter(pk=patient.pk), request.user).exists():
             raise PermissionDenied("No access to this patient")
 
-        latest_assessment = (
-            RiskAssessment.objects.filter(patient=patient).order_by("-created_at").first()
-        )
+        latest_assessment = RiskAssessment.objects.filter(patient=patient).order_by("-created_at").first()
 
         patient_context = {
             "name": patient.full_name,
@@ -205,8 +196,8 @@ class RiskAssessmentViewSet(viewsets.ModelViewSet):
                 "level": latest_assessment.risk_level,
                 "normalized_score": latest_assessment.normalized_score,
                 "explanations": [
-                    {"name": r.rule_label_en, "rule_label_hi": r.rule_label_hi}
-                    for r in latest_assessment.triggered_rules.all()
+                    {"name": r.get("rule_label_en", r.get("name", "")), "rule_label_hi": r.get("rule_label_hi", "")}
+                    for r in latest_assessment.explanations
                 ],
                 "triggered_by_hard_flag": latest_assessment.triggered_by_hard_flag,
             }
@@ -215,7 +206,10 @@ class RiskAssessmentViewSet(viewsets.ModelViewSet):
         photo_base64 = request.data.get("photo_base64")
 
         recommendation = gemma_service.generate(
-            patient_context, assessment_dict, photo_base64, population,
+            patient_context,
+            assessment_dict,
+            photo_base64,
+            population,
         )
         if not recommendation:
             return Response(

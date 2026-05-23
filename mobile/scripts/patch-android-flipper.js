@@ -31,7 +31,7 @@ function patchAndroidFlipper(androidProjectRoot = path.join(__dirname, "..", "an
     source = source.replace(/\nimport com\.facebook\.react\.flipper\.ReactNativeFlipper\n/, "\n");
     source = source.replace(
       /\n    if \(BuildConfig\.DEBUG\) \{\n      ReactNativeFlipper\.initializeFlipper\(this, reactNativeHost\.reactInstanceManager\)\n    \}\n/,
-      "\n"
+      "\n",
     );
     fs.writeFileSync(mainApplicationPath, source, "utf8");
   }

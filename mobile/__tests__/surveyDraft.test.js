@@ -16,12 +16,7 @@ describe("surveyDraft", () => {
 
   it("prefers saved draft over patient prefill", () => {
     const draft = { ashaObservation: "draft note", hospitalizedLastYear: false };
-    const form = mergeDraftOrPrefill(
-      JSON.stringify(draft),
-      patient,
-      emptySurveyForm,
-      prefillHistoryFromPatient
-    );
+    const form = mergeDraftOrPrefill(JSON.stringify(draft), patient, emptySurveyForm, prefillHistoryFromPatient);
     expect(form.ashaObservation).toBe("draft note");
     expect(form.hospitalizedLastYear).toBe(false);
     expect(form.medicinesName).toBe("");

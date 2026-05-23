@@ -1,7 +1,6 @@
-from django.core.management.base import BaseCommand
-from django.utils import timezone
-
 from accounts.models import User
+from django.core.management.base import BaseCommand
+
 from notifications.services import send_fcm_notification
 
 

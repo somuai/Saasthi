@@ -97,9 +97,8 @@ class RiskAssessmentResponseSerializer(serializers.Serializer):
 
 
 def build_assessment_response(assessment: RiskAssessment) -> dict:
-    assessment = (
-        RiskAssessment.objects.select_related("patient", "patient__household", "hard_flag_rule")
-        .get(pk=assessment.pk)
+    assessment = RiskAssessment.objects.select_related("patient", "patient__household", "hard_flag_rule").get(
+        pk=assessment.pk
     )
     data = RiskAssessmentResponseSerializer(assessment).data
     # Backward-compatible aliases for legacy clients

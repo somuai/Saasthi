@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("incentives", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -31,9 +30,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="incentiveledgerentry",
             name="amount_paise",
-            field=models.PositiveIntegerField(
-                default=0, help_text="Amount in paise (rupees × 100)"
-            ),
+            field=models.PositiveIntegerField(default=0, help_text="Amount in paise (rupees × 100)"),
         ),
         migrations.AddField(
             model_name="incentiveledgerentry",
@@ -58,9 +55,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="incentiveledgerentry",
             name="month_year",
-            field=models.CharField(
-                blank=True, db_index=True, help_text="e.g. 2026-05", max_length=7
-            ),
+            field=models.CharField(blank=True, db_index=True, help_text="e.g. 2026-05", max_length=7),
         ),
         migrations.AddField(
             model_name="incentiveledgerentry",
@@ -106,9 +101,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="incentiveledgerentry",
-            index=models.Index(
-                fields=["worker", "month_year"], name="ix_incentive_worker_month"
-            ),
+            index=models.Index(fields=["worker", "month_year"], name="ix_incentive_worker_month"),
         ),
         migrations.AddIndex(
             model_name="incentiveledgerentry",

@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0004_worker_registration"),
     ]
@@ -13,8 +12,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="user",
             name="requires_review",
-            field=models.BooleanField(
-                default=False, help_text="Flagged for ANM review during backfill"
-            ),
+            field=models.BooleanField(default=False, help_text="Flagged for ANM review during backfill"),
         ),
     ]

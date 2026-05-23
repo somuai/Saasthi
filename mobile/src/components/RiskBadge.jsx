@@ -36,7 +36,7 @@ export function RiskBadge({ risk, riskLevel, score, showScore, size = "md" }) {
       Animated.sequence([
         Animated.timing(pulse, { toValue: 1.08, duration: 600, useNativeDriver: true }),
         Animated.timing(pulse, { toValue: 1, duration: 600, useNativeDriver: true }),
-      ])
+      ]),
     );
     loop.start();
     return () => loop.stop();

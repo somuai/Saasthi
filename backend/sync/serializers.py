@@ -11,8 +11,14 @@ class SyncEventSerializer(serializers.ModelSerializer):
 
 
 MODEL_CHOICES = [
-    "patient", "household", "survey_response", "follow_up",
-    "flag", "referral", "care_interaction", "incentive_ledger_entry",
+    "patient",
+    "household",
+    "survey_response",
+    "follow_up",
+    "flag",
+    "referral",
+    "care_interaction",
+    "incentive_ledger_entry",
 ]
 
 

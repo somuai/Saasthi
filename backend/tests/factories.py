@@ -20,39 +20,94 @@ from risk_engine.models import RiskRule
 from surveys.models import SurveyResponse
 
 INDIAN_VILLAGES = [
-    "Bagbera", "Rampur", "Sitapur", "Jagdishpur", "Maholi",
-    "Khanpur", "Tikaitnagar", "Firozabad", "Biswan", "Laharpur",
+    "Bagbera",
+    "Rampur",
+    "Sitapur",
+    "Jagdishpur",
+    "Maholi",
+    "Khanpur",
+    "Tikaitnagar",
+    "Firozabad",
+    "Biswan",
+    "Laharpur",
 ]
 INDIAN_BLOCKS = [
-    "Barhampur", "Misrikh", "Mahmoodabad", "Biswan", "Laharpur",
-    "Siddhaur", "Hargaon", "Reusa", "Pariyar", "Gondlamau",
+    "Barhampur",
+    "Misrikh",
+    "Mahmoodabad",
+    "Biswan",
+    "Laharpur",
+    "Siddhaur",
+    "Hargaon",
+    "Reusa",
+    "Pariyar",
+    "Gondlamau",
 ]
 INDIAN_DISTRICTS = [
-    "Sitapur", "Barabanki", "Lucknow", "Unnao", "Hardoi",
-    "Lakhimpur Kheri", "Rae Bareli", "Faizabad", "Sultanpur", "Bahraich",
+    "Sitapur",
+    "Barabanki",
+    "Lucknow",
+    "Unnao",
+    "Hardoi",
+    "Lakhimpur Kheri",
+    "Rae Bareli",
+    "Faizabad",
+    "Sultanpur",
+    "Bahraich",
 ]
 INDIAN_FIRST_NAMES = [
-    "Sunita", "Priya", "Anita", "Rekha", "Kavita", "Sarita", "Geeta",
-    "Neha", "Pooja", "Sneha", "Manju", "Shanti", "Usha", "Radha", "Sita",
+    "Sunita",
+    "Priya",
+    "Anita",
+    "Rekha",
+    "Kavita",
+    "Sarita",
+    "Geeta",
+    "Neha",
+    "Pooja",
+    "Sneha",
+    "Manju",
+    "Shanti",
+    "Usha",
+    "Radha",
+    "Sita",
 ]
 INDIAN_LAST_NAMES = [
-    "Devi", "Kumari", "Singh", "Verma", "Gupta", "Sharma", "Yadav",
-    "Patel", "Khan", "Begum",
+    "Devi",
+    "Kumari",
+    "Singh",
+    "Verma",
+    "Gupta",
+    "Sharma",
+    "Yadav",
+    "Patel",
+    "Khan",
+    "Begum",
 ]
 INDIAN_MALE_NAMES = [
-    "Rajesh", "Suresh", "Ramesh", "Dinesh", "Manoj", "Sanjay",
-    "Vijay", "Amit", "Rahul", "Deepak",
+    "Rajesh",
+    "Suresh",
+    "Ramesh",
+    "Dinesh",
+    "Manoj",
+    "Sanjay",
+    "Vijay",
+    "Amit",
+    "Rahul",
+    "Deepak",
 ]
 
 
 def indian_name(gender="female"):
     first = INDIAN_FIRST_NAMES if gender == "female" else INDIAN_MALE_NAMES
     import random
+
     return f"{random.choice(first)} {random.choice(INDIAN_LAST_NAMES)}"
 
 
 def indian_phone():
     import random
+
     return f"9{random.randint(600000000, 999999999)}"
 
 
@@ -106,9 +161,7 @@ class PatientFactory(factory.django.DjangoModelFactory):
     block = factory.Iterator(INDIAN_BLOCKS)
     district = factory.Iterator(INDIAN_DISTRICTS)
     phone = factory.LazyFunction(indian_phone)
-    date_of_birth = factory.LazyFunction(
-        lambda: date.today() - timedelta(days=365 * 28)
-    )
+    date_of_birth = factory.LazyFunction(lambda: date.today() - timedelta(days=365 * 28))
     diabetes = False
     hypertension = False
     tb_history = False
@@ -145,9 +198,7 @@ class FollowUpFactory(factory.django.DjangoModelFactory):
 
     patient = factory.SubFactory(PatientFactory)
     worker = factory.SubFactory(UserFactory)
-    scheduled_date = factory.LazyFunction(
-        lambda: timezone.localdate() + timedelta(days=7)
-    )
+    scheduled_date = factory.LazyFunction(lambda: timezone.localdate() + timedelta(days=7))
     urgency = FollowUp.Urgency.ROUTINE
     status = FollowUp.Status.PENDING
 
@@ -170,9 +221,7 @@ class IncentiveFactory(factory.django.DjangoModelFactory):
     activity_type = IncentiveLedgerEntry.ActivityType.SURVEY_COMPLETION
     amount_paise = 5000
     status = IncentiveLedgerEntry.Status.PENDING
-    month_year = factory.LazyFunction(
-        lambda: timezone.now().strftime("%Y-%m")
-    )
+    month_year = factory.LazyFunction(lambda: timezone.now().strftime("%Y-%m"))
 
 
 class RiskRuleFactory(factory.django.DjangoModelFactory):

@@ -6,3 +6,4 @@ pytest-timeout>=2,<3
 factory_boy>=3.3,<4
 freezegun>=1.5,<2
 numpy>=1.26,<2
+ruff>=0.11,<1

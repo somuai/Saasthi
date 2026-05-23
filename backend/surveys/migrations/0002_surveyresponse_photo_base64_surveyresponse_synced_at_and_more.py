@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("registry", "0002_household_head_name_household_head_name_hi_and_more"),
         ("surveys", "0001_initial"),
@@ -16,9 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="surveyresponse",
             name="photo_base64",
-            field=models.TextField(
-                blank=True, help_text="Optional wound/rash photo in base64"
-            ),
+            field=models.TextField(blank=True, help_text="Optional wound/rash photo in base64"),
         ),
         migrations.AddField(
             model_name="surveyresponse",
@@ -27,9 +24,7 @@ class Migration(migrations.Migration):
         ),
         migrations.AddIndex(
             model_name="surveyresponse",
-            index=models.Index(
-                fields=["patient", "submitted_at"], name="ix_survey_patient_submitted"
-            ),
+            index=models.Index(fields=["patient", "submitted_at"], name="ix_survey_patient_submitted"),
         ),
         migrations.AddIndex(
             model_name="surveyresponse",

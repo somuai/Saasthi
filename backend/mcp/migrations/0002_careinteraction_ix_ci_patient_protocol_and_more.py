@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("mcp", "0001_initial"),
         ("registry", "0003_alter_household_block_alter_household_district_and_more"),
@@ -15,9 +14,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddIndex(
             model_name="careinteraction",
-            index=models.Index(
-                fields=["patient", "protocol"], name="ix_ci_patient_protocol"
-            ),
+            index=models.Index(fields=["patient", "protocol"], name="ix_ci_patient_protocol"),
         ),
         migrations.AddIndex(
             model_name="careinteraction",

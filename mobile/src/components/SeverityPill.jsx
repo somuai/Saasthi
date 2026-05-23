@@ -17,7 +17,7 @@ export function SeverityPill({ value, onChange }) {
       Animated.sequence([
         Animated.timing(pulse, { toValue: 1.06, duration: 500, useNativeDriver: true }),
         Animated.timing(pulse, { toValue: 1, duration: 500, useNativeDriver: true }),
-      ])
+      ]),
     );
     loop.start();
     return () => loop.stop();

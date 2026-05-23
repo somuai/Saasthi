@@ -4,6 +4,7 @@ Locust load test for Shaasthi API.
 Run:
     locust -f deploy/locustfile.py --host=https://staging-api.shaasthi.in --users=100 --spawn-rate=10
 """
+
 import random
 import uuid
 
@@ -56,8 +57,12 @@ class ShaasthiUser(HttpUser):
                 "last_pulled_at": None,
                 "limit": 100,
                 "table_names": [
-                    "patients", "households", "survey_responses",
-                    "follow_ups", "flags", "referrals",
+                    "patients",
+                    "households",
+                    "survey_responses",
+                    "follow_ups",
+                    "flags",
+                    "referrals",
                 ],
             },
             headers={"Authorization": f"Bearer {self.token}"},
@@ -80,7 +85,7 @@ class ShaasthiUser(HttpUser):
                         "created": [
                             {
                                 "id": patient_id,
-                                "name": f"Patient-{random.randint(1,99999)}",
+                                "name": f"Patient-{random.randint(1, 99999)}",
                                 "age": random.randint(18, 80),
                                 "gender": random.choice(["M", "F", "O"]),
                                 "phone": f"+9199{random.randint(10000000, 99999999)}",

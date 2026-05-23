@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0003_alter_auditlog_action_alter_auditlog_created_at_and_more"),
     ]
@@ -59,9 +58,7 @@ class Migration(migrations.Migration):
                         fields=["supervisor", "is_active"],
                         name="ix_wreg_supervisor_active",
                     ),
-                    models.Index(
-                        fields=["phone", "is_active"], name="ix_wreg_phone_active"
-                    ),
+                    models.Index(fields=["phone", "is_active"], name="ix_wreg_phone_active"),
                 ],
             },
         ),

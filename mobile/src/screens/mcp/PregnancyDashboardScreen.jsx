@@ -1,12 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -15,13 +8,7 @@ import { spacing, radii } from "../../constants/design";
 import { GovtHeader } from "../../components/GovtHeader";
 import { GovtButton } from "../../components/GovtButton";
 import { ListRow } from "../../components/ListRow";
-import {
-  calculateEDD,
-  calculatePOG,
-  getANCDueDates,
-  calculateANCStatus,
-  isoFromDate,
-} from "../../utils/mcpHelpers";
+import { calculateEDD, calculatePOG, getANCDueDates, calculateANCStatus, isoFromDate } from "../../utils/mcpHelpers";
 import { todayYmd, formatIndianDate } from "../../utils/dateHelpers";
 
 function StatCard({ labelHi, labelEn, value, color }) {
@@ -95,9 +82,7 @@ export default function PregnancyDashboardScreen() {
 
   useEffect(() => {
     if (patientId) return undefined;
-    const q = database.collections
-      .get("patients")
-      .query(Q.where("is_pregnant", true), Q.where("is_deleted", false));
+    const q = database.collections.get("patients").query(Q.where("is_pregnant", true), Q.where("is_deleted", false));
     const sub = q.observe().subscribe(setPatients);
     return () => sub.unsubscribe();
   }, [database, patientId]);
@@ -111,15 +96,16 @@ export default function PregnancyDashboardScreen() {
 
   useEffect(() => {
     if (!patient?.id) return undefined;
-    const mq = database.collections
-      .get("mother_records")
-      .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
+    const mq = database.collections.get("mother_records").query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
     const sub = mq.observe().subscribe((recs) => setMother(recs[0] || null));
     return () => sub.unsubscribe();
   }, [database, patient]);
 
   useEffect(() => {
-    if (!mother?.id) { setVisits([]); return undefined; }
+    if (!mother?.id) {
+      setVisits([]);
+      return undefined;
+    }
     const vq = database.collections
       .get("anc_visit_records")
       .query(Q.where("mother_record_id", mother.id), Q.where("is_deleted", false), Q.sortBy("visit_number", Q.asc));
@@ -128,7 +114,10 @@ export default function PregnancyDashboardScreen() {
   }, [database, mother]);
 
   useEffect(() => {
-    if (!patient?.id) { setFlags([]); return undefined; }
+    if (!patient?.id) {
+      setFlags([]);
+      return undefined;
+    }
     const fq = database.collections
       .get("flags")
       .query(Q.where("patient_id", patient.id), Q.where("is_resolved", false), Q.where("is_deleted", false));
@@ -137,10 +126,11 @@ export default function PregnancyDashboardScreen() {
   }, [database, patient]);
 
   useEffect(() => {
-    if (!patient?.id) { setImmunizations([]); return undefined; }
-    const iq = database.collections
-      .get("immunization_records")
-      .query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
+    if (!patient?.id) {
+      setImmunizations([]);
+      return undefined;
+    }
+    const iq = database.collections.get("immunization_records").query(Q.where("patient_id", patient.id), Q.where("is_deleted", false));
     const sub = iq.observe().subscribe(setImmunizations);
     return () => sub.unsubscribe();
   }, [database, patient]);
@@ -191,13 +181,13 @@ export default function PregnancyDashboardScreen() {
         title={patient.name}
         showBack
         showSync
-        rightComponent={
-          <StatusBadge label={riskLabel} color={riskColor} />
-        }
+        rightComponent={<StatusBadge label={riskLabel} color={riskColor} />}
       />
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <Text style={styles.patientName}>{patient.name}</Text>
-        <Text style={styles.muted}>{patient.patientCode} · {patient.age || "?"} yrs</Text>
+        <Text style={styles.muted}>
+          {patient.patientCode} · {patient.age || "?"} yrs
+        </Text>
 
         <View style={styles.statsRow}>
           <StatCard labelHi="POG" labelEn="Weeks" value={`${pog}w`} color={COLORS.primary} />
@@ -229,19 +219,13 @@ export default function PregnancyDashboardScreen() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>TT Injections / टीटी इंजेक्शन</Text>
-          <Text style={styles.meta}>
-            TT1: {mother?.ttInjection1Date ? formatIndianDate(mother.ttInjection1Date) : "Pending / बाकी"}
-          </Text>
-          <Text style={styles.meta}>
-            TT2: {mother?.ttInjection2Date ? formatIndianDate(mother.ttInjection2Date) : "Pending / बाकी"}
-          </Text>
+          <Text style={styles.meta}>TT1: {mother?.ttInjection1Date ? formatIndianDate(mother.ttInjection1Date) : "Pending / बाकी"}</Text>
+          <Text style={styles.meta}>TT2: {mother?.ttInjection2Date ? formatIndianDate(mother.ttInjection2Date) : "Pending / बाकी"}</Text>
         </View>
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>IFA / आयरन फोलिक एसिड</Text>
-          <Text style={styles.meta}>
-            Issued: {mother?.ifaTabletsIssued != null ? `${mother.ifaTabletsIssued} tablets` : "0 tablets"}
-          </Text>
+          <Text style={styles.meta}>Issued: {mother?.ifaTabletsIssued != null ? `${mother.ifaTabletsIssued} tablets` : "0 tablets"}</Text>
         </View>
 
         {mother?.jsyRegistered && (
@@ -253,11 +237,11 @@ export default function PregnancyDashboardScreen() {
 
         {flags.length > 0 && (
           <View style={[styles.card, { borderLeftColor: COLORS.danger, borderLeftWidth: 4 }]}>
-            <Text style={[styles.cardTitle, { color: COLORS.danger }]}>
-              Open Flags / खुले फ़्लैग ({flags.length})
-            </Text>
+            <Text style={[styles.cardTitle, { color: COLORS.danger }]}>Open Flags / खुले फ़्लैग ({flags.length})</Text>
             {flags.slice(0, 3).map((f) => (
-              <Text key={f.id} style={styles.flagItem}>• {f.flagType}: {f.description || f.severity}</Text>
+              <Text key={f.id} style={styles.flagItem}>
+                • {f.flagType}: {f.description || f.severity}
+              </Text>
             ))}
           </View>
         )}

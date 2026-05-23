@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("notifications", "0001_initial"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
@@ -14,9 +13,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddIndex(
             model_name="notification",
-            index=models.Index(
-                fields=["recipient", "created_at"], name="ix_notif_recipient_created"
-            ),
+            index=models.Index(fields=["recipient", "created_at"], name="ix_notif_recipient_created"),
         ),
         migrations.AddIndex(
             model_name="notification",

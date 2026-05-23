@@ -3,15 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-nati
 import { COLORS } from "../constants/colors";
 import { tapTarget } from "../constants/design";
 
-export function GovtButton({
-  titleHi,
-  titleEn,
-  onPress,
-  variant = "primary",
-  disabled,
-  loading,
-  accessibilityLabel,
-}) {
+export function GovtButton({ titleHi, titleEn, onPress, variant = "primary", disabled, loading, accessibilityLabel }) {
   const isPrimary = variant === "primary";
   return (
     <Pressable

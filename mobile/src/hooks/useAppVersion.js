@@ -24,7 +24,9 @@ export function useAppVersion() {
         if (!cancelled) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   return { loading, blocked, updateUrl: null, appVersion: APP_VERSION };

@@ -1,11 +1,16 @@
 import PropTypes from "prop-types";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { COLORS } from "../constants/colors";
 import { tapTargetMin } from "../constants/typography";
 
 export function OtpInputRow({ value, onChange, onComplete, autoFocus, length = 6 }) {
-  const refs = Array.from({ length }, () => useRef());
+  const refs = useRef([]);
+  if (refs.current.length !== length) {
+    refs.current = Array(length)
+      .fill(null)
+      .map(() => React.createRef());
+  }
   const pad = Array(length - value.length).fill("");
   const digits = value.length === length ? value.split("") : [...value.split(""), ...pad].slice(0, length);
 

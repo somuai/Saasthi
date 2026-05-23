@@ -10,7 +10,9 @@ const ANC_VISITS = [
 export function getAncPlan({ lmpDate, completedCodes = [], asOf = new Date().toISOString() }) {
   const gestationalAge = calculateGestationalAge(lmpDate, asOf);
   const visits = ANC_VISITS.map((visit) => {
-    const dueDate = addDays(lmpDate, visit.dueWeek * 7).toISOString().slice(0, 10);
+    const dueDate = addDays(lmpDate, visit.dueWeek * 7)
+      .toISOString()
+      .slice(0, 10);
     const completed = completedCodes.includes(visit.code);
     const overdue = !completed && gestationalAge.weeks > visit.dueWeek + 1;
     const dueNow = !completed && gestationalAge.weeks >= visit.dueWeek && !overdue;

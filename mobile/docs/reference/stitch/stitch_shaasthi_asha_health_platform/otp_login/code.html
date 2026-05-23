@@ -1,227 +1,332 @@
-<!DOCTYPE html>
+<!doctype html>
 
-<html lang="en"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>ASHA Sangini - OTP Login</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    "colors": {
-                        "surface": "#F5F5F7",
-                        "surface-dim": "#D9D9D9",
-                        "surface-bright": "#F5F5F7",
-                        "surface-container-lowest": "#FFFFFF",
-                        "surface-container-low": "#E8E8E8",
-                        "surface-container": "#D9D9D9",
-                        "surface-container-high": "#D2CECF",
-                        "surface-container-highest": "#C8C4C5",
-                        "on-surface": "#1A1A2E",
-                        "on-surface-variant": "#6B6B6B",
-                        "inverse-surface": "#2E3132",
-                        "inverse-on-surface": "#F5F5F7",
-                        "outline": "#9E9E9E",
-                        "outline-variant": "#D2CECF",
-                        "surface-tint": "#5974BD",
-                        "primary": "#416CAF",
-                        "on-primary": "#FFFFFF",
-                        "primary-container": "#2E5290",
-                        "on-primary-container": "#E8EDF5",
-                        "inverse-primary": "#5974BD",
-                        "secondary": "#5974BD",
-                        "on-secondary": "#FFFFFF",
-                        "secondary-container": "#E8EDF5",
-                        "on-secondary-container": "#416CAF",
-                        "tertiary": "#F7A5BE",
-                        "on-tertiary": "#1A1A2E",
-                        "tertiary-container": "#FFF0F5",
-                        "on-tertiary-container": "#FF0000",
-                        "error": "#FF0000",
-                        "on-error": "#FFFFFF",
-                        "error-container": "#FFE5E5",
-                        "on-error-container": "#CC0000",
-                        "primary-fixed": "#E8EDF5",
-                        "primary-fixed-dim": "#B0C4E0",
-                        "on-primary-fixed": "#2E5290",
-                        "on-primary-fixed-variant": "#416CAF",
-                        "secondary-fixed": "#E8EDF5",
-                        "secondary-fixed-dim": "#B0BDE0",
-                        "on-secondary-fixed": "#3D5A9E",
-                        "on-secondary-fixed-variant": "#5974BD",
-                        "tertiary-fixed": "#FFF0F5",
-                        "tertiary-fixed-dim": "#F7A5BE",
-                        "on-tertiary-fixed": "#CC0000",
-                        "on-tertiary-fixed-variant": "#FF0000",
-                        "background": "#F5F5F7",
-                        "on-background": "#1A1A2E",
-                        "surface-variant": "#D9D9D9"
-                    },
-                    "borderRadius": {
-                        "DEFAULT": "0.25rem",
-                        "lg": "0.5rem",
-                        "xl": "0.75rem",
-                        "full": "9999px"
-                    },
-                    "spacing": {
-                        "touch-target": "48px",
-                        "gutter": "16px",
-                        "section-margin": "24px",
-                        "stack-gap": "12px",
-                        "container-padding": "16px"
-                    },
-                    "fontFamily": {
-                        "headline-md": ["Roboto Flex"],
-                        "label-hindi": ["Roboto Flex"],
-                        "headline-lg": ["Roboto Flex"],
-                        "body-lg": ["Roboto Flex"],
-                        "label-lg": ["Roboto Flex"],
-                        "body-md": ["Roboto Flex"],
-                        "headline-sm": ["Roboto Flex"]
-                    },
-                    "fontSize": {
-                        "headline-md": ["20px", {"lineHeight": "28px", "letterSpacing": "0px", "fontWeight": "700"}],
-                        "label-hindi": ["14px", {"lineHeight": "22px", "letterSpacing": "0px", "fontWeight": "400"}],
-                        "headline-lg": ["24px", {"lineHeight": "32px", "letterSpacing": "0px", "fontWeight": "700"}],
-                        "body-lg": ["16px", {"lineHeight": "24px", "letterSpacing": "0.5px", "fontWeight": "400"}],
-                        "label-lg": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
-                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
-                        "headline-sm": ["16px", {"lineHeight": "24px", "letterSpacing": "0.1px", "fontWeight": "700"}]
-                    }
-                }
-            }
-        }
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>ASHA Sangini - OTP Login</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&amp;display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+      rel="stylesheet"
+    />
+    <script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              surface: "#F5F5F7",
+              "surface-dim": "#D9D9D9",
+              "surface-bright": "#F5F5F7",
+              "surface-container-lowest": "#FFFFFF",
+              "surface-container-low": "#E8E8E8",
+              "surface-container": "#D9D9D9",
+              "surface-container-high": "#D2CECF",
+              "surface-container-highest": "#C8C4C5",
+              "on-surface": "#1A1A2E",
+              "on-surface-variant": "#6B6B6B",
+              "inverse-surface": "#2E3132",
+              "inverse-on-surface": "#F5F5F7",
+              outline: "#9E9E9E",
+              "outline-variant": "#D2CECF",
+              "surface-tint": "#5974BD",
+              primary: "#416CAF",
+              "on-primary": "#FFFFFF",
+              "primary-container": "#2E5290",
+              "on-primary-container": "#E8EDF5",
+              "inverse-primary": "#5974BD",
+              secondary: "#5974BD",
+              "on-secondary": "#FFFFFF",
+              "secondary-container": "#E8EDF5",
+              "on-secondary-container": "#416CAF",
+              tertiary: "#F7A5BE",
+              "on-tertiary": "#1A1A2E",
+              "tertiary-container": "#FFF0F5",
+              "on-tertiary-container": "#FF0000",
+              error: "#FF0000",
+              "on-error": "#FFFFFF",
+              "error-container": "#FFE5E5",
+              "on-error-container": "#CC0000",
+              "primary-fixed": "#E8EDF5",
+              "primary-fixed-dim": "#B0C4E0",
+              "on-primary-fixed": "#2E5290",
+              "on-primary-fixed-variant": "#416CAF",
+              "secondary-fixed": "#E8EDF5",
+              "secondary-fixed-dim": "#B0BDE0",
+              "on-secondary-fixed": "#3D5A9E",
+              "on-secondary-fixed-variant": "#5974BD",
+              "tertiary-fixed": "#FFF0F5",
+              "tertiary-fixed-dim": "#F7A5BE",
+              "on-tertiary-fixed": "#CC0000",
+              "on-tertiary-fixed-variant": "#FF0000",
+              background: "#F5F5F7",
+              "on-background": "#1A1A2E",
+              "surface-variant": "#D9D9D9",
+            },
+            borderRadius: {
+              DEFAULT: "0.25rem",
+              lg: "0.5rem",
+              xl: "0.75rem",
+              full: "9999px",
+            },
+            spacing: {
+              "touch-target": "48px",
+              gutter: "16px",
+              "section-margin": "24px",
+              "stack-gap": "12px",
+              "container-padding": "16px",
+            },
+            fontFamily: {
+              "headline-md": ["Roboto Flex"],
+              "label-hindi": ["Roboto Flex"],
+              "headline-lg": ["Roboto Flex"],
+              "body-lg": ["Roboto Flex"],
+              "label-lg": ["Roboto Flex"],
+              "body-md": ["Roboto Flex"],
+              "headline-sm": ["Roboto Flex"],
+            },
+            fontSize: {
+              "headline-md": ["20px", { lineHeight: "28px", letterSpacing: "0px", fontWeight: "700" }],
+              "label-hindi": ["14px", { lineHeight: "22px", letterSpacing: "0px", fontWeight: "400" }],
+              "headline-lg": ["24px", { lineHeight: "32px", letterSpacing: "0px", fontWeight: "700" }],
+              "body-lg": ["16px", { lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400" }],
+              "label-lg": ["12px", { lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500" }],
+              "body-md": ["14px", { lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400" }],
+              "headline-sm": ["16px", { lineHeight: "24px", letterSpacing: "0.1px", fontWeight: "700" }],
+            },
+          },
+        },
+      };
     </script>
-<style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-        }
-        body {
-            font-family: 'Roboto Flex', sans-serif;
-            background-color: #f8f9fa;
-        }
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings:
+          "FILL" 0,
+          "wght" 400,
+          "GRAD" 0,
+          "opsz" 24;
+      }
+      body {
+        font-family: "Roboto Flex", sans-serif;
+        background-color: #f8f9fa;
+      }
     </style>
-<style>
-    body {
-      min-height: max(884px, 100dvh);
-    }
-  </style>
+    <style>
+      body {
+        min-height: max(884px, 100dvh);
+      }
+    </style>
   </head>
-<body class="min-h-screen flex flex-col">
-<!-- Header Section (20% of Viewport) -->
-<header class="h-[176px] bg-[#0D1B2A] flex flex-col justify-center px-gutter relative overflow-hidden">
-<div class="flex justify-between items-center z-10">
-<div class="flex items-center gap-3">
-<div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
-<span class="material-symbols-outlined text-[#0D1B2A]" style="font-variation-settings: 'FILL' 1;">medical_services</span>
-</div>
-<div>
-<h1 class="text-white font-headline-lg text-headline-lg leading-none">Shaasthi</h1>
-<p class="text-white/70 font-label-lg text-label-lg mt-1">ASHA Health Portal</p>
-</div>
-</div>
-<img alt="NHM Logo" class="h-10 object-contain brightness-0 invert" data-alt="A small National Health Mission official government logo displayed in a minimalist white monochrome version against a deep navy blue corporate background. The logo represents health and public service authority, integrated cleanly into a professional healthcare application interface with high contrast and sharp details." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBduHEfLxIOr3lPpxBSv_2tXYX9rF9Dty_PldXVqLUFL0npotpESAsyyQYLE14t1KoJAKm0hR1QCtPtSdh-Bh397SbsaIM77vs9Rm8zhVi-rsecboNfFWngCTDIHKKge8ZFnVBrvvrh6MJkPI6f95qo3D5HlAJLBo-KNpkfBZFBowCE9tXZIiMN2UFlDhraybugecuF8ZsL5ZIhCFet8Cbl6D_HGG4Gp7jNkTdNHQbapemifGB_bAPT0urheRVR8a-72i25KpMQkUcH"/>
-</div>
-<!-- Decorative subtle pattern overlay -->
-<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at 2px 2px, rgba(255,255,255,0.15) 1px, transparent 0); background-size: 24px 24px;"></div>
-</header>
-<!-- Language Bar -->
-<nav class="bg-surface-container-lowest py-3 shadow-sm z-20">
-<div class="flex items-center gap-2 px-gutter overflow-x-auto no-scrollbar">
-<button class="bg-secondary-container text-on-secondary-container px-4 py-1.5 rounded-full whitespace-nowrap font-label-lg text-label-lg">English</button>
-<button class="border border-outline-variant text-on-surface-variant px-4 py-1.5 rounded-full whitespace-nowrap font-label-hindi text-label-hindi">हिन्दी</button>
-<button class="border border-outline-variant text-on-surface-variant px-4 py-1.5 rounded-full whitespace-nowrap font-label-lg text-label-lg">বাংলা</button>
-<button class="border border-outline-variant text-on-surface-variant px-4 py-1.5 rounded-full whitespace-nowrap font-label-lg text-label-lg">தமிழ்</button>
-<button class="border border-outline-variant text-on-surface-variant px-4 py-1.5 rounded-full whitespace-nowrap font-label-lg text-label-lg">తెలుగు</button>
-</div>
-</nav>
-<!-- Main Content Area -->
-<main class="flex-grow p-gutter flex flex-col gap-6">
-<!-- Worker Login Card (First State) -->
-<section class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm">
-<div class="flex flex-col gap-1 mb-6">
-<h2 class="font-headline-md text-headline-md text-on-surface">Worker Login</h2>
-<span class="font-label-hindi text-label-hindi text-outline">कार्यकर्ता लॉगिन</span>
-<p class="font-body-md text-body-md text-on-surface-variant mt-2">Enter your registered mobile number</p>
-<span class="font-label-hindi text-label-hindi text-outline">अपना पंजीकृत मोबाइल नंबर दर्ज करें</span>
-</div>
-<div class="flex flex-col gap-6">
-<div class="relative group">
-<label class="absolute -top-2 left-3 bg-white px-1 text-on-secondary-container font-label-lg text-label-lg z-10">Mobile Number</label>
-<div class="flex items-center border border-outline rounded-lg px-4 h-touch-target focus-within:border-secondary transition-colors">
-<span class="text-on-surface-variant font-body-lg text-body-lg mr-3">+91</span>
-<div class="w-px h-6 bg-outline-variant mr-3"></div>
-<input class="flex-grow bg-transparent border-none focus:ring-0 font-body-lg text-body-lg p-0" placeholder="00000 00000" type="tel"/>
-<span class="material-symbols-outlined text-outline" data-icon="smartphone">smartphone</span>
-</div>
-</div>
-<button class="w-full h-touch-target bg-secondary text-on-secondary rounded-full font-headline-sm text-headline-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
-                    Send OTP
-                    <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
-</button>
-</div>
-</section>
-<!-- Second State: Enter OTP -->
-<section class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm">
-<div class="flex flex-col gap-1 mb-6">
-<h2 class="font-headline-md text-headline-md text-on-surface">Enter OTP</h2>
-<span class="font-label-hindi text-label-hindi text-outline">ओटीपी दर्ज करें</span>
-<p class="font-body-md text-body-md text-on-surface-variant mt-2">We sent a 6-digit code to your mobile</p>
-</div>
-<div class="flex flex-col gap-8">
-<!-- OTP Inputs -->
-<div class="flex justify-between items-center gap-2">
-<input class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0" maxlength="1" type="text"/>
-<input class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0" maxlength="1" type="text"/>
-<input class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0" maxlength="1" type="text"/>
-<input class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0" maxlength="1" type="text"/>
-<input class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0" maxlength="1" type="text"/>
-<input class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0" maxlength="1" type="text"/>
-</div>
-<div class="flex items-center justify-center gap-4">
-<div class="relative w-12 h-12 flex items-center justify-center">
-<svg class="absolute inset-0 w-full h-full -rotate-90">
-<circle cx="24" cy="24" fill="none" r="20" stroke="#edeeef" stroke-width="4"></circle>
-<circle cx="24" cy="24" fill="none" r="20" stroke="#15686f" stroke-dasharray="125.6" stroke-dashoffset="42" stroke-width="4"></circle>
-</svg>
-<span class="font-label-lg text-label-lg text-on-surface-variant">42s</span>
-</div>
-<button class="text-secondary font-label-lg text-label-lg opacity-50 cursor-not-allowed">Resend OTP in 0:42</button>
-</div>
-<button class="w-full h-touch-target bg-on-tertiary-container text-on-tertiary rounded-full font-headline-sm text-headline-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
-<span class="material-symbols-outlined" data-icon="verified" style="font-variation-settings: 'FILL' 1;">verified</span>
-                    Verify &amp; Login
-                </button>
-</div>
-</section>
-<!-- Help Section -->
-<div class="mt-auto flex flex-col gap-4">
-<div class="bg-surface-container rounded-lg p-4 flex items-center gap-4 border border-outline-variant">
-<div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-secondary">
-<span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
-</div>
-<div class="flex flex-col">
-<p class="font-body-md text-body-md font-bold text-on-surface">Need assistance?</p>
-<button class="text-secondary font-label-lg text-label-lg flex items-center gap-1">
-                        Contact Block Coordinator
-                        <span class="material-symbols-outlined text-sm" data-icon="call">call</span>
-</button>
-</div>
-</div>
-</div>
-</main>
-<!-- Footer with Gov Logos -->
-<footer class="bg-surface-container-high py-6 px-gutter flex flex-col items-center gap-4">
-<div class="flex justify-center items-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all">
-<img alt="Digital India" class="h-8 object-contain" data-alt="A crisp, professional logo for the Digital India initiative featuring a stylized map of India with technological nodes, rendered in a flat design style. The image is presented with a monochromatic charcoal gray tone to maintain visual hierarchy within a government application's footer, highlighting institutional collaboration and modern technological progress." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5eai4ObHJBkEY929ZJGmMKCT4QxXWjeXCLNhFhPSXzJFD2UY6q41XzzThRmvV8NqTbROxvMcolh8d7f38eq4aJiR3XQ-PJ0ZtgquyzY3mXLyuJAIfbayTG4dtwQXOkCkrvFZ6QaklWP_30LNS04Mpfu9BoyPQPra7U-d5AD4AfjjXMeUFgFuHmd6qYMiYj_BG6Ncb-qxhplITNzOnuYYU3BU8lOR1eGyBNBw54ybxaExbKuvDzb_p0kWAyN0hYYZpxhoj0ykmH54u"/>
-<img alt="Swachh Bharat" class="h-8 object-contain" data-alt="The iconic spectacles logo of the Swachh Bharat Abhiyan movement, designed in a clean, high-resolution vector style. The graphic is presented in a subtle, dignified gray-scale palette suitable for an official public health service platform, conveying a sense of national cleanliness, hygiene, and government-led social initiatives." src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6h6SgmU0Ej8W6hR6l8ELW6JugGyFcoB40R9OByDrSlE9c5_X5jP2ekrdQe3DgKoh4KwfyHvW_t6PnHpZQuw_FQDyXMzGTTqT7lMuLIWyAP04B-c2e6LPsUvP-glAivbMGySn4oT1a-u2Wk8JsSe19RKS3Sz-7nbtYrn7rYvwqJ9UFzeQsdmYb1YNOkVjPDbvgOGf4es98NFKadVX36FFKfoLXIJW8zT99ebGd9zz7VSZPQ6e6o_K7kBGDo-ioKJ2TNut3OiDxwgN8"/>
-<img alt="NHP" class="h-8 object-contain" data-alt="The official National Health Portal of India logo, featuring corporate blue and saffron accents, presented here as a refined, flat icon. The style is professional and minimalist, reflecting the reliability and authoritative nature of Indian national health services for frontline health workers in rural environments." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlkKeyxt2zKsk7EWSwE2KbtmsEQyKzjVwEKT_jZfhqCblC7_dsLYVY_zSIKJC8F7aLkb8OIMMXATVSWJ3OU6Ghyz-sfTAJuPS8jshuc-8Wrp7umeb_etNsFQJSdyXb7HDLg0KqA1ypTXMsnu-T4jTidkoai3g3wHWFdWP8AvBTDnAtMogmSkdC1PKeX4JPoV2YMwLCtNTFxkZawdo0U7extYSoY2ndl-rXwIzceDhxqi8dVCH8reGZqU8zeUSAH7dMh3BjkemNxLLh"/>
-</div>
-<p class="font-label-lg text-label-lg text-outline-variant text-center">© 2024 Ministry of Health &amp; Family Welfare</p>
-</footer>
-</body></html>
+  <body class="min-h-screen flex flex-col">
+    <!-- Header Section (20% of Viewport) -->
+    <header class="h-[176px] bg-[#0D1B2A] flex flex-col justify-center px-gutter relative overflow-hidden">
+      <div class="flex justify-between items-center z-10">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+            <span class="material-symbols-outlined text-[#0D1B2A]" style="font-variation-settings: &quot;FILL&quot; 1"
+              >medical_services</span
+            >
+          </div>
+          <div>
+            <h1 class="text-white font-headline-lg text-headline-lg leading-none">Shaasthi</h1>
+            <p class="text-white/70 font-label-lg text-label-lg mt-1">ASHA Health Portal</p>
+          </div>
+        </div>
+        <img
+          alt="NHM Logo"
+          class="h-10 object-contain brightness-0 invert"
+          data-alt="A small National Health Mission official government logo displayed in a minimalist white monochrome version against a deep navy blue corporate background. The logo represents health and public service authority, integrated cleanly into a professional healthcare application interface with high contrast and sharp details."
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBduHEfLxIOr3lPpxBSv_2tXYX9rF9Dty_PldXVqLUFL0npotpESAsyyQYLE14t1KoJAKm0hR1QCtPtSdh-Bh397SbsaIM77vs9Rm8zhVi-rsecboNfFWngCTDIHKKge8ZFnVBrvvrh6MJkPI6f95qo3D5HlAJLBo-KNpkfBZFBowCE9tXZIiMN2UFlDhraybugecuF8ZsL5ZIhCFet8Cbl6D_HGG4Gp7jNkTdNHQbapemifGB_bAPT0urheRVR8a-72i25KpMQkUcH"
+        />
+      </div>
+      <!-- Decorative subtle pattern overlay -->
+      <div
+        class="absolute inset-0 opacity-10 pointer-events-none"
+        style="
+          background-image: radial-gradient(circle at 2px 2px, rgba(255, 255, 255, 0.15) 1px, transparent 0);
+          background-size: 24px 24px;
+        "
+      ></div>
+    </header>
+    <!-- Language Bar -->
+    <nav class="bg-surface-container-lowest py-3 shadow-sm z-20">
+      <div class="flex items-center gap-2 px-gutter overflow-x-auto no-scrollbar">
+        <button
+          class="bg-secondary-container text-on-secondary-container px-4 py-1.5 rounded-full whitespace-nowrap font-label-lg text-label-lg"
+        >
+          English
+        </button>
+        <button
+          class="border border-outline-variant text-on-surface-variant px-4 py-1.5 rounded-full whitespace-nowrap font-label-hindi text-label-hindi"
+        >
+          हिन्दी
+        </button>
+        <button
+          class="border border-outline-variant text-on-surface-variant px-4 py-1.5 rounded-full whitespace-nowrap font-label-lg text-label-lg"
+        >
+          বাংলা
+        </button>
+        <button
+          class="border border-outline-variant text-on-surface-variant px-4 py-1.5 rounded-full whitespace-nowrap font-label-lg text-label-lg"
+        >
+          தமிழ்
+        </button>
+        <button
+          class="border border-outline-variant text-on-surface-variant px-4 py-1.5 rounded-full whitespace-nowrap font-label-lg text-label-lg"
+        >
+          తెలుగు
+        </button>
+      </div>
+    </nav>
+    <!-- Main Content Area -->
+    <main class="flex-grow p-gutter flex flex-col gap-6">
+      <!-- Worker Login Card (First State) -->
+      <section class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm">
+        <div class="flex flex-col gap-1 mb-6">
+          <h2 class="font-headline-md text-headline-md text-on-surface">Worker Login</h2>
+          <span class="font-label-hindi text-label-hindi text-outline">कार्यकर्ता लॉगिन</span>
+          <p class="font-body-md text-body-md text-on-surface-variant mt-2">Enter your registered mobile number</p>
+          <span class="font-label-hindi text-label-hindi text-outline">अपना पंजीकृत मोबाइल नंबर दर्ज करें</span>
+        </div>
+        <div class="flex flex-col gap-6">
+          <div class="relative group">
+            <label class="absolute -top-2 left-3 bg-white px-1 text-on-secondary-container font-label-lg text-label-lg z-10"
+              >Mobile Number</label
+            >
+            <div
+              class="flex items-center border border-outline rounded-lg px-4 h-touch-target focus-within:border-secondary transition-colors"
+            >
+              <span class="text-on-surface-variant font-body-lg text-body-lg mr-3">+91</span>
+              <div class="w-px h-6 bg-outline-variant mr-3"></div>
+              <input
+                class="flex-grow bg-transparent border-none focus:ring-0 font-body-lg text-body-lg p-0"
+                placeholder="00000 00000"
+                type="tel"
+              />
+              <span class="material-symbols-outlined text-outline" data-icon="smartphone">smartphone</span>
+            </div>
+          </div>
+          <button
+            class="w-full h-touch-target bg-secondary text-on-secondary rounded-full font-headline-sm text-headline-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+          >
+            Send OTP
+            <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+          </button>
+        </div>
+      </section>
+      <!-- Second State: Enter OTP -->
+      <section class="bg-white rounded-xl p-6 border border-outline-variant shadow-sm">
+        <div class="flex flex-col gap-1 mb-6">
+          <h2 class="font-headline-md text-headline-md text-on-surface">Enter OTP</h2>
+          <span class="font-label-hindi text-label-hindi text-outline">ओटीपी दर्ज करें</span>
+          <p class="font-body-md text-body-md text-on-surface-variant mt-2">We sent a 6-digit code to your mobile</p>
+        </div>
+        <div class="flex flex-col gap-8">
+          <!-- OTP Inputs -->
+          <div class="flex justify-between items-center gap-2">
+            <input
+              class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0"
+              maxlength="1"
+              type="text"
+            />
+            <input
+              class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0"
+              maxlength="1"
+              type="text"
+            />
+            <input
+              class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0"
+              maxlength="1"
+              type="text"
+            />
+            <input
+              class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0"
+              maxlength="1"
+              type="text"
+            />
+            <input
+              class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0"
+              maxlength="1"
+              type="text"
+            />
+            <input
+              class="w-[44px] h-[52px] border-2 border-outline-variant rounded-lg text-center font-headline-md text-headline-md focus:border-secondary focus:ring-0"
+              maxlength="1"
+              type="text"
+            />
+          </div>
+          <div class="flex items-center justify-center gap-4">
+            <div class="relative w-12 h-12 flex items-center justify-center">
+              <svg class="absolute inset-0 w-full h-full -rotate-90">
+                <circle cx="24" cy="24" fill="none" r="20" stroke="#edeeef" stroke-width="4"></circle>
+                <circle
+                  cx="24"
+                  cy="24"
+                  fill="none"
+                  r="20"
+                  stroke="#15686f"
+                  stroke-dasharray="125.6"
+                  stroke-dashoffset="42"
+                  stroke-width="4"
+                ></circle>
+              </svg>
+              <span class="font-label-lg text-label-lg text-on-surface-variant">42s</span>
+            </div>
+            <button class="text-secondary font-label-lg text-label-lg opacity-50 cursor-not-allowed">Resend OTP in 0:42</button>
+          </div>
+          <button
+            class="w-full h-touch-target bg-on-tertiary-container text-on-tertiary rounded-full font-headline-sm text-headline-sm flex items-center justify-center gap-2 active:scale-[0.98] transition-transform"
+          >
+            <span class="material-symbols-outlined" data-icon="verified" style="font-variation-settings: &quot;FILL&quot; 1">verified</span>
+            Verify &amp; Login
+          </button>
+        </div>
+      </section>
+      <!-- Help Section -->
+      <div class="mt-auto flex flex-col gap-4">
+        <div class="bg-surface-container rounded-lg p-4 flex items-center gap-4 border border-outline-variant">
+          <div class="w-12 h-12 rounded-full bg-white flex items-center justify-center text-secondary">
+            <span class="material-symbols-outlined" data-icon="support_agent">support_agent</span>
+          </div>
+          <div class="flex flex-col">
+            <p class="font-body-md text-body-md font-bold text-on-surface">Need assistance?</p>
+            <button class="text-secondary font-label-lg text-label-lg flex items-center gap-1">
+              Contact Block Coordinator
+              <span class="material-symbols-outlined text-sm" data-icon="call">call</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+    <!-- Footer with Gov Logos -->
+    <footer class="bg-surface-container-high py-6 px-gutter flex flex-col items-center gap-4">
+      <div class="flex justify-center items-center gap-8 opacity-60 grayscale hover:grayscale-0 transition-all">
+        <img
+          alt="Digital India"
+          class="h-8 object-contain"
+          data-alt="A crisp, professional logo for the Digital India initiative featuring a stylized map of India with technological nodes, rendered in a flat design style. The image is presented with a monochromatic charcoal gray tone to maintain visual hierarchy within a government application's footer, highlighting institutional collaboration and modern technological progress."
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuA5eai4ObHJBkEY929ZJGmMKCT4QxXWjeXCLNhFhPSXzJFD2UY6q41XzzThRmvV8NqTbROxvMcolh8d7f38eq4aJiR3XQ-PJ0ZtgquyzY3mXLyuJAIfbayTG4dtwQXOkCkrvFZ6QaklWP_30LNS04Mpfu9BoyPQPra7U-d5AD4AfjjXMeUFgFuHmd6qYMiYj_BG6Ncb-qxhplITNzOnuYYU3BU8lOR1eGyBNBw54ybxaExbKuvDzb_p0kWAyN0hYYZpxhoj0ykmH54u"
+        />
+        <img
+          alt="Swachh Bharat"
+          class="h-8 object-contain"
+          data-alt="The iconic spectacles logo of the Swachh Bharat Abhiyan movement, designed in a clean, high-resolution vector style. The graphic is presented in a subtle, dignified gray-scale palette suitable for an official public health service platform, conveying a sense of national cleanliness, hygiene, and government-led social initiatives."
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuB6h6SgmU0Ej8W6hR6l8ELW6JugGyFcoB40R9OByDrSlE9c5_X5jP2ekrdQe3DgKoh4KwfyHvW_t6PnHpZQuw_FQDyXMzGTTqT7lMuLIWyAP04B-c2e6LPsUvP-glAivbMGySn4oT1a-u2Wk8JsSe19RKS3Sz-7nbtYrn7rYvwqJ9UFzeQsdmYb1YNOkVjPDbvgOGf4es98NFKadVX36FFKfoLXIJW8zT99ebGd9zz7VSZPQ6e6o_K7kBGDo-ioKJ2TNut3OiDxwgN8"
+        />
+        <img
+          alt="NHP"
+          class="h-8 object-contain"
+          data-alt="The official National Health Portal of India logo, featuring corporate blue and saffron accents, presented here as a refined, flat icon. The style is professional and minimalist, reflecting the reliability and authoritative nature of Indian national health services for frontline health workers in rural environments."
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBlkKeyxt2zKsk7EWSwE2KbtmsEQyKzjVwEKT_jZfhqCblC7_dsLYVY_zSIKJC8F7aLkb8OIMMXATVSWJ3OU6Ghyz-sfTAJuPS8jshuc-8Wrp7umeb_etNsFQJSdyXb7HDLg0KqA1ypTXMsnu-T4jTidkoai3g3wHWFdWP8AvBTDnAtMogmSkdC1PKeX4JPoV2YMwLCtNTFxkZawdo0U7extYSoY2ndl-rXwIzceDhxqi8dVCH8reGZqU8zeUSAH7dMh3BjkemNxLLh"
+        />
+      </div>
+      <p class="font-label-lg text-label-lg text-outline-variant text-center">© 2024 Ministry of Health &amp; Family Welfare</p>
+    </footer>
+  </body>
+</html>

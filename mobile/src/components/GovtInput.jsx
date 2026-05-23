@@ -25,14 +25,7 @@ export function GovtInput({
   return (
     <View style={styles.wrap}>
       <BilingualLabel labelHi={labelHi} labelEn={labelEn} required={required} />
-      <View
-        style={[
-          styles.inputRow,
-          !editable && styles.disabled,
-          focused && styles.focused,
-          error && styles.errorBorder,
-        ]}
-      >
+      <View style={[styles.inputRow, !editable && styles.disabled, focused && styles.focused, error && styles.errorBorder]}>
         {prefix ? (
           <View style={styles.prefix}>
             <Text style={styles.prefixText}>{prefix}</Text>

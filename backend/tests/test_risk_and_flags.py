@@ -144,9 +144,7 @@ def test_as_of_excludes_deactivated_rule():
     rule.deactivated_at = timezone.now() - timedelta(days=1)
     rule.save(update_fields=["deactivated_at", "updated_at"])
 
-    result_after_deact = engine.evaluate(
-        patient, survey, surveyed_at=timezone.now() - timedelta(days=2)
-    )
+    result_after_deact = engine.evaluate(patient, survey, surveyed_at=timezone.now() - timedelta(days=2))
     assert result_after_deact.total_score == 5
 
     result_current = engine.evaluate(patient, survey, surveyed_at=timezone.now())

@@ -18,6 +18,7 @@ pytestmark = pytest.mark.django_db
 def _seed_rules():
     """Seed risk rules before every test in this module."""
     from django.core.management import call_command
+
     call_command("seed_risk_rules")
 
 
@@ -25,13 +26,20 @@ def _seed_rules():
 # Section A: Model integrity & admin registration
 # ─────────────────────────────────────────────
 
+
 class TestModelIntegrity:
     """Verify all new models, fields, and constraints work."""
 
     def test_household_all_fields(self):
         h = Household.objects.create(
-            household_code="HH001", head_name="Ram", head_name_hi="राम",
-            lat=28.6, lng=77.2, member_count=5, is_active=True, village="Testville",
+            household_code="HH001",
+            head_name="Ram",
+            head_name_hi="राम",
+            lat=28.6,
+            lng=77.2,
+            member_count=5,
+            is_active=True,
+            village="Testville",
         )
         assert h.household_code == "HH001"
         assert h.head_name_hi == "राम"
@@ -41,10 +49,17 @@ class TestModelIntegrity:
     def test_patient_all_fields(self):
         h = Household.objects.create(household_code="HH002", village="Testville")
         p = Patient.objects.create(
-            household=h, full_name="Sita", name_hi="सीता",
-            relationship_to_head="Spouse", asha_worker=None,
-            diabetes=True, hypertension=False, tb_history=False,
-            prev_hospitalized=True, pregnancy_status=False, prev_high_risk_count=2,
+            household=h,
+            full_name="Sita",
+            name_hi="सीता",
+            relationship_to_head="Spouse",
+            asha_worker=None,
+            diabetes=True,
+            hypertension=False,
+            tb_history=False,
+            prev_hospitalized=True,
+            pregnancy_status=False,
+            prev_high_risk_count=2,
             village="Testville",
         )
         assert p.name_hi == "सीता"
@@ -59,6 +74,7 @@ class TestModelIntegrity:
 
     def test_ml_model_version_unique_active(self):
         from django.db import transaction
+
         m1 = MLModelVersion.objects.create(version=1, is_active=True)
         try:
             with transaction.atomic():
@@ -78,8 +94,10 @@ class TestModelIntegrity:
     def test_auth_session_is_valid(self):
         worker = User.objects.create(username="asha2", role=User.Role.HEALTH_WORKER)
         from accounts.models import AuthSession
+
         s = AuthSession.objects.create(
-            worker=worker, expires_at=timezone.now() + timezone.timedelta(days=1),
+            worker=worker,
+            expires_at=timezone.now() + timezone.timedelta(days=1),
         )
         assert s.is_valid is True
         s.revoked_at = timezone.now()
@@ -104,8 +122,10 @@ class TestModelIntegrity:
     def test_survey_response_new_fields(self):
         p = Patient.objects.create(full_name="SurveyTest")
         s = SurveyResponse.objects.create(
-            patient=p, survey_type="screening",
-            photo_base64="iVBORw0KGgo=", synced_at=timezone.now(),
+            patient=p,
+            survey_type="screening",
+            photo_base64="iVBORw0KGgo=",
+            synced_at=timezone.now(),
         )
         assert s.photo_base64 == "iVBORw0KGgo="
         assert s.synced_at is not None
@@ -114,9 +134,13 @@ class TestModelIntegrity:
         worker = User.objects.create(username="asha_fu", role=User.Role.HEALTH_WORKER)
         p = Patient.objects.create(full_name="FU Patient")
         from followups.models import FollowUp
+
         fu = FollowUp.objects.create(
-            patient=p, worker=worker, scheduled_date=date.today(),
-            urgency="within_24h", is_auto_scheduled=True,
+            patient=p,
+            worker=worker,
+            scheduled_date=date.today(),
+            urgency="within_24h",
+            is_auto_scheduled=True,
         )
         assert fu.status == "pending"
         assert fu.urgency == "within_24h"
@@ -125,11 +149,16 @@ class TestModelIntegrity:
         worker = User.objects.create(username="asha_vr", role=User.Role.HEALTH_WORKER)
         p = Patient.objects.create(full_name="VR Patient")
         from followups.models import FollowUp, VisitRecord
+
         fu = FollowUp.objects.create(patient=p, worker=worker, scheduled_date=date.today())
         vr = VisitRecord.objects.create(
-            patient=p, worker=worker, follow_up=fu,
-            visit_date=date.today(), condition_observed="fair",
-            referred_to_phc=True, referral_facility="PHC Test",
+            patient=p,
+            worker=worker,
+            follow_up=fu,
+            visit_date=date.today(),
+            condition_observed="fair",
+            referred_to_phc=True,
+            referral_facility="PHC Test",
         )
         assert vr.referred_to_phc is True
         assert vr.referral_facility == "PHC Test"
@@ -138,6 +167,7 @@ class TestModelIntegrity:
 # ─────────────────────────────────────────────
 # Section B: Risk engine — rules + boundaries
 # ─────────────────────────────────────────────
+
 
 class TestRiskEngineBoundaries:
     """Verify scoring thresholds, hard flags, and edge cases."""
@@ -153,9 +183,14 @@ class TestRiskEngineBoundaries:
     def test_medium_risk_score_combos(self):
         """fever(3) + chest_pain(4) = 7 → medium."""
         p = Patient.objects.create(full_name="Med")
-        s = SurveyResponse.objects.create(patient=p, survey_type="screening", answers={
-            "fever": True, "serious_chest_pain": True,
-        })
+        s = SurveyResponse.objects.create(
+            patient=p,
+            survey_type="screening",
+            answers={
+                "fever": True,
+                "serious_chest_pain": True,
+            },
+        )
         result = assess(p, s)
         assert result["total_score"] >= 4  # at least 2 rules fired
         assert result["level"] in ("medium", "high")
@@ -163,10 +198,16 @@ class TestRiskEngineBoundaries:
     def test_high_risk_via_multiple_rules(self):
         """fever(3) + cough_2w(4) + chest_pain(4) + comm_contact_sick(3) = 14 → high."""
         p = Patient.objects.create(full_name="HighRisk")
-        s = SurveyResponse.objects.create(patient=p, survey_type="screening", answers={
-            "fever": True, "cough_duration_weeks": 3,
-            "comm_contact_sick": True, "serious_chest_pain": True,
-        })
+        s = SurveyResponse.objects.create(
+            patient=p,
+            survey_type="screening",
+            answers={
+                "fever": True,
+                "cough_duration_weeks": 3,
+                "comm_contact_sick": True,
+                "serious_chest_pain": True,
+            },
+        )
         result = assess(p, s)
         assert result["total_score"] >= 8
         assert result["level"] == "high"
@@ -175,12 +216,15 @@ class TestRiskEngineBoundaries:
         engine = RiskEngine()
         p = Patient.objects.create(full_name="Test", gender="female")
         s = SurveyResponse.objects.create(
-            patient=p, survey_type="screening",
+            patient=p,
+            survey_type="screening",
             answers={"breathlessness_severity": "severe"},
         )
         result = engine.evaluate(p, s)
         assert result.triggered_by_hard_flag is True
-        assert "respiratory" in result.recommended_action_en.lower() or "emergency" in result.recommended_action_en.lower()
+        assert (
+            "respiratory" in result.recommended_action_en.lower() or "emergency" in result.recommended_action_en.lower()
+        )
         assert result.recommendation_source != ""
 
     def test_hard_flag_uses_flag_type_as_recommendation_source(self):
@@ -188,7 +232,8 @@ class TestRiskEngineBoundaries:
         engine = RiskEngine()
         p = Patient.objects.create(full_name="TestHF", gender="female")
         s = SurveyResponse.objects.create(
-            patient=p, survey_type="screening",
+            patient=p,
+            survey_type="screening",
             answers={"breathlessness_severity": "severe"},
         )
         result = engine.evaluate(p, s)
@@ -221,11 +266,13 @@ class TestRiskEngineBoundaries:
 # Section C: Seed commands idempotent
 # ─────────────────────────────────────────────
 
+
 class TestSeedCommands:
     """Verify seed_risk_rules and verify_risk_engine are idempotent."""
 
     def test_seed_risk_rules_idempotent(self):
         from django.core.management import call_command
+
         call_command("seed_risk_rules")
         count = RiskRule.objects.count()
         call_command("seed_risk_rules")
@@ -233,6 +280,7 @@ class TestSeedCommands:
 
     def test_verify_risk_engine_passes(self):
         from django.core.management import call_command
+
         call_command("seed_risk_rules")
         call_command("verify_risk_engine")
 
@@ -240,6 +288,7 @@ class TestSeedCommands:
 # ─────────────────────────────────────────────
 # Section D: API endpoints respond correctly
 # ─────────────────────────────────────────────
+
 
 class TestApiEndpoints:
     """Verify all new API endpoints are reachable and enforce auth."""
@@ -261,24 +310,39 @@ class TestApiEndpoints:
 # Section E: Feature flags contract compliance
 # ─────────────────────────────────────────────
 
+
 class TestFeatureFlagsContract:
     """Verify feature flags match master prompt spec."""
 
     def test_mvp_feature_flags_exist(self):
         """FEATURES should have all 8 MVP-defined flags, all default false."""
         import os
-        flags_path = os.path.join(os.path.dirname(__file__), "..", "..", "mobile", "src", "constants", "featureFlags.js")
+
+        flags_path = os.path.join(
+            os.path.dirname(__file__), "..", "..", "mobile", "src", "constants", "featureFlags.js"
+        )
         with open(flags_path) as f:
             content = f.read()
-        required = ["VISIT_VERIFICATION_OTP", "OFFLINE_MAP", "GPS_TRACKING", "VOICE_INPUT",
-                     "PDF_PAYSLIP", "TFLITE_SCORING", "GEMMA_ONDEVICE", "ABDM_COMPLIANCE"]
+        required = [
+            "VISIT_VERIFICATION_OTP",
+            "OFFLINE_MAP",
+            "GPS_TRACKING",
+            "VOICE_INPUT",
+            "PDF_PAYSLIP",
+            "TFLITE_SCORING",
+            "GEMMA_ONDEVICE",
+            "ABDM_COMPLIANCE",
+        ]
         for flag in required:
             assert flag in content, f"FEATURES.{flag} missing from featureFlags.js"
 
     def test_incentive_rates_in_paise(self):
         """INCENTIVE_RATES should be in paise (rupees × 100)."""
         import os
-        flags_path = os.path.join(os.path.dirname(__file__), "..", "..", "mobile", "src", "constants", "featureFlags.js")
+
+        flags_path = os.path.join(
+            os.path.dirname(__file__), "..", "..", "mobile", "src", "constants", "featureFlags.js"
+        )
         with open(flags_path) as f:
             content = f.read()
         assert "survey_completion: 5000" in content, "survey_completion should be 5000 paise (₹50)"

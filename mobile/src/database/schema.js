@@ -10,7 +10,7 @@ const baseCols = [
 ];
 
 export default appSchema({
-  version: 1,
+  version: 2,
   tables: [
     tableSchema({
       name: "households",
@@ -264,6 +264,9 @@ export default appSchema({
         { name: "outcome", type: "string", isOptional: true },
         { name: "notes", type: "string", isOptional: true },
         { name: "incentive_awarded", type: "boolean", isOptional: true },
+        { name: "visit_lat", type: "number", isOptional: true },
+        { name: "visit_lng", type: "number", isOptional: true },
+        { name: "visit_accuracy_m", type: "number", isOptional: true },
       ],
     }),
     tableSchema({

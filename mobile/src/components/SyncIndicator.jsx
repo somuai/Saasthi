@@ -14,9 +14,7 @@ export function SyncIndicator({ compact }) {
 
   useEffect(() => {
     if (isSyncing) {
-      const loop = Animated.loop(
-        Animated.timing(spin, { toValue: 1, duration: 900, easing: Easing.linear, useNativeDriver: true })
-      );
+      const loop = Animated.loop(Animated.timing(spin, { toValue: 1, duration: 900, easing: Easing.linear, useNativeDriver: true }));
       loop.start();
       return () => loop.stop();
     }
@@ -30,7 +28,7 @@ export function SyncIndicator({ compact }) {
       Animated.sequence([
         Animated.timing(pulse, { toValue: 1.35, duration: 1000, useNativeDriver: true }),
         Animated.timing(pulse, { toValue: 1, duration: 1000, useNativeDriver: true }),
-      ])
+      ]),
     );
     loop.start();
     return () => loop.stop();

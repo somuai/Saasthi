@@ -19,10 +19,7 @@ export function SymptomCard({ labelHi, labelEn, value, onChange }) {
       {present ? (
         <View style={styles.body}>
           <Text style={styles.sevLabel}>गंभीरता / Severity</Text>
-          <SeverityPill
-            value={value?.severity || "mild"}
-            onChange={(severity) => onChange?.({ ...value, present: true, severity })}
-          />
+          <SeverityPill value={value?.severity || "mild"} onChange={(severity) => onChange?.({ ...value, present: true, severity })} />
           <GovtInput
             labelHi="दिन (वैकल्पिक)"
             label="Days (optional)"

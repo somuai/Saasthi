@@ -1,15 +1,5 @@
 import { useCallback, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../../constants/colors";
@@ -68,11 +58,7 @@ export default function AIAssistantScreen() {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={90}
-    >
+    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={90}>
       <GovtHeader titleHi="AI सहायिका" titleEn="AI Assistant" />
       <View style={styles.patientRow}>
         <TextInput
@@ -83,10 +69,7 @@ export default function AIAssistantScreen() {
           onChangeText={setPatientId}
           keyboardType="number-pad"
         />
-        <Pressable
-          style={styles.pickBtn}
-          onPress={() => router.push("/(tabs)/patients")}
-        >
+        <Pressable style={styles.pickBtn} onPress={() => router.push("/(tabs)/patients")}>
           <Ionicons name="search" size={18} color="#fff" />
           <Text style={styles.pickBtnText}>चुनें</Text>
         </Pressable>
@@ -126,17 +109,33 @@ export default function AIAssistantScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
   patientRow: {
-    flexDirection: "row", alignItems: "center", gap: 8,
-    paddingHorizontal: 16, paddingVertical: 8,
-    backgroundColor: COLORS.card, borderBottomWidth: 1, borderColor: COLORS.border,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: COLORS.card,
+    borderBottomWidth: 1,
+    borderColor: COLORS.border,
   },
   patientInput: {
-    flex: 1, minHeight: tapTargetMin, borderRadius: 8, borderWidth: 1,
-    borderColor: COLORS.border, paddingHorizontal: 12, fontSize: 14, color: COLORS.textPrimary,
+    flex: 1,
+    minHeight: tapTargetMin,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    color: COLORS.textPrimary,
   },
   pickBtn: {
-    flexDirection: "row", alignItems: "center", gap: 4, minHeight: tapTargetMin,
-    paddingHorizontal: 12, borderRadius: 8, backgroundColor: COLORS.primary,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+    minHeight: tapTargetMin,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    backgroundColor: COLORS.primary,
   },
   pickBtnText: { color: "#fff", fontWeight: "700", fontSize: 13 },
   list: { flex: 1 },
@@ -147,19 +146,34 @@ const styles = StyleSheet.create({
   userText: { color: "#fff", fontSize: 14 },
   assistantText: { color: COLORS.textPrimary, fontSize: 14, lineHeight: 20 },
   inputRow: {
-    flexDirection: "row", alignItems: "flex-end", gap: 8,
-    paddingHorizontal: 16, paddingVertical: 8,
-    backgroundColor: COLORS.card, borderTopWidth: 1, borderColor: COLORS.border,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: COLORS.card,
+    borderTopWidth: 1,
+    borderColor: COLORS.border,
   },
   input: {
-    flex: 1, minHeight: tapTargetMin, maxHeight: 100, borderRadius: 8, borderWidth: 1,
-    borderColor: COLORS.border, paddingHorizontal: 12, paddingVertical: 10,
-    fontSize: 14, color: COLORS.textPrimary,
+    flex: 1,
+    minHeight: tapTargetMin,
+    maxHeight: 100,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+    color: COLORS.textPrimary,
   },
   sendBtn: {
-    minHeight: tapTargetMin, minWidth: tapTargetMin,
-    borderRadius: 8, backgroundColor: COLORS.primary,
-    alignItems: "center", justifyContent: "center",
+    minHeight: tapTargetMin,
+    minWidth: tapTargetMin,
+    borderRadius: 8,
+    backgroundColor: COLORS.primary,
+    alignItems: "center",
+    justifyContent: "center",
   },
   sendBtnDisabled: { opacity: 0.5 },
 });

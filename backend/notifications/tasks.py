@@ -1,14 +1,13 @@
 from datetime import timedelta
 
 from celery import shared_task
-from django.utils import timezone
-
 from shaasthi_backend.celery import app
 
 
 @shared_task
 def send_daily_visit_reminders():
     from accounts.models import User
+
     from notifications.services import send_bulk_notification
 
     users = User.objects.filter(
@@ -17,7 +16,7 @@ def send_daily_visit_reminders():
         role__in=("field_worker", "asha", "health_worker"),
     )
     if not users.exists():
-        return f"No users with FCM tokens; skipped"
+        return "No users with FCM tokens; skipped"
     sent = send_bulk_notification(
         users,
         title="भेंट याद दिलायें / Visit Reminder",
@@ -40,7 +39,7 @@ def send_followup_alert(followup_id):
     send_fcm_notification(
         user,
         title="Follow-up Due",
-        body=f"Follow-up visit for patient is scheduled.",
+        body="Follow-up visit for patient is scheduled.",
         payload={"type": "followup_alert", "followup_id": str(followup_id)},
     )
 

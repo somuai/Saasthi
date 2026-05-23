@@ -26,5 +26,9 @@ export default class FollowUp extends Model {
   @text("notes") notes;
   @field("incentive_awarded") incentiveAwarded;
 
+  @field("visit_lat") visitLat;
+  @field("visit_lng") visitLng;
+  @field("visit_accuracy_m") visitAccuracyM;
+
   @relation("patients", "patient_id") patient;
 }

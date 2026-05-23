@@ -14,9 +14,7 @@ def _get_firebase_app():
         return firebase_admin.get_app("shaashti")
 
     if settings.FIREBASE_SERVICE_ACCOUNT_JSON:
-        cred = credentials.Certificate(
-            json.loads(settings.FIREBASE_SERVICE_ACCOUNT_JSON)
-        )
+        cred = credentials.Certificate(json.loads(settings.FIREBASE_SERVICE_ACCOUNT_JSON))
     elif settings.FIREBASE_SERVICE_ACCOUNT_PATH:
         cred = credentials.Certificate(settings.FIREBASE_SERVICE_ACCOUNT_PATH)
     else:

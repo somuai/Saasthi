@@ -30,8 +30,11 @@ if _DEBUG_VALUE is False and set(ALLOWED_HOSTS) <= _DEFAULT_HOSTS:
 
 # ── Sentry (production only) ────────────────────────────────────────────
 _SENTRY_DSN = os.getenv("SENTRY_DSN")
+APP_VERSION = os.getenv("APP_VERSION", "0.1.0")
+
 if _SENTRY_DSN and not DEBUG:
     import sentry_sdk
+    from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
 
@@ -42,6 +45,7 @@ if _SENTRY_DSN and not DEBUG:
         send_default_pii=False,
         integrations=[
             DjangoIntegration(),
+            CeleryIntegration(),
             LoggingIntegration(level=logging.WARNING, event_level=logging.ERROR),
         ],
     )
@@ -108,10 +112,7 @@ AUTH_USER_MODEL = "accounts.User"
 def database_from_url(url):
     if url.startswith("sqlite:///"):
         db_path = url.removeprefix("sqlite:///")
-        if db_path == ":memory:" or db_path.startswith("/"):
-            name = db_path
-        else:
-            name = str(BASE_DIR / db_path)
+        name = db_path if db_path == ":memory:" or db_path.startswith("/") else str(BASE_DIR / db_path)
         return {"ENGINE": "django.db.backends.sqlite3", "NAME": name}
     parsed = urlparse(url)
     if parsed.scheme in {"postgres", "postgresql"}:
@@ -123,6 +124,7 @@ def database_from_url(url):
             "HOST": parsed.hostname,
             "PORT": parsed.port or 5432,
             "CONN_MAX_AGE": int(os.getenv("DB_CONN_MAX_AGE", "60")),
+            "CONN_HEALTH_CHECKS": True,
             "OPTIONS": {
                 "connect_timeout": int(os.getenv("DB_CONNECT_TIMEOUT", "10")),
             },
@@ -130,9 +132,7 @@ def database_from_url(url):
     return {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}
 
 
-DATABASES = {
-    "default": database_from_url(os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"))
-}
+DATABASES = {"default": database_from_url(os.getenv("DATABASE_URL", f"sqlite:///{BASE_DIR / 'db.sqlite3'}"))}
 
 # ── CORS ────────────────────────────────────────────────────────────────
 CORS_ALLOWED_ORIGINS = [
@@ -159,13 +159,16 @@ USE_TZ = True
 if not DEBUG:
     SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "true").lower() in {"1", "true"}
     SESSION_COOKIE_SECURE = True
+    SESSION_COOKIE_HTTPONLY = True
     CSRF_COOKIE_SECURE = True
     SECURE_HSTS_SECONDS = int(os.getenv("SECURE_HSTS_SECONDS", "31536000"))
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
-    SECURE_BROWSER_XSS_FILTER = True
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv("CSRF_TRUSTED_ORIGINS", "").split(",") if origin.strip()]
 
 # ── Static & Media files ────────────────────────────────────
 STATIC_URL = "static/"
@@ -193,7 +196,7 @@ REST_FRAMEWORK = {
         "risk_assess": os.getenv("THROTTLE_RISK_ASSESS", "30/min"),
         "gemma_query": os.getenv("THROTTLE_GEMMA_QUERY", "10/min"),
     },
-    "DEFAULT_THROTTLE_CLASSES": (),
+    "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.ScopedRateThrottle",),
 }
 
 SIMPLE_JWT = {
@@ -214,9 +217,7 @@ EXPOSE_DEBUG_OTP = os.getenv("EXPOSE_DEBUG_OTP", "true" if DEBUG else "false").l
 GPS_ACCEPTABLE_RADIUS_M = int(os.getenv("GPS_ACCEPTABLE_RADIUS_M", "200"))
 GPS_WARNING_RADIUS_M = int(os.getenv("GPS_WARNING_RADIUS_M", "500"))
 
-# MSG91 SMS Provider Settings
-MSG91_AUTH_KEY = os.getenv("MSG91_AUTH_KEY")
-MSG91_TEMPLATE_ID = os.getenv("MSG91_TEMPLATE_ID")
+# SMS delivery via Firebase (legacy MSG91 removed)
 
 # Firebase Admin SDK — supports env-var JSON or file path
 FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
@@ -225,6 +226,8 @@ FIREBASE_SERVICE_ACCOUNT_PATH = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
 CELERY_RESULT_BACKEND = os.getenv("CELERY_RESULT_BACKEND", REDIS_URL)
+CELERY_BROKER_POOL_LIMIT = int(os.getenv("CELERY_BROKER_POOL_LIMIT", "20"))
+CELERY_BROKER_CONNECTION_TIMEOUT = int(os.getenv("CELERY_BROKER_CONNECTION_TIMEOUT", "5"))
 CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER", "false").lower() in {"1", "true", "yes"}
 CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_TASK_ROUTES = {
@@ -235,6 +238,9 @@ CELERY_TASK_ANNOTATIONS = {
 }
 CELERY_TASK_ACKS_LATE = True
 CELERY_WORKER_PREFETCH_MULTIPLIER = 1
+CELERY_TASK_SOFT_TIME_LIMIT = int(os.getenv("CELERY_TASK_SOFT_TIME_LIMIT", "300"))
+CELERY_TASK_TIME_LIMIT = int(os.getenv("CELERY_TASK_TIME_LIMIT", "600"))
+CELERY_RESULT_EXPIRES = int(os.getenv("CELERY_RESULT_EXPIRES", "86400"))
 
 # ── Cache ───────────────────────────────────────────────────
 if DEBUG:
@@ -252,6 +258,9 @@ else:
             "LOCATION": REDIS_URL,
             "KEY_PREFIX": "shaasthi",
             "TIMEOUT": 300,
+            "OPTIONS": {
+                "MAX_CONNECTIONS": int(os.getenv("REDIS_CACHE_MAX_CONNECTIONS", "50")),
+            },
         }
     }
 

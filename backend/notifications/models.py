@@ -25,3 +25,6 @@ class Notification(models.Model):
             models.Index(fields=["channel"], name="ix_notif_channel"),
             models.Index(fields=["read_at"], name="ix_notif_read_at"),
         ]
+
+    def __str__(self):
+        return f"Notification '{self.title[:50]}' to {self.recipient_id} via {self.channel}"

@@ -38,9 +38,7 @@ function setupAndroidDevConnection() {
   }
 
   const requestedSerial = process.env.ANDROID_SERIAL;
-  const targets = requestedSerial
-    ? connected.filter((device) => device.serial === requestedSerial)
-    : connected;
+  const targets = requestedSerial ? connected.filter((device) => device.serial === requestedSerial) : connected;
 
   if (targets.length === 0) {
     const suffix = requestedSerial ? ` matching ANDROID_SERIAL=${requestedSerial}` : "";
@@ -56,14 +54,10 @@ function setupAndroidDevConnection() {
         encoding: "utf8",
       });
       if (r.status === 0) {
-        console.log(
-          `[android] ${formatDevice(device)} reverse tcp:${port} → host (dev client: http://localhost:${port})`
-        );
+        console.log(`[android] ${formatDevice(device)} reverse tcp:${port} → host (dev client: http://localhost:${port})`);
       } else {
         ok = false;
-        console.warn(
-          `[android] ${formatDevice(device)} reverse tcp:${port} failed: ${(r.stderr || r.stdout || "").trim()}`
-        );
+        console.warn(`[android] ${formatDevice(device)} reverse tcp:${port} failed: ${(r.stderr || r.stdout || "").trim()}`);
       }
     }
   }

@@ -1,18 +1,7 @@
 import { calculateVaccineDates } from "./immunizationSchedule";
 
 /** Core primary-series vaccines for FIC (Fully Immunized Child) pilot milestone. */
-export const FIC_CORE_VACCINES = [
-  "BCG",
-  "HEPB",
-  "OPV_0",
-  "PENTA_1",
-  "PENTA_2",
-  "PENTA_3",
-  "OPV_1",
-  "OPV_2",
-  "OPV_3",
-  "MR_1",
-];
+export const FIC_CORE_VACCINES = ["BCG", "HEPB", "OPV_0", "PENTA_1", "PENTA_2", "PENTA_3", "OPV_1", "OPV_2", "OPV_3", "MR_1"];
 
 export function isFicComplete(dateOfBirth, administeredCodes) {
   if (!dateOfBirth) return false;

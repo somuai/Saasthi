@@ -14,8 +14,6 @@ def enqueue_risk_assessment(patient_id, survey_id=None, surveyed_at_iso=None):
     try:
         from risk_engine.tasks import run_risk_assessment
 
-        transaction.on_commit(
-            lambda: run_risk_assessment.delay(patient_id, survey_id, surveyed_at_iso)
-        )
+        transaction.on_commit(lambda: run_risk_assessment.delay(patient_id, survey_id, surveyed_at_iso))
     except Exception:
         logger.warning("risk assessment enqueue skipped (broker unavailable)", exc_info=True)

@@ -16,11 +16,7 @@ export function ToggleRow({ labelHi, labelEn, value, onChange, required, disable
           accessibilityRole="button"
           accessibilityLabel="Yes"
           onPress={() => select(true)}
-          style={({ pressed }) => [
-            styles.pill,
-            value === true && styles.yesOn,
-            pressed && { transform: [{ scale: 0.95 }] },
-          ]}
+          style={({ pressed }) => [styles.pill, value === true && styles.yesOn, pressed && { transform: [{ scale: 0.95 }] }]}
         >
           <Text style={[styles.pillText, value === true && styles.pillOnText]}>हां / YES</Text>
         </Pressable>
@@ -28,11 +24,7 @@ export function ToggleRow({ labelHi, labelEn, value, onChange, required, disable
           accessibilityRole="button"
           accessibilityLabel="No"
           onPress={() => select(false)}
-          style={({ pressed }) => [
-            styles.pill,
-            value === false && styles.noOn,
-            pressed && { transform: [{ scale: 0.95 }] },
-          ]}
+          style={({ pressed }) => [styles.pill, value === false && styles.noOn, pressed && { transform: [{ scale: 0.95 }] }]}
         >
           <Text style={[styles.pillText, value === false && styles.pillOnText]}>नहीं / NO</Text>
         </Pressable>

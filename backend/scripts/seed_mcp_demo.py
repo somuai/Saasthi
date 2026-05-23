@@ -15,10 +15,10 @@ import django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shaasthi_backend.settings")
 django.setup()
 
-from accounts.models import User
-from django.db import transaction
-from mcp.models import ANCVisit, GrowthRecord, ImmunizationRecord, MCPSurveySession
-from registry.models import Patient
+from accounts.models import User  # noqa: E402
+from django.db import transaction  # noqa: E402
+from mcp.models import ANCVisit, GrowthRecord, ImmunizationRecord, MCPSurveySession  # noqa: E402
+from registry.models import Patient  # noqa: E402
 
 ASHA_PHONE = "9999999990"
 

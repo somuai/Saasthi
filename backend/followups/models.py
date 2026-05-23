@@ -9,8 +9,8 @@ class VisitVerificationOTP(models.Model):
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     otp_hash = models.CharField(max_length=200)
     sent_to_phone = models.CharField(max_length=32)
-    expires_at = models.DateTimeField()
-    is_used = models.BooleanField(default=False)
+    expires_at = models.DateTimeField(db_index=True)
+    is_used = models.BooleanField(default=False, db_index=True)
     attempt_count = models.PositiveSmallIntegerField(default=0)
     verified_at = models.DateTimeField(null=True, blank=True)
     bypass_reason = models.CharField(max_length=200, blank=True, default="")
@@ -40,9 +40,12 @@ class FollowUp(models.Model):
     patient = models.ForeignKey("registry.Patient", related_name="followups", on_delete=models.CASCADE)
     worker = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="followups", on_delete=models.CASCADE)
     scheduled_date = models.DateField()
-    urgency = models.CharField(max_length=20, choices=Urgency.choices, default=Urgency.ROUTINE)
+    urgency = models.CharField(max_length=20, choices=Urgency.choices, default=Urgency.ROUTINE, db_index=True)
     triggered_by_assessment = models.ForeignKey(
-        "risk_engine.RiskAssessment", null=True, blank=True, on_delete=models.SET_NULL,
+        "risk_engine.RiskAssessment",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
         related_name="triggered_followups",
     )
     is_auto_scheduled = models.BooleanField(default=False)
@@ -51,6 +54,13 @@ class FollowUp(models.Model):
     completion_notes = models.TextField(blank=True)
     incentive_claimed = models.BooleanField(default=False)
 
+    class GpsStatus(models.TextChoices):
+        NOT_CAPTURED = "not_captured", "Not captured"
+        WITHIN_RADIUS = "within_radius", "Within radius"
+        WARNING_ZONE = "warning_zone", "Warning zone"
+        OUTSIDE_RADIUS = "outside_radius", "Outside radius"
+        NO_HOUSEHOLD_GPS = "no_household_gps", "No household GPS"
+
     # GPS verification
     visit_lat = models.FloatField(null=True, blank=True)
     visit_lng = models.FloatField(null=True, blank=True)
@@ -58,7 +68,10 @@ class FollowUp(models.Model):
     visit_gps_timestamp = models.DateTimeField(null=True, blank=True)
     distance_from_household_m = models.FloatField(null=True, blank=True)
     gps_verification_status = models.CharField(
-        max_length=20, blank=True, default="not_captured",
+        max_length=20,
+        choices=GpsStatus.choices,
+        blank=True,
+        default=GpsStatus.NOT_CAPTURED,
     )
 
     # Visit OTP verification
@@ -66,7 +79,7 @@ class FollowUp(models.Model):
     visit_otp_bypassed = models.BooleanField(default=False)
     bypass_reason = models.CharField(max_length=200, blank=True, default="")
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -98,6 +111,17 @@ class VisitRecord(models.Model):
     next_visit_date = models.DateField(null=True, blank=True)
     referred_to_phc = models.BooleanField(default=False)
     referral_facility = models.CharField(max_length=200, blank=True)
+    visit_lat = models.FloatField(null=True, blank=True)
+    visit_lng = models.FloatField(null=True, blank=True)
+    visit_accuracy_m = models.FloatField(null=True, blank=True)
+    visit_gps_timestamp = models.DateTimeField(null=True, blank=True)
+    distance_from_household_m = models.FloatField(null=True, blank=True)
+    gps_verification_status = models.CharField(
+        max_length=20,
+        choices=FollowUp.GpsStatus.choices,
+        blank=True,
+        default=FollowUp.GpsStatus.NOT_CAPTURED,
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

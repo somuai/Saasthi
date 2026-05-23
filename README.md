@@ -401,6 +401,7 @@ make eval-tier2        # Backend unit tests only
 | `SENTRY_DSN` | Optional | Sentry project DSN (enabled when `DEBUG=false`) |
 | `GEMMA_API_KEY` | Optional | Google AI API key (Gemma AI features) |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | Optional | FCM push notifications |
+| `EXPOSE_DEBUG_OTP` | Optional | Returns OTP in API response (dev only) |
 
 ### Production Safety (enforced at import time)
 

@@ -1,12 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
@@ -111,6 +104,9 @@ export default function VisitRecordScreen() {
           f.followType = "field_visit";
           f.outcome = condition;
           f.notes = JSON.stringify(payload);
+          f.visitLat = gps?.lat ?? null;
+          f.visitLng = gps?.lng ?? null;
+          f.visitAccuracyM = null;
           f.isSynced = false;
           f.isDeleted = false;
           f.isMock = false;
@@ -258,11 +254,7 @@ export default function VisitRecordScreen() {
         <Text style={styles.labelHi}>स्थिति / Condition</Text>
         <View style={styles.condRow}>
           {CONDITIONS.map((c) => (
-            <Pressable
-              key={c.key}
-              style={[styles.condBtn, condition === c.key && styles.condBtnOn]}
-              onPress={() => setCondition(c.key)}
-            >
+            <Pressable key={c.key} style={[styles.condBtn, condition === c.key && styles.condBtnOn]} onPress={() => setCondition(c.key)}>
               <Ionicons name={c.icon} size={28} color={condition === c.key ? COLORS.primary : COLORS.textSecondary} />
               <Text style={styles.condTxt}>{c.hi}</Text>
             </Pressable>
@@ -271,11 +263,7 @@ export default function VisitRecordScreen() {
 
         <Text style={styles.labelHi}>सुविधा / Facility</Text>
         {PHC_FACILITIES.map((p) => (
-          <Pressable
-            key={p.id}
-            style={[styles.phcRow, phcId === p.id && styles.phcRowOn]}
-            onPress={() => setPhcId(p.id)}
-          >
+          <Pressable key={p.id} style={[styles.phcRow, phcId === p.id && styles.phcRowOn]} onPress={() => setPhcId(p.id)}>
             <Text style={styles.phcHi}>{p.hi}</Text>
             <Text style={styles.phcEn}>{p.en}</Text>
           </Pressable>
@@ -284,9 +272,7 @@ export default function VisitRecordScreen() {
         <View style={styles.gpsBox}>
           <Ionicons name="location" size={20} color={COLORS.primary} />
           <Text style={styles.gpsTxt}>
-            {gps
-              ? `GPS: ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}`
-              : "GPS अनुमति लंबित / Location pending"}
+            {gps ? `GPS: ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}` : "GPS अनुमति लंबित / Location pending"}
           </Text>
         </View>
 

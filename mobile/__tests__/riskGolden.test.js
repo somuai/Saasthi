@@ -2,9 +2,7 @@ import fs from "fs";
 import path from "path";
 import { scorePatient } from "../src/ml/riskScorer";
 
-const fixtures = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "../../eval/fixtures/risk_golden.json"), "utf8")
-);
+const fixtures = JSON.parse(fs.readFileSync(path.join(__dirname, "../../eval/fixtures/risk_golden.json"), "utf8"));
 
 describe("risk golden fixtures", () => {
   fixtures.cases.forEach((c) => {

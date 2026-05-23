@@ -56,26 +56,22 @@ export default function PatientProfileScreen() {
 
   const deleteSurvey = useCallback(
     async (survey) => {
-      Alert.alert(
-        "Delete survey",
-        `Delete ${survey.surveyDate || "this"} survey for ${patient?.name}?`,
-        [
-          { text: "Cancel", style: "cancel" },
-          {
-            text: "Delete",
-            style: "destructive",
-            onPress: async () => {
-              try {
-                await database.write(async () => {
-                  await survey.markAsDeleted();
-                });
-              } catch (e) {
-                Alert.alert("Error", e?.message || "Failed to delete survey");
-              }
-            },
+      Alert.alert("Delete survey", `Delete ${survey.surveyDate || "this"} survey for ${patient?.name}?`, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await database.write(async () => {
+                await survey.markAsDeleted();
+              });
+            } catch (e) {
+              Alert.alert("Error", e?.message || "Failed to delete survey");
+            }
           },
-        ],
-      );
+        },
+      ]);
     },
     [database, patient],
   );
@@ -124,11 +120,7 @@ export default function PatientProfileScreen() {
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <Text style={styles.name}>{patient.name}</Text>
         <RiskBadge risk={risk} />
-        <GovtButton
-          titleHi="सर्वे शुरू करें"
-          titleEn="Start survey"
-          onPress={() => router.push(`/(tabs)/survey/${patient.id}`)}
-        />
+        <GovtButton titleHi="सर्वे शुरू करें" titleEn="Start survey" onPress={() => router.push(`/(tabs)/survey/${patient.id}`)} />
         <View style={{ height: 12 }} />
         <GovtButton
           titleHi="भेंट रिकॉर्ड"
@@ -172,11 +164,7 @@ export default function PatientProfileScreen() {
                   </View>
                   <View style={styles.historyActions}>
                     {!s.isComplete ? (
-                      <Pressable
-                        style={styles.actionBtn}
-                        onPress={() => continueSurvey(s)}
-                        accessibilityLabel="Continue survey"
-                      >
+                      <Pressable style={styles.actionBtn} onPress={() => continueSurvey(s)} accessibilityLabel="Continue survey">
                         <Ionicons name="play" size={16} color={COLORS.accent} />
                         <Text style={styles.actionText}>Continue</Text>
                       </Pressable>

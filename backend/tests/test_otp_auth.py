@@ -8,11 +8,15 @@ from django.test import override_settings
 def test_otp_request_and_verify_returns_tokens(api_client):
     phone = "+15551234567"
     supervisor = User.objects.create_user(
-        username="sup", phone="+10000000000", role=User.Role.SUPERVISOR,
+        username="sup",
+        phone="+10000000000",
+        role=User.Role.SUPERVISOR,
     )
     WorkerRegistration.objects.create(
-        phone=phone, full_name="Test Worker",
-        supervisor=supervisor, created_by=supervisor,
+        phone=phone,
+        full_name="Test Worker",
+        supervisor=supervisor,
+        created_by=supervisor,
     )
     request_response = api_client.post("/api/v1/auth/otp/request/", {"phone": phone}, format="json")
 
