@@ -119,7 +119,7 @@ export function detectTbRisk(form) {
   return cough && (fever || weightLoss);
 }
 
-export function computeSubmitSideEffects(form, riskResult, patient) {
+export function computeSubmitSideEffects(form, riskResult, _patient) {
   const hasSerious = form.seriousBreathing || form.seriousChestPain || form.seriousUnableWalk || form.seriousPregnancyComp;
   const tbRisk = detectTbRisk(form);
   const flags = [];

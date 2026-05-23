@@ -1,5 +1,5 @@
 import { Model } from "@nozbe/watermelondb";
-import { field, text, relation, lazy } from "@nozbe/watermelondb/decorators";
+import { field, text, lazy } from "@nozbe/watermelondb/decorators";
 import { Q } from "@nozbe/watermelondb";
 
 export default class Household extends Model {

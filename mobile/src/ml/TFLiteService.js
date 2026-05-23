@@ -1,5 +1,3 @@
-import { FEATURES } from "../constants/featureFlags";
-
 const FEATURE_RULES = [
   { factor: "severe_breathing", weight: 35, check: (p, s) => s?.seriousConditions?.severeBreathing || s?.serious_severe_breathing },
   { factor: "continuous_chest_pain", weight: 32, check: (p, s) => s?.seriousConditions?.chestPain || s?.serious_chest_pain },

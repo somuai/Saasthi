@@ -1,5 +1,5 @@
 import { MODEL_VERSION, RISK_LEVEL_COLORS, RISK_LEVEL_HINDI } from "./riskConstants";
-import { ancVisitCountFromMcp, hasModerateAnemiaFromMcp, hasSevereAnemiaFromMcp, isAncUnderUtilized, latestAncHb } from "./mcpRiskRules";
+import { hasModerateAnemiaFromMcp, hasSevereAnemiaFromMcp, isAncUnderUtilized, latestAncHb } from "./mcpRiskRules";
 
 function getRiskLevel(score) {
   if (score <= 25) return "low";
