@@ -13,10 +13,25 @@ env:
   CELERY_TASK_ALWAYS_EAGER: "true"
   EXPOSE_DEBUG_OTP: "true"
   THROTTLE_OTP: "30/min"
+  APP_VERSION: "0.1.0"
 
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: shaasthi
+          POSTGRES_PASSWORD: shaasthi
+          POSTGRES_DB: shaasthi
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -47,6 +62,15 @@ jobs:
           python -m venv .venv
           . .venv/bin/activate
           pip install -r requirements-dev.txt
+      - name: Migration consistency check
+        run: |
+          cd backend
+          . .venv/bin/activate
+          python manage.py makemigrations --check --dry-run
+      - name: Apply migrations
+        run: |
+          cd backend
+          . .venv/bin/activate
           python manage.py migrate
       - name: Backend lint
         run: |
@@ -57,7 +81,7 @@ jobs:
         run: |
           cd backend
           . .venv/bin/activate
-          DJANGO_SETTINGS_MODULE=shaasthi_backend.settings python -m pytest -v --timeout 60
+          DJANGO_SETTINGS_MODULE=shaasthi_backend.settings python -m pytest -v --timeout 60 -x
       - name: Mobile lint
         run: cd mobile && npx eslint src/
       - name: Mobile tests

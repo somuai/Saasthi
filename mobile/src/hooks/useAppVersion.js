@@ -8,6 +8,7 @@ const APP_VERSION = Constants.expoConfig?.version || "1.0.0";
 export function useAppVersion() {
   const [loading, setLoading] = useState(true);
   const [blocked, setBlocked] = useState(false);
+  const [updateUrl, setUpdateUrl] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -15,6 +16,7 @@ export function useAppVersion() {
       try {
         const { data } = await apiClient.get(endpoints.appVersion);
         if (cancelled) return;
+        if (data.update_url) setUpdateUrl(data.update_url);
         if (data.force_update && compareVersions(APP_VERSION, data.min_version) < 0) {
           setBlocked(true);
         }
@@ -29,7 +31,7 @@ export function useAppVersion() {
     };
   }, []);
 
-  return { loading, blocked, updateUrl: null, appVersion: APP_VERSION };
+  return { loading, blocked, updateUrl, appVersion: APP_VERSION };
 }
 
 function compareVersions(a, b) {

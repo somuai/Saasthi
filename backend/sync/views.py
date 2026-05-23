@@ -5,6 +5,7 @@ import time
 import uuid
 from datetime import datetime
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone as tz
 from flagging.models import Flag
@@ -1287,6 +1288,13 @@ class SyncPullView(APIView):
 
         patients = geo_guard_patient(request.user).select_related("household").order_by("updated_at")
         patient_ids = list(patients.values_list("id", flat=True))
+        sync_max_patients = getattr(settings, "SYNC_MAX_PATIENTS", 5000)
+        if len(patient_ids) > sync_max_patients:
+            logger.warning(
+                "SyncPull truncated %d patient_ids to %d for user %s",
+                len(patient_ids), sync_max_patients, request.user,
+            )
+            patient_ids = patient_ids[:sync_max_patients]
         cache = _fk_cache()
 
         changes = {}

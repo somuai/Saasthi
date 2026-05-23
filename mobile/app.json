@@ -16,6 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "in.shaasthi.pilot",
+      "usesNonExemptEncryption": false,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Shaasthi uses your location to record field visit data for maternal and child health tracking.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Shaasthi needs background location access to continue tracking visits even when the app is in the background.",
@@ -59,7 +60,16 @@
     "experiments": {
       "typedRoutes": false
     },
+    "updates": {
+      "url": "https://u.expo.dev/YOUR_EAS_PROJECT_ID",
+      "enabled": true,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 30000
+    },
     "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      },
       "apiBaseUrl": "http://127.0.0.1:8000/api/v1"
     }
   }

@@ -97,6 +97,27 @@ services:
     volumes:
       - shaasthi_beat_data:/data
 
+  db_backup:
+    profiles: ["prod"]
+    image: postgres:16-alpine
+    command: >
+      sh -c "
+      echo '0 3 * * * /scripts/db_backup.sh /backups' > /etc/crontabs/root &&
+      mkdir -p /backups &&
+      crond -f -l 2
+      "
+    environment:
+      POSTGRES_HOST: db
+      POSTGRES_DB: ${POSTGRES_DB:-shaasthi}
+      POSTGRES_USER: ${POSTGRES_USER:-shaasthi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-shaasthi}
+    volumes:
+      - ./scripts/db_backup.sh:/scripts/db_backup.sh:ro
+      - shaasthi_backups:/backups
+    depends_on:
+      db:
+        condition: service_healthy
+
   nginx:
     profiles: ["prod"]
     image: nginx:1.27-alpine
@@ -110,3 +131,4 @@ services:
 volumes:
   shaasthi_postgres:
   shaasthi_beat_data:
+  shaasthi_backups:
