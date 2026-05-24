@@ -69,6 +69,7 @@
       "./plugins/withAndroidLocalProperties.js",
       "./plugins/withKotlinInPackageFix.js",
       "./plugins/withAndroidFlipperNoop.js",
+      "./plugins/withEasClientCompatFix.js",
       "sentry-expo"
     ],
     "experiments": {
