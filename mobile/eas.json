@@ -15,13 +15,17 @@
         "gradleCommand": ":app:assembleDebug"
       },
       "env": {
-        "EXPO_PUBLIC_ENV": "development"
+        "EXPO_PUBLIC_ENV": "development",
+        "EXPO_PUBLIC_API_URL": "http://127.0.0.1:8000/api/v1"
       }
     },
     "development-device": {
       "extends": "development",
       "ios": {
         "simulator": false
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "http://192.168.29.70:8000/api/v1"
       }
     },
     "preview": {
