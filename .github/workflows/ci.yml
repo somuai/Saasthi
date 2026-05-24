@@ -8,8 +8,8 @@ on:
 
 env:
   DJANGO_SECRET_KEY: ci-test-secret-key-not-for-prod
-  DEBUG: 'False'
-  DJANGO_ALLOWED_HOSTS: ci,localhost,127.0.0.1,testserver
+  DJANGO_DEBUG: 'true'
+  DJANGO_ALLOWED_HOSTS: localhost,127.0.0.1,testserver
   CELERY_TASK_ALWAYS_EAGER: 'true'
   EXPOSE_DEBUG_OTP: 'true'
   THROTTLE_OTP: 30/min
