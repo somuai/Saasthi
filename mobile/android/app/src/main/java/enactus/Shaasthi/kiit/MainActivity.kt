@@ -1,4 +1,4 @@
-package `in`.shaasthi.pilot
+package enactus.Shaasthi.kiit
 
 import android.os.Build
 import android.os.Bundle
