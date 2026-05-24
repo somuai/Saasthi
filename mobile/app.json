@@ -18,6 +18,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "in.shaasthi.pilot",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "usesNonExemptEncryption": false,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Shaasthi uses your location to record field visit data for maternal and child health tracking.",
@@ -27,6 +28,7 @@
       }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
       "package": "enactus.Shaasthi.kiit",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
