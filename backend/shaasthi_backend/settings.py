@@ -1,5 +1,6 @@
 import logging
 import os
+import secrets
 import sys
 from datetime import timedelta
 from pathlib import Path
@@ -12,18 +13,20 @@ load_dotenv(BASE_DIR / ".env")
 
 # ── Production safety checks ────────────────────────────────────────────
 _SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+_INSECURE_DEV = False
 if not _SECRET_KEY:
     if os.getenv("DJANGO_ALLOW_INSECURE_DEV", "false").lower() in {"1","true","yes"}:
-        _SECRET_KEY = "shaasthi-dev-secret"
-        print("WARNING: Using insecure dev SECRET_KEY because DJANGO_ALLOW_INSECURE_DEV is set.", file=sys.stderr)
+        _SECRET_KEY = secrets.token_urlsafe(50)
+        _INSECURE_DEV = True
+        print("WARNING: Using runtime-generated dev SECRET_KEY (sessions invalidated on restart). Set DJANGO_SECRET_KEY for persistence.", file=sys.stderr)
     else:
         print("FATAL: DJANGO_SECRET_KEY must be set in the environment.", file=sys.stderr)
         sys.exit(1)
 _DEBUG_VALUE = os.getenv("DJANGO_DEBUG", "false").lower() in {"1", "true", "yes"}
-if _DEBUG_VALUE is False and _SECRET_KEY == "shaasthi-dev-secret":
+if _DEBUG_VALUE is False and _INSECURE_DEV:
     print("FATAL: DJANGO_SECRET_KEY must be set to a unique value in production.", file=sys.stderr)
     sys.exit(1)
-if _SECRET_KEY != "shaasthi-dev-secret" and _DEBUG_VALUE:
+if not _INSECURE_DEV and _DEBUG_VALUE:
     print("WARNING: DJANGO_DEBUG is enabled with a custom SECRET_KEY. Disable in production.", file=sys.stderr)
 
 SECRET_KEY = _SECRET_KEY

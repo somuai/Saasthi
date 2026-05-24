@@ -65,3 +65,9 @@ mobile/.easignore
 *.swp
 *.swo
 .gemini/
+
+# Key stores / signing (never commit)
+*.keystore
+*.pem
+*.key
+*.p12
