@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "693588777384",
+    "project_id": "shaasthi-c3435",
+    "storage_bucket": "shaasthi-c3435.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:693588777384:android:23e2cd1dc565ae010ae59d",
+        "android_client_info": {
+          "package_name": "enactus.Shaasthi.kiit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB6GH-e2cGxEdj2uzTPC8YJ9ENMrt8XnME"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
