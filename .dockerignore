@@ -1,0 +1,44 @@
+# Git
+.git/
+.gitignore
+.github/
+
+# Node
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+env/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Django
+db.sqlite3
+*.log
+staticfiles/
+media/
+
+# Models
+models/*.tflite
+models/*.bin
+
+# IDE
+.vscode/
+.idea/
+.cursor/
+
+# Other
+.DS_Store
+.env
+tmp/
+logs/
