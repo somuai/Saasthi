@@ -19,7 +19,7 @@
     "lint": "eslint . --ext .js,.jsx",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "postinstall": "node scripts/patch-expo-dev-menu.js && node scripts/patch-android-kotlin-package.js && node scripts/patch-android-flipper.js",
+    "postinstall": "node scripts/patch-expo-dev-menu.js && node scripts/patch-android-kotlin-package.js && node scripts/patch-android-flipper.js && node scripts/patch-expo-modules-core.js",
     "eas:build:dev:ios": "eas build --profile development --platform ios",
     "eas:build:dev:android": "eas build --profile development --platform android"
   },
