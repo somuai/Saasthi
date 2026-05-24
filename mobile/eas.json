@@ -8,8 +8,7 @@
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
-        "simulator": true,
-        "bundleIdentifier": "in.shaasthi.pilot"
+        "simulator": true
       },
       "android": {
         "buildType": "apk",
@@ -27,9 +26,6 @@
     },
     "preview": {
       "distribution": "internal",
-      "ios": {
-        "bundleIdentifier": "in.shaasthi.pilot"
-      },
       "android": {
         "buildType": "apk"
       }
@@ -41,7 +37,6 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "bundleIdentifier": "in.shaasthi.pilot",
         "enterpriseProvisioning": "universal"
       },
       "android": {
