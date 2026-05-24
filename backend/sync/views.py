@@ -8,6 +8,7 @@ from datetime import datetime
 from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.utils import timezone as tz
+from drf_spectacular.utils import extend_schema
 from flagging.models import Flag
 from flagging.services import dedupe_key
 from followups.models import FollowUp
@@ -1277,6 +1278,7 @@ PULL_TABLES = [
 class SyncPullView(APIView):
     throttle_scope = "sync_pull"
 
+    @extend_schema(responses={200: {"type": "object"}})
     def get(self, request):
         last_pulled_at = request.query_params.get("last_pulled_at")
         since = None
@@ -1310,6 +1312,7 @@ class SyncPullView(APIView):
 class SyncPushView(APIView):
     throttle_classes = [SyncPushThrottle]
 
+    @extend_schema(responses={200: {"type": "object"}})
     @transaction.atomic
     def post(self, request):
         device_id = request.data.get("device_id", "unknown")

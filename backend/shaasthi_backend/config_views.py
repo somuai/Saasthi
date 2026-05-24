@@ -1,6 +1,7 @@
 import os
 
 from accounts.models import User
+from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from risk_engine.models import RiskRule
@@ -11,6 +12,7 @@ class AppVersionView(APIView):
     authentication_classes = []
     permission_classes = []
 
+    @extend_schema(responses={200: {"type": "object"}})
     def get(self, request):
         return Response(
             {
@@ -26,6 +28,7 @@ class BootstrapConfigView(APIView):
     authentication_classes = []
     permission_classes = []
 
+    @extend_schema(responses={200: {"type": "object"}})
     def get(self, request):
         return Response(
             {
@@ -43,6 +46,7 @@ class RulesConfigView(APIView):
     authentication_classes = []
     permission_classes = []
 
+    @extend_schema(responses={200: {"type": "object"}})
     def get(self, request):
         rules = RiskRule.objects.filter(is_active=True).order_by("code")
         return Response({"rules": RiskRuleSerializer(rules, many=True).data})

@@ -34,6 +34,59 @@ from .serializers import (
 
 logger = logging.getLogger(__name__)
 
+# UIP immunization schedule: (vaccine_name, dose_number, days_after_birth, is_vitamin_a, fic_eligible)
+UIP_SCHEDULE = [
+    ("BCG", 1, 0, False, True),
+    ("OPV0", 1, 0, False, False),
+    ("HepB", 1, 0, False, False),
+    ("OPV1", 1, 42, False, False),
+    ("Penta1", 1, 42, False, False),
+    ("Rota1", 1, 42, False, False),
+    ("PCV1", 1, 42, False, False),
+    ("IPV1", 1, 42, False, False),
+    ("OPV2", 2, 70, False, False),
+    ("Penta2", 2, 70, False, False),
+    ("Rota2", 2, 70, False, False),
+    ("OPV3", 3, 98, False, False),
+    ("Penta3", 3, 98, False, False),
+    ("Rota3", 3, 98, False, False),
+    ("PCV2", 2, 98, False, False),
+    ("IPV2", 2, 98, False, False),
+    ("MR1", 1, 274, False, False),
+    ("JE1", 1, 274, False, False),
+    ("VitA1", 1, 274, True, False),
+    ("PCVBooster", 1, 365, False, False),
+    ("MR2", 2, 456, False, False),
+    ("JE2", 2, 456, False, False),
+    ("DPTBooster1", 1, 548, False, False),
+    ("OPVBooster", 1, 548, False, False),
+    ("VitA2", 2, 730, True, False),
+    ("VitA3-9", 3, 912, True, False),
+]
+
+
+def _create_uip_immunizations(delivery_record):
+    """Auto-create ImmunizationRecord rows for a live birth delivery."""
+    child = delivery_record.child_patient
+    if not child or delivery_record.delivery_outcome != "live_birth":
+        return
+    for vaccine_name, dose_number, days_offset, is_vitamin_a, fic_eligible in UIP_SCHEDULE:
+        scheduled = delivery_record.delivery_date + timezone.timedelta(days=days_offset)
+        ImmunizationRecord.objects.get_or_create(
+            patient=child,
+            vaccine_name=vaccine_name,
+            dose_number=dose_number,
+            defaults={
+                "asha_worker": delivery_record.asha_worker,
+                "scheduled_date": scheduled,
+                "status": "due",
+                "is_vitamin_a": is_vitamin_a,
+                "vitamin_a_dose_num": dose_number if is_vitamin_a else None,
+                "fic_eligible": fic_eligible,
+            },
+        )
+
+
 SURVEY_SESSION_MAP = {
     ANCVisit: ("anc_visit", "ANCVisit"),
     DeliveryRecord: ("delivery_record", "DeliveryRecord"),
@@ -139,6 +192,7 @@ class DeliveryRecordViewSet(viewsets.ModelViewSet):
         audit(self.request, "mcp.delivery.create", "DeliveryRecord", obj.local_uuid)
         _create_mcp_session(obj, self.request.user, "delivery_record", "DeliveryRecord")
         _trigger_mcp_risk_assessment(obj, obj.mother_patient, self.request.user, "maternal", "delivery_record")
+        _create_uip_immunizations(obj)
 
 
 class PNCVisitViewSet(viewsets.ModelViewSet):

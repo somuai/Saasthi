@@ -3,6 +3,7 @@ import logging
 from celery import current_app
 from django.conf import settings
 from django.db import connections
+from drf_spectacular.utils import extend_schema
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -14,12 +15,14 @@ DEGRADED = "degraded"
 HEALTHY = "healthy"
 
 
+@extend_schema(responses={200: {"type": "object", "properties": {"status": {"type": "string"}}}})
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def liveness(request):
     return Response({"status": "alive"})
 
 
+@extend_schema(responses={200: {"type": "object"}, 503: {"type": "object"}})
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def readiness(request):
@@ -62,6 +65,7 @@ def readiness(request):
     )
 
 
+@extend_schema(responses={200: {"type": "object"}})
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def health_check(request):

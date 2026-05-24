@@ -4,8 +4,9 @@ Gunicorn + Django startup script for Docker container.
 Runs migrations, collects static files, then starts Gunicorn.
 """
 import os
-import sys
 import subprocess
+import sys
+
 
 def run_command(cmd, check=True):
     """Run shell command and return exit code."""
@@ -19,16 +20,16 @@ def run_command(cmd, check=True):
 def main():
     os.chdir(os.path.dirname(os.path.abspath(__file__)) + "/..")
     print("[start.py] Starting Saasthi backend...", flush=True)
-    
+
     # Run migrations
     run_command(["python", "manage.py", "migrate", "--noinput"])
-    
+
     # Collect static files
     run_command(["python", "manage.py", "collectstatic", "--noinput", "--clear"])
-    
+
     # Run Django checks
     run_command(["python", "manage.py", "check"], check=False)
-    
+
     # Start Gunicorn
     gunicorn_cmd = [
         "gunicorn",
@@ -43,7 +44,7 @@ def main():
         "--log-level", os.environ.get("LOG_LEVEL", "info"),
         "shaasthi_backend.wsgi:application",
     ]
-    
+
     print("[start.py] Starting Gunicorn...", flush=True)
     run_command(gunicorn_cmd, check=False)
 

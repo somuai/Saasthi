@@ -42,9 +42,9 @@ class SupervisorDashboardSummaryView(APIView):
     def get(self, request):
         patients = for_user_geography(Patient.objects.all(), request.user)
         patient_ids = patients.values("id")
-        flags = Flag.objects.filter(patient_id__in=patient_ids)
-        referrals = Referral.objects.filter(patient_id__in=patient_ids)
-        surveys = SurveyResponse.objects.filter(patient_id__in=patient_ids)
+        flags = Flag.objects.select_related("patient").filter(patient_id__in=patient_ids)
+        referrals = Referral.objects.select_related("patient").filter(patient_id__in=patient_ids)
+        surveys = SurveyResponse.objects.select_related("patient").filter(patient_id__in=patient_ids)
         return Response(
             {
                 "patients": patients.count(),

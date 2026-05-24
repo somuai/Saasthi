@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -32,7 +33,9 @@ class OTPRequestView(APIView):
     permission_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "otp"
+    serializer_class = OTPRequestSerializer
 
+    @extend_schema(request=OTPRequestSerializer, responses={201: {"type": "object"}})
     def post(self, request):
         serializer = OTPRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -48,7 +51,9 @@ class OTPVerifyView(APIView):
     permission_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "otp"
+    serializer_class = OTPVerifySerializer
 
+    @extend_schema(request=OTPVerifySerializer, responses={200: {"type": "object"}})
     def post(self, request):
         serializer = OTPVerifySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -61,7 +66,9 @@ class FirebaseVerifyView(APIView):
     permission_classes = []
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "otp"
+    serializer_class = FirebaseVerifySerializer
 
+    @extend_schema(request=FirebaseVerifySerializer, responses={200: {"type": "object"}})
     def post(self, request):
         serializer = FirebaseVerifySerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
