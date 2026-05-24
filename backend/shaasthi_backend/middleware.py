@@ -7,6 +7,13 @@ from django.utils.deprecation import MiddlewareMixin
 logger = logging.getLogger(__name__)
 
 
+def _user_repr(request):
+    user = getattr(request, "user", None)
+    if user and user.is_authenticated:
+        return str(getattr(user, "pk", "-"))
+    return "anon"
+
+
 class RequestIDMiddleware(MiddlewareMixin):
     def process_request(self, request):
         request.request_id = str(uuid.uuid4())
@@ -32,6 +39,6 @@ class RequestLoggingMiddleware(MiddlewareMixin):
             response.status_code,
             duration,
             rid,
-            getattr(request.user, "pk", "-") if request.user.is_authenticated else "anon",
+            _user_repr(request),
         )
         return response
