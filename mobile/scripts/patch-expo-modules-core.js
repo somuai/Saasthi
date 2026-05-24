@@ -14,7 +14,7 @@ ext.useDefaultAndroidSdkVersions = {
 }
 `;
 
-const file = path.join(__dirname, TARGET);
+const file = path.join(__dirname, "..", TARGET);
 if (fs.existsSync(file)) {
   let content = fs.readFileSync(file, "utf-8");
   if (!content.includes("ext.useDefaultAndroidSdkVersions")) {
