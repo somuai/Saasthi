@@ -1,0 +1,129 @@
+version: '3.9'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: saasthi_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-saasthi}
+      POSTGRES_USER: ${POSTGRES_USER:-saasthi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-saasthi_dev_password}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-saasthi}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: saasthi_redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: saasthi_api
+    command: ["python", "-m", "scripts.start"]
+    environment:
+      DEBUG: ${DEBUG:-False}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?missing required DJANGO_SECRET_KEY}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-saasthi}:${POSTGRES_PASSWORD:-saasthi_dev_password}@postgres:5432/${POSTGRES_DB:-saasthi}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1,api}
+      GEMMA_API_KEY: ${GEMMA_API_KEY:-}
+      SENTRY_DSN: ${SENTRY_DSN:-}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend:/app
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health/livez/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  celery_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: saasthi_celery_worker
+    command: celery -A shaasthi_backend worker -l info --concurrency=4
+    environment:
+      DEBUG: ${DEBUG:-False}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?missing required DJANGO_SECRET_KEY}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-saasthi}:${POSTGRES_PASSWORD:-saasthi_dev_password}@postgres:5432/${POSTGRES_DB:-saasthi}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+    depends_on:
+      - postgres
+      - redis
+      - api
+    volumes:
+      - ./backend:/app
+
+  celery_beat:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: saasthi_celery_beat
+    command: celery -A shaasthi_backend beat -l info --scheduler django_celery_beat.schedulers:DatabaseScheduler
+    environment:
+      DEBUG: ${DEBUG:-False}
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?missing required DJANGO_SECRET_KEY}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-saasthi}:${POSTGRES_PASSWORD:-saasthi_dev_password}@postgres:5432/${POSTGRES_DB:-saasthi}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+    depends_on:
+      - postgres
+      - redis
+      - api
+    volumes:
+      - ./backend:/app
+
+  nginx:
+    image: nginx:alpine
+    container_name: saasthi_nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
+    ports:
+      - "${NGINX_PORT:-80}:80"
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health/"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  static_volume:
+  media_volume:
+
+networks:
+  default:
+    name: saasthi_network
