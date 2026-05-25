@@ -74,10 +74,7 @@
       "./plugins/withKotlinInPackageFix.js",
       "./plugins/withAndroidFlipperNoop.js",
       "./plugins/withEasClientCompatFix.js",
-      ["sentry-expo", {
-        "organization": process.env.SENTRY_ORG || "shaasthi",
-        "project": process.env.SENTRY_PROJECT || "shaasthi-mobile"
-      }]
+      "sentry-expo"
     ],
     "experiments": {
       "typedRoutes": false
