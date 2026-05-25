@@ -3,6 +3,7 @@ import * as SecureStore from "expo-secure-store";
 import { store } from "../store/store";
 import { updateAccessToken, signOut } from "../features/auth/authSlice";
 import { clearAuthSession } from "../features/auth/authSession";
+import { logger } from "../utils/logger";
 import { API_BASE_URL, apiUrl, endpoints } from "../constants/api";
 
 export const apiClient = axios.create({
@@ -33,7 +34,8 @@ apiClient.interceptors.response.use(
           store.dispatch(updateAccessToken(data.access));
           original.headers.Authorization = `Bearer ${data.access}`;
           return apiClient(original);
-        } catch {
+        } catch (e) {
+          logger.warn("Token refresh failed, signing out", e?.message);
           await clearAuthSession();
           store.dispatch(signOut());
         }

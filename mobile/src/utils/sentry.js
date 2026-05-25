@@ -13,6 +13,8 @@ if (DSN) {
     sendDefaultPii: false,
     debug: typeof __DEV__ !== "undefined" && __DEV__,
   });
+} else if (typeof __DEV__ !== "undefined" && __DEV__) {
+  console.warn("[Sentry] EXPO_PUBLIC_SENTRY_DSN not set — skipping initialization");
 }
 
 export default Sentry;

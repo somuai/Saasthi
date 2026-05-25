@@ -47,15 +47,18 @@ if _SENTRY_DSN and not DEBUG:
     from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
     from sentry_sdk.integrations.logging import LoggingIntegration
+    from sentry_sdk.integrations.redis import RedisIntegration
 
     sentry_sdk.init(
         dsn=_SENTRY_DSN,
+        release=APP_VERSION,
         environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
         send_default_pii=False,
         integrations=[
             DjangoIntegration(),
             CeleryIntegration(),
+            RedisIntegration(),
             LoggingIntegration(level=logging.WARNING, event_level=logging.ERROR),
         ],
     )

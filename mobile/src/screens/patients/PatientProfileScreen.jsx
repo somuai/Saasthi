@@ -12,6 +12,7 @@ import { COLORS } from "../../constants/colors";
 import { RISK_LEVEL_COLORS } from "../../ml/riskConstants";
 import { tapTargetMin } from "../../constants/typography";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { logger } from "../../utils/logger";
 
 const VISIT_LABELS = {
   first: { hi: "पहली बार", en: "First" },
@@ -85,7 +86,9 @@ export default function PatientProfileScreen() {
         if (!existing) {
           await AsyncStorage.setItem(key, JSON.stringify({}));
         }
-      } catch {}
+      } catch (e) {
+        logger.warn("Failed to initialize survey draft", e?.message);
+      }
       router.push(`/(tabs)/survey/${survey.patientId}`);
     },
     [router],

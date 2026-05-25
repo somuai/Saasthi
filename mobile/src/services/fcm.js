@@ -1,18 +1,22 @@
 import { Platform } from "react-native";
 import { apiUrl } from "../constants/api";
 import { getAccessToken } from "./auth";
+import { logger } from "../utils/logger";
 
 let messaging = null;
 try {
   messaging = require("@react-native-firebase/messaging").default;
-} catch (_) {}
+} catch (e) {
+  logger.warn("Firebase messaging not available", e?.message);
+}
 
 export async function requestNotificationPermission() {
   if (!messaging) return false;
   try {
     const authStatus = await messaging().requestPermission();
     return authStatus === messaging.AuthorizationStatus.AUTHORIZED || authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-  } catch {
+  } catch (e) {
+    logger.warn("Notification permission request failed", e?.message);
     return false;
   }
 }
@@ -21,7 +25,8 @@ export async function getFcmToken() {
   if (!messaging) return null;
   try {
     return await messaging().getToken();
-  } catch {
+  } catch (e) {
+    logger.warn("Failed to get FCM token", e?.message);
     return null;
   }
 }
@@ -38,7 +43,9 @@ export async function registerFcmTokenOnServer() {
       headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
       body: JSON.stringify({ fcm_token: token }),
     });
-  } catch (_) {}
+  } catch (e) {
+    logger.warn("Failed to register FCM token on server", e?.message);
+  }
 }
 
 export function onMessageListener(callback) {

@@ -80,7 +80,9 @@ export async function runRiskInference(patient, survey, mcpData) {
       if (rule.check(patient, survey, mcpData)) {
         totalScore += rule.weight;
       }
-    } catch {}
+    } catch (e) {
+      console.warn("[TFLite] Rule evaluation failed:", rule?.factor, e?.message);
+    }
   }
   const score = Math.min(Math.round(totalScore), 100);
   return { score, raw: [score / 100] };
