@@ -19,7 +19,6 @@
       "supportsTablet": true,
       "bundleIdentifier": "in.shaasthi.pilot",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "usesNonExemptEncryption": false,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Shaasthi uses your location to record field visit data for maternal and child health tracking.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Shaasthi needs background location access to continue tracking visits even when the app is in the background.",
@@ -49,6 +48,11 @@
     "plugins": [
       "expo-router",
       "expo-dev-client",
+      ["expo-build-properties", {
+        "ios": {
+          "usesNonExemptEncryption": false
+        }
+      }],
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       [
@@ -82,7 +86,7 @@
       "fallbackToCacheTimeout": 30000
     },
     "extra": {
-      "apiBaseUrl": "http://127.0.0.1:8000/api/v1",
+      "apiBaseUrl": "http://192.168.29.70:8000/api/v1",
       "router": {
         "origin": false
       },
