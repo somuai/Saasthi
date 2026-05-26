@@ -64,6 +64,13 @@ jobs:
           REDIS_URL: redis://localhost:6379/0
         run: python manage.py migrate
 
+      - name: Seed incentive rates
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/saasthi_test
+          REDIS_URL: redis://localhost:6379/0
+        run: python manage.py seed_incentive_rates
+
       - name: Run tests
         working-directory: ./backend
         env:
@@ -135,6 +142,13 @@ jobs:
           DATABASE_URL: postgresql://test:test@localhost:5432/saasthi_test
           REDIS_URL: redis://localhost:6379/0
         run: python manage.py migrate
+
+      - name: Seed incentive rates
+        working-directory: ./backend
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/saasthi_test
+          REDIS_URL: redis://localhost:6379/0
+        run: python manage.py seed_incentive_rates
 
       - name: Check for unapplied migrations
         working-directory: ./backend

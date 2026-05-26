@@ -1,16 +1,22 @@
 from django.http import StreamingHttpResponse
-from rest_framework import status, viewsets
+from django.utils import timezone
+from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import IncentiveLedgerEntry
-from .serializers import IncentiveLedgerEntrySerializer
+from .models import IncentiveLedgerEntry, IncentiveRate
+from .serializers import IncentiveLedgerEntrySerializer, IncentiveRateSerializer
 from .services.payslip_service import PayslipService
+
+
+class IsSupervisorOrAdmin(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role in {"supervisor", "admin", "auditor"}
 
 
 class IncentiveLedgerEntryViewSet(viewsets.ModelViewSet):
     serializer_class = IncentiveLedgerEntrySerializer
-    filterset_fields = ["category", "worker"]
+    filterset_fields = ["category", "worker", "status", "activity_type", "month_year"]
     throttle_scope = "incentives"
 
     def get_queryset(self):
@@ -36,3 +42,38 @@ class IncentiveLedgerEntryViewSet(viewsets.ModelViewSet):
         )
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
+
+    @action(detail=True, methods=["post"], permission_classes=[IsSupervisorOrAdmin])
+    def approve(self, request, pk=None):
+        entry = self.get_object()
+        if entry.status != IncentiveLedgerEntry.Status.PENDING:
+            return Response(
+                {"detail": f"Cannot approve entry with status '{entry.status}'. Must be 'pending'."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        entry.status = IncentiveLedgerEntry.Status.APPROVED
+        entry.approved_by = str(request.user)
+        entry.approved_at = timezone.now()
+        entry.save(update_fields=["status", "approved_by", "approved_at"])
+        return Response(self.get_serializer(entry).data)
+
+    @action(detail=True, methods=["post"], permission_classes=[IsSupervisorOrAdmin])
+    def mark_paid(self, request, pk=None):
+        entry = self.get_object()
+        if entry.status != IncentiveLedgerEntry.Status.APPROVED:
+            return Response(
+                {"detail": f"Cannot mark paid entry with status '{entry.status}'. Must be 'approved'."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        entry.status = IncentiveLedgerEntry.Status.PAID
+        entry.paid_at = timezone.now()
+        entry.save(update_fields=["status", "paid_at"])
+        return Response(self.get_serializer(entry).data)
+
+
+class IncentiveRateViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = IncentiveRate.objects.filter(is_active=True)
+    serializer_class = IncentiveRateSerializer
+    pagination_class = None
+    throttle_scope = "incentives"
+    permission_classes = [permissions.IsAuthenticated]

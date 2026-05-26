@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import IncentiveLedgerEntry
+from .models import IncentiveLedgerEntry, IncentiveRate
 
 
 class IncentiveLedgerEntrySerializer(serializers.ModelSerializer):
@@ -39,3 +39,9 @@ class IncentiveLedgerEntrySerializer(serializers.ModelSerializer):
             "approved_at",
             "paid_at",
         ]
+
+
+class IncentiveRateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IncentiveRate
+        fields = ["id", "activity_type", "amount_paise", "label_en", "label_hi", "is_active"]

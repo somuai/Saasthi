@@ -67,3 +67,27 @@ class IncentiveLedgerEntry(models.Model):
 
     def __str__(self):
         return f"{self.activity_type} ₹{self.amount_rupees:.2f} for {self.worker_id}"
+
+
+class IncentiveRate(models.Model):
+    activity_type = models.CharField(
+        max_length=40, choices=IncentiveLedgerEntry.ActivityType.choices, unique=True
+    )
+    amount_paise = models.PositiveIntegerField(help_text="Amount in paise (rupees × 100)")
+    label_en = models.CharField(max_length=120, blank=True)
+    label_hi = models.CharField(max_length=120, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["activity_type"]
+        verbose_name = "Incentive Rate"
+        verbose_name_plural = "Incentive Rates"
+
+    @property
+    def amount_rupees(self):
+        return self.amount_paise / 100
+
+    def __str__(self):
+        return f"{self.get_activity_type_display()}: ₹{self.amount_rupees:.2f}"

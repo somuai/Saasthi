@@ -129,21 +129,22 @@ def _create_incentive(immunization_record, request_user):
     if not (immunization_record.fic_eligible or immunization_record.cic_eligible):
         return
     try:
-        from incentives.models import IncentiveLedgerEntry
+        from incentives.models import IncentiveRate
 
-        amount = 200 if immunization_record.fic_eligible else 100
-        entry = IncentiveLedgerEntry.objects.create(
-            worker=request_user,
-            activity_type=IncentiveLedgerEntry.ActivityType.SURVEY_COMPLETION,
-            amount_paise=amount * 100,
-            status=IncentiveLedgerEntry.Status.PENDING,
-            reference_id=immunization_record.local_uuid,
+        rate = IncentiveRate.objects.filter(activity_type="survey_completion", is_active=True).first()
+        amount_paise = rate.amount_paise if rate else (200 if immunization_record.fic_eligible else 100) * 100
+        from incentives.tasks import create_incentive
+
+        create_incentive.delay(
+            activity_type="survey_completion",
+            worker_id=request_user.pk,
+            amount_paise=amount_paise,
+            reference_id=str(immunization_record.local_uuid),
             reference_type="ImmunizationRecord",
             month_year=timezone.now().strftime("%Y-%m"),
             description_en=f"Incentive for {'FIC' if immunization_record.fic_eligible else 'CIC'} eligible immunization",
             description_hi=f"{'FIC' if immunization_record.fic_eligible else 'CIC'} टीकाकरण के लिए प्रोत्साहन",
         )
-        audit(None, "incentives.create", "IncentiveLedgerEntry", entry.local_uuid)
     except Exception:
         logger.exception("Incentive creation failed for immunization %s", immunization_record.local_uuid)
 
