@@ -155,13 +155,33 @@ export default function OtpScreen() {
     } catch (err) {
       if (useFirebase) {
         /* Firebase errors — check if it's a verification failure */
-        if (err.code === "auth/invalid-verification-code" || err.code === "auth/session-expired") {
+        if (
+          err.code === "auth/invalid-verification-code" ||
+          err.code === "auth/code-expired" ||
+          err.code === "auth/session-expired"
+        ) {
           setError("गलत या समाप्त OTP / Invalid or expired OTP");
+          return;
+        }
+        if (err.code === "auth/too-many-requests") {
+          setError("बहुत अधिक प्रयास — Too many attempts. Try after 1 hour.");
+          return;
+        }
+        if (err.code === "auth/network-request-failed") {
+          setError("कोई इंटरनेट कनेक्शन नहीं — No internet connection.");
           return;
         }
         /* Backend validation failed */
         if (err.response?.status === 400) {
           setError("गलत या समाप्त OTP / Invalid or expired OTP");
+          return;
+        }
+        if (err.response?.status === 404) {
+          setError(err.response.data?.detail || "Phone not registered. Contact your ANM supervisor.");
+          return;
+        }
+        if (err.response?.status === 503) {
+          setError("सत्यापन सेवा अनुपलब्ध है / Verification service unavailable.");
           return;
         }
         /* Network error — show generic message */

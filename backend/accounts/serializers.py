@@ -1,8 +1,10 @@
 import random
 
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.exceptions import NotFound
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from .firebase_auth import verify_firebase_token
@@ -13,13 +15,29 @@ User = get_user_model()
 
 
 def resolve_worker(phone):
-    reg = WorkerRegistration.objects.filter(phone=phone, is_active=True).first()
+    clean_phone = phone.strip()
+    if clean_phone.startswith("+"):
+        phone_10digit = clean_phone[3:] if clean_phone.startswith("+91") else clean_phone[1:]
+    elif clean_phone.startswith("91") and len(clean_phone) == 12:
+        phone_10digit = clean_phone[2:]
+        clean_phone = f"+{clean_phone}"
+    elif len(clean_phone) == 10:
+        phone_10digit = clean_phone
+        clean_phone = f"+91{clean_phone}"
+    else:
+        phone_10digit = clean_phone
+
+    reg = WorkerRegistration.objects.filter(
+        Q(phone=clean_phone) | Q(phone=phone_10digit),
+        is_active=True
+    ).first()
     if not reg:
-        raise serializers.ValidationError("This number is not registered. Contact your ANM supervisor.")
+        raise NotFound("Phone not registered. Contact your ANM supervisor.")
+
     user, created = User.objects.get_or_create(
-        phone=phone,
+        phone=clean_phone,
         defaults={
-            "username": phone,
+            "username": clean_phone,
             "first_name": reg.full_name,
             "role": User.Role.HEALTH_WORKER,
             "village": reg.village,
@@ -76,6 +94,9 @@ class OTPVerifySerializer(serializers.Serializer):
         phone = validated_data["phone"]
         user = resolve_worker(phone)
         refresh = RefreshToken.for_user(user)
+        refresh["role"] = user.role
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
         return {
             "user": UserSerializer(user).data,
             "refresh": str(refresh),
@@ -100,6 +121,9 @@ class FirebaseVerifySerializer(serializers.Serializer):
         phone = validated_data["phone"]
         user = resolve_worker(phone)
         refresh = RefreshToken.for_user(user)
+        refresh["role"] = user.role
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
         return {
             "user": UserSerializer(user).data,
             "refresh": str(refresh),

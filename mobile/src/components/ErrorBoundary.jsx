@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
 import { spacing, typography } from "../constants/design";
 import { GovtButton } from "./GovtButton";
+import { logger } from "../utils/logger";
 import Sentry from "../utils/sentry";
 
 const initialState = { hasError: false, error: null };
@@ -18,7 +19,7 @@ export class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error("ErrorBoundary caught:", error, info?.componentStack || "");
+    logger.error("ErrorBoundary caught:", error, info?.componentStack || "");
     Sentry.captureException(error, {
       extra: { componentStack: info?.componentStack },
     });

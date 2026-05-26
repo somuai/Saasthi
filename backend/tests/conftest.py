@@ -69,7 +69,7 @@ def sample_patient():
 
 @pytest.fixture
 def household(worker):
-    return HouseholdFactory()
+    return HouseholdFactory(village=worker.village, block=worker.block, district=worker.district)
 
 
 @pytest.fixture

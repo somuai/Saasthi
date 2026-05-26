@@ -29,6 +29,9 @@ export default class FollowUp extends Model {
   @field("visit_lat") visitLat;
   @field("visit_lng") visitLng;
   @field("visit_accuracy_m") visitAccuracyM;
+  @text("visit_gps_timestamp") visitGpsTimestamp;
+  @field("distance_from_household_m") distanceFromHouseholdM;
+  @text("gps_verification_status") gpsVerificationStatus;
 
   @relation("patients", "patient_id") patient;
 }

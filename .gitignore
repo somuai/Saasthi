@@ -9,7 +9,7 @@
 node_modules/
 .expo/
 mobile/ios/
-mobile/android/
+# mobile/android/ — committed for EAS build compat; update via npx expo prebuild
 .cursor/
 dist/
 web-build/
@@ -37,6 +37,7 @@ models/*.json
 
 # Firebase
 firebase-service-account.json
+shaasthi-firebase-service-account.json
 
 # Local runtime
 tmp/

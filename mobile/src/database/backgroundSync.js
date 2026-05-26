@@ -1,3 +1,5 @@
+import { logger } from "../utils/logger";
+
 const TASK_NAME = "shaasthi-background-sync";
 
 let taskDefined = false;
@@ -14,7 +16,8 @@ export async function registerBackgroundSync() {
           const { syncWithServer } = await import("./sync");
           const result = await syncWithServer();
           return result.success ? BackgroundFetch.BackgroundFetchResult.NewData : BackgroundFetch.BackgroundFetchResult.NoData;
-        } catch {
+        } catch (e) {
+          logger.warn("Background sync task failed", e?.message);
           return BackgroundFetch.BackgroundFetchResult.Failed;
         }
       });
@@ -30,7 +33,8 @@ export async function registerBackgroundSync() {
       startOnBoot: true,
     });
     return true;
-  } catch {
+  } catch (e) {
+    logger.warn("Background sync registration failed", e?.message);
     return false;
   }
 }

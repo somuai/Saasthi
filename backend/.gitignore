@@ -4,5 +4,11 @@ __pycache__/
 .pytest_cache/
 db.sqlite3
 
+# Environment variables (sensitive — never commit)
+.env
+.env.*
+!.env.example
+
 # Firebase Admin SDK service account (sensitive — never commit)
 firebase-service-account.json
+shaasthi-firebase-service-account.json

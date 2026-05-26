@@ -20,7 +20,7 @@ def test_visit_record_gps_within_radius(worker_client, worker):
         "visit_lng": 77.2090,
         "visit_accuracy_m": 10.0,
     }
-    resp = worker_client.post("/api/v1/followups/visits/", payload, format="json")
+    resp = worker_client.post("/api/v1/visits/", payload, format="json")
     assert resp.status_code == 201
     vr = VisitRecord.objects.get(pk=resp.data["id"])
     assert vr.distance_from_household_m < 10
@@ -40,7 +40,7 @@ def test_visit_record_gps_outside_radius(worker_client, worker):
         "visit_lng": 78.2090,
         "visit_accuracy_m": 10.0,
     }
-    resp = worker_client.post("/api/v1/followups/visits/", payload, format="json")
+    resp = worker_client.post("/api/v1/visits/", payload, format="json")
     assert resp.status_code == 201
     vr = VisitRecord.objects.get(pk=resp.data["id"])
     assert vr.gps_verification_status == FollowUp.GpsStatus.OUTSIDE_RADIUS
@@ -61,7 +61,7 @@ def test_visit_record_gps_warning_zone(worker_client, worker):
         "visit_lng": 77.2130,
         "visit_accuracy_m": 10.0,
     }
-    resp = worker_client.post("/api/v1/followups/visits/", payload, format="json")
+    resp = worker_client.post("/api/v1/visits/", payload, format="json")
     assert resp.status_code == 201
     vr = VisitRecord.objects.get(pk=resp.data["id"])
     assert vr.gps_verification_status == FollowUp.GpsStatus.WARNING_ZONE
@@ -80,7 +80,7 @@ def test_visit_record_gps_no_household_gps(worker_client, worker):
         "visit_lng": 77.2090,
         "visit_accuracy_m": 10.0,
     }
-    resp = worker_client.post("/api/v1/followups/visits/", payload, format="json")
+    resp = worker_client.post("/api/v1/visits/", payload, format="json")
     assert resp.status_code == 201
     vr = VisitRecord.objects.get(pk=resp.data["id"])
     assert vr.gps_verification_status == FollowUp.GpsStatus.NO_HOUSEHOLD_GPS
@@ -96,7 +96,7 @@ def test_visit_record_gps_no_gps_not_captured(worker_client, worker):
         "visit_date": timezone.now().date().isoformat(),
         "condition_observed": VisitRecord.Condition.GOOD,
     }
-    resp = worker_client.post("/api/v1/followups/visits/", payload, format="json")
+    resp = worker_client.post("/api/v1/visits/", payload, format="json")
     assert resp.status_code == 201
     vr = VisitRecord.objects.get(pk=resp.data["id"])
     assert vr.gps_verification_status == FollowUp.GpsStatus.NOT_CAPTURED

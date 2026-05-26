@@ -1,7 +1,14 @@
 import Constants from "expo-constants";
+import { Platform } from "react-native";
 
 /** Base URL without trailing slash — must include /api/v1 for Prompt 10 API */
-export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.apiBaseUrl || "http://127.0.0.1:8000/api/v1";
+const envUrl = process.env.EXPO_PUBLIC_API_URL;
+const extraUrl = Constants.expoConfig?.extra?.apiBaseUrl;
+export const API_BASE_URL = envUrl || extraUrl || (__DEV__ ? "http://127.0.0.1:8000/api/v1" : "");
+
+if (!API_BASE_URL && Platform.OS !== "web") {
+  console.error("CRITICAL: EXPO_PUBLIC_API_URL not set in production build");
+}
 
 export const endpoints = {
   requestOtp: "/auth/otp/request/",
@@ -12,8 +19,6 @@ export const endpoints = {
   syncPush: "/sync/push/",
   patients: "/registry/patients/",
   surveys: "/surveys/responses/",
-  legacyRequestOtp: "/auth/request-otp/",
-  legacyVerifyOtp: "/auth/verify-otp/",
   appVersion: "/config/version/",
 };
 

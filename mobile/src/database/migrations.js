@@ -15,5 +15,26 @@ export default schemaMigrations({
         }),
       ],
     },
+    {
+      toVersion: 3,
+      steps: [
+        addColumns({
+          table: "follow_ups",
+          columns: [{ name: "visit_gps_timestamp", type: "string", isOptional: true }],
+        }),
+      ],
+    },
+    {
+      toVersion: 4,
+      steps: [
+        addColumns({
+          table: "follow_ups",
+          columns: [
+            { name: "distance_from_household_m", type: "number", isOptional: true },
+            { name: "gps_verification_status", type: "string", isOptional: true },
+          ],
+        }),
+      ],
+    },
   ],
 });

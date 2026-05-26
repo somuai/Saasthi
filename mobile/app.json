@@ -7,9 +7,7 @@
     "scheme": "shaasthi",
     "userInterfaceStyle": "light",
     "icon": "./assets/icon.png",
-    "assetBundlePatterns": [
-      "assets/**/*"
-    ],
+    "assetBundlePatterns": ["assets/**/*"],
     "splash": {
       "image": "./assets/shaasthi-logo.png",
       "resizeMode": "contain",
@@ -48,11 +46,14 @@
     "plugins": [
       "expo-router",
       "expo-dev-client",
-      ["expo-build-properties", {
-        "ios": {
-          "usesNonExemptEncryption": false
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "usesNonExemptEncryption": false
+          }
         }
-      }],
+      ],
       "@react-native-firebase/app",
       "@react-native-firebase/auth",
       [
@@ -86,7 +87,7 @@
       "fallbackToCacheTimeout": 30000
     },
     "extra": {
-      "apiBaseUrl": "http://192.168.29.70:8000/api/v1",
+      "apiBaseUrl": "",
       "router": {
         "origin": false
       },

@@ -294,11 +294,11 @@ class TestApiEndpoints:
     """Verify all new API endpoints are reachable and enforce auth."""
 
     def test_followups_api_requires_auth(self, client):
-        resp = client.get("/api/v1/followups/followups/")
+        resp = client.get("/api/v1/followups/")
         assert resp.status_code in (401, 403)
 
     def test_visits_api_requires_auth(self, client):
-        resp = client.get("/api/v1/followups/visits/")
+        resp = client.get("/api/v1/visits/")
         assert resp.status_code in (401, 403)
 
     def test_incentives_api_requires_auth(self, client):
@@ -331,7 +331,6 @@ class TestFeatureFlagsContract:
             "PDF_PAYSLIP",
             "TFLITE_SCORING",
             "GEMMA_ONDEVICE",
-            "ABDM_COMPLIANCE",
         ]
         for flag in required:
             assert flag in content, f"FEATURES.{flag} missing from featureFlags.js"

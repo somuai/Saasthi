@@ -8,7 +8,7 @@ class TestHouseholdLocationEndpoint:
     endpoint = "/api/v1/registry/households/"
 
     def test_set_location(self, api_client, worker):
-        hh = HouseholdFactory()
+        hh = HouseholdFactory(village=worker.village, block=worker.block, district=worker.district)
         api_client.force_authenticate(worker)
         resp = api_client.patch(f"{self.endpoint}{hh.pk}/location/", {"lat": 28.6139, "lng": 77.2090}, format="json")
         assert resp.status_code == 200
@@ -18,14 +18,14 @@ class TestHouseholdLocationEndpoint:
         assert hh.lng == 77.2090
 
     def test_missing_lat(self, api_client, worker):
-        hh = HouseholdFactory()
+        hh = HouseholdFactory(village=worker.village, block=worker.block, district=worker.district)
         api_client.force_authenticate(worker)
         resp = api_client.patch(f"{self.endpoint}{hh.pk}/location/", {"lng": 77.2090}, format="json")
         assert resp.status_code == 400
         assert "lat and lng are required" in resp.data["detail"]
 
     def test_missing_lng(self, api_client, worker):
-        hh = HouseholdFactory()
+        hh = HouseholdFactory(village=worker.village, block=worker.block, district=worker.district)
         api_client.force_authenticate(worker)
         resp = api_client.patch(f"{self.endpoint}{hh.pk}/location/", {"lat": 28.6139}, format="json")
         assert resp.status_code == 400

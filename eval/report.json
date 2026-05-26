@@ -1,5 +1,5 @@
 {
-  "started_at": "2026-05-23T06:34:41Z",
+  "started_at": "2026-05-25T16:48:47Z",
   "tiers": [
     {
       "tier": "T1",
@@ -8,9 +8,9 @@
           "name": "T1_jest",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.97,
+          "duration_sec": 2.19,
           "stdout_tail": "\n> shaasthi-mobile@0.1.0 test\n> jest --watchAll=false\n\n",
-          "stderr_tail": "watchman warning:  Recrawled this watch 7 times, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/syncJitter.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/workerId.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       37 passed, 37 total\nSnapshots:   0 total\nTime:        0.464 s, estimated 1 s\nRan all test suites.\n"
+          "stderr_tail": "watchman warning:  Recrawled this watch 61 times, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/riskGolden.test.js\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/syncJitter.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/workerId.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       37 passed, 37 total\nSnapshots:   0 total\nTime:        0.909 s, estimated 1 s\nRan all test suites.\n"
         }
       ]
     },
@@ -21,9 +21,9 @@
           "name": "T2_django",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 3.88,
-          "stdout_tail": "Faker-40.18.0, django-4.12.0, anyio-4.13.0\ncollected 271 items\n\ntests/test_e2e_pipeline.py .........................                     [  9%]\ntests/test_gemma_integration.py ..                                       [  9%]\ntests/test_new_endpoints.py ................                             [ 15%]\ntests/test_otp_auth.py .                                                 [ 16%]\ntests/test_risk_and_flags.py ...........                                 [ 20%]\ntests/test_risk_engine_comprehensive.py ...............................  [ 31%]\ntests/test_sync.py ..........................                            [ 41%]\ntests/test_visit_otp.py .....                                            [ 43%]\ntests/test_worker_registration.py ..........                             [ 46%]\ntests/unit/test_feature_extractor.py ......                              [ 49%]\ntests/unit/test_mcp_risk_engine.py ................................      [ 60%]\ntests/unit/test_otp_service.py .............                             [ 65%]\ntests/unit/test_risk_engine.py ......................................... [ 80%]\n.......                                                                  [ 83%]\ntests/test_gemma_integration.py ........                                 [ 86%]\ntests/unit/test_feature_extractor.py ................                    [ 92%]\ntests/unit/test_risk_engine.py .....................                     [100%]\n\n=============================== warnings summary ===============================\n.venv/lib/python3.14/site-packages/google/genai/types.py:42\n  /Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.14/site-packages/google/genai/types.py:42: DeprecationWarning: '_UnionGenericAlias' is deprecated and slated for removal in Python 3.17\n    VersionedUnionType = Union[builtin_types.UnionType, _UnionGenericAlias]\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n======================== 271 passed, 1 warning in 2.63s ========================\n",
-          "stderr_tail": ""
+          "duration_sec": 5.05,
+          "stdout_tail": "    [ 47%]\ntests/test_worker_registration.py ..........                             [ 50%]\ntests/unit/test_feature_extractor.py ......                              [ 51%]\ntests/unit/test_mcp_risk_engine.py ................................      [ 60%]\ntests/unit/test_otp_service.py .............                             [ 63%]\ntests/unit/test_risk_engine.py ......................................... [ 75%]\n.......                                                                  [ 76%]\ntests/unit/test_risk_engine_safety_audit.py ............................ [ 84%]\n...                                                                      [ 85%]\ntests/test_gemma_integration.py ........                                 [ 87%]\ntests/test_gps_service.py ..........                                     [ 90%]\ntests/unit/test_feature_extractor.py ................                    [ 94%]\ntests/unit/test_risk_engine.py .....................                     [100%]\n\n=============================== warnings summary ===============================\ntests/test_e2e_pipeline.py: 3 warnings\ntests/test_firebase_auth.py: 14 warnings\ntests/test_household_location.py: 5 warnings\ntests/test_new_endpoints.py: 16 warnings\ntests/test_notifications.py: 8 warnings\ntests/test_otp_auth.py: 1 warning\ntests/test_risk_and_flags.py: 6 warnings\ntests/test_risk_engine_views.py: 15 warnings\ntests/test_sync.py: 26 warnings\ntests/test_sync_follow_up.py: 7 warnings\ntests/test_sync_offline_timestamp.py: 2 warnings\ntests/test_visit_record_gps.py: 5 warnings\ntests/test_worker_registration.py: 10 warnings\n  /Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /Users/soumyajitghosh/Documents/Saasthi/backend/staticfiles/\n    mw_instance = middleware(adapted_handler)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n====================== 372 passed, 118 warnings in 3.68s =======================\n",
+          "stderr_tail": "ast):\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/logging/__init__.py\", line 1163, in emit\n    stream.write(msg + self.terminator)\nValueError: I/O operation on closed file.\nCall stack:\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/google/genai/client.py\", line 687, in __del__\n    self.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/google/genai/client.py\", line 673, in close\n    self._api_client.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/google/genai/_api_client.py\", line 2170, in close\n    self._httpx_client.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpx/_client.py\", line 1270, in close\n    self._transport.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpx/_transports/default.py\", line 262, in close\n    self._pool.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py\", line 353, in close\n    self._close_connections(closing_connections)\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py\", line 345, in _close_connections\n    connection.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/connection.py\", line 172, in close\n    with Trace(\"close\", logger, None, {}):\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_trace.py\", line 64, in __exit__\n    self.trace(f\"{self.name}.complete\", info)\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_trace.py\", line 47, in trace\n    self.logger.debug(message)\nMessage: 'close.complete'\nArguments: ()\n"
         }
       ]
     },
@@ -34,8 +34,8 @@
           "name": "T3_contracts",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.04,
-          "stdout_tail": "PASS fixture sync-watermelon-pull.example.json\nPASS live API reachable (auth enforced)\n",
+          "duration_sec": 0.03,
+          "stdout_tail": "PASS fixture sync-watermelon-pull.example.json\nSKIP live API (--offline)\n",
           "stderr_tail": ""
         }
       ]
@@ -44,44 +44,10 @@
       "tier": "T4",
       "results": [
         {
-          "name": "T4_auth_otp",
+          "name": "T4_live_api",
           "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.55,
-          "stdout_tail": "PASS auth_otp\n",
-          "stderr_tail": ""
-        },
-        {
-          "name": "T4_flagging_pipeline",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.61,
-          "stdout_tail": "'expected_value': {}, 'weight': 3, 'category': 'communicable', 'is_hard_flag': False, 'rule_label_en': 'Active infection / non-healing wounds', 'rule_label_hi': '\u0938\u0915\u094d\u0930\u093f\u092f \u0938\u0902\u0915\u094d\u0930\u092e\u0923 / \u0928 \u092d\u0930\u0928\u0947 \u0935\u093e\u0932\u0947 \u0918\u093e\u0935'}, {'id': 25, 'code': 'MISSED_ANC', 'field_path': 'patient.metadata.anc_visit_count', 'operator': 'less_than', 'expected_value': {'value': 4}, 'weight': 3, 'category': 'maternal', 'is_hard_flag': False, 'rule_label_en': 'Missed ANC visits (< 4)', 'rule_label_hi': 'ANC \u0935\u093f\u091c\u093f\u091f \u091b\u0942\u091f\u0940 (< 4)'}, {'id': 26, 'code': 'PERSISTENT_VOMITING', 'field_path': 'survey.answers.vomiting', 'operator': 'truthy', 'expected_value': {}, 'weight': 2, 'category': 'general', 'is_hard_flag': False, 'rule_label_en': 'Persistent vomiting', 'rule_label_hi': '\u0932\u0917\u093e\u0924\u093e\u0930 \u0909\u0932\u094d\u091f\u0940'}, {'id': 11, 'code': 'PREGNANT', 'field_path': 'patient.metadata.pregnancy_status', 'operator': 'truthy', 'expected_value': {}, 'weight': 2, 'category': 'maternal', 'is_hard_flag': False, 'rule_label_en': 'Currently pregnant', 'rule_label_hi': '\u0917\u0930\u094d\u092d\u0935\u0924\u0940'}, {'id': 14, 'code': 'TB_COUGH_RISK', 'field_path': 'survey.answers.comm_cough_2weeks', 'operator': 'eq', 'expected_value': True, 'weight': 5, 'category': 'general', 'is_hard_flag': False, 'rule_label_en': '', 'rule_label_hi': ''}, {'id': 13, 'code': 'WEAKNESS_GENERAL', 'field_path': 'survey.answers.weakness', 'operator': 'truthy', 'expected_value': {}, 'weight': 1, 'category': 'general', 'is_hard_flag': False, 'rule_label_en': 'General weakness', 'rule_label_hi': '\u0938\u093e\u092e\u093e\u0928\u094d\u092f \u0915\u092e\u091c\u093c\u094b\u0930\u0940'}], 'triggered_by_hard_flag': False, 'hard_flag_rule_id': None, 'normalized_score': 9, 'primary_category': 'general', 'secondary_categories': [], 'recommended_action_en': 'Schedule PHC visit within 3 days. Monitor symptoms daily.', 'recommended_action_hi': '3 \u0926\u093f\u0928\u094b\u0902 \u092e\u0947\u0902 PHC \u0935\u093f\u091c\u093f\u091f \u0936\u0947\u0921\u094d\u092f\u0942\u0932 \u0915\u0930\u0947\u0902\u0964 \u0930\u094b\u091c\u093c \u0932\u0915\u094d\u0937\u0923 \u0926\u0947\u0916\u0947\u0902\u0964', 'recommended_urgency': 'within_3_days', 'recommendation_source': 'rule_template', 'score_source': 'rule_engine', 'rule_engine_score': 5, 'ml_score': None, 'ml_confidence': None, 'ml_model_version': None}\n",
-          "stderr_tail": "WARNING: DJANGO_DEBUG is enabled with a custom SECRET_KEY. Disable in production.\n[2026-05-23 12:04:47,799] INFO risk_engine.gemma_service Gemma Service initialized with google.genai client.\n[2026-05-23 12:04:47,799] INFO risk_engine.gemma_service Gemma Service initialized with google.genai client.\n"
-        },
-        {
-          "name": "T4_risk_golden",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.57,
-          "stdout_tail": "PASS risk_golden\n",
-          "stderr_tail": ""
-        },
-        {
-          "name": "T4_sync_roundtrip",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.26,
-          "stdout_tail": "Push Resp: {'results': [{'event_uuid': '77e975f0-62dd-5e7b-98db-0babe8c7a05c', 'status': 'duplicate', 'model': 'patient', 'local_uuid': 'c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f'}, {'event_uuid': 'f59b7662-b7f2-5f3f-a6ba-53d332880838', 'status': 'duplicate', 'model': 'survey_response', 'local_uuid': 'd3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a'}], 'status': 'synced'}\nPASS sync_roundtrip\n",
-          "stderr_tail": ""
-        },
-        {
-          "name": "T4_worker_scope",
-          "ok": true,
-          "exit_code": 0,
-          "duration_sec": 0.26,
-          "stdout_tail": "PASS worker_scope\n",
-          "stderr_tail": ""
+          "skipped": true,
+          "reason": "--offline"
         }
       ]
     },
@@ -100,5 +66,5 @@
     }
   ],
   "ok": true,
-  "finished_at": "2026-05-23T06:34:49Z"
+  "finished_at": "2026-05-25T16:48:54Z"
 }

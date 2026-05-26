@@ -140,16 +140,24 @@ class TestGemmaQuery:
         assert resp.status_code == 400
 
     def test_returns_mock_recommendation(self, api_client):
-        worker = UserFactory()
-        hh = HouseholdFactory()
-        p = PatientFactory(household=hh, asha_worker=worker)
-        api_client.force_authenticate(worker)
-        resp = api_client.post(self.endpoint, {"patient_id": p.pk}, format="json")
-        assert resp.status_code == 200
-        assert "recommendation" in resp.data
-        rec = resp.data["recommendation"]
-        assert "hindi" in rec
-        assert "english" in rec
+        from unittest.mock import patch
+        with patch("risk_engine.views.gemma_service.generate") as mock_gen:
+            mock_gen.return_value = {
+                "english": "Mock recommendation in English",
+                "hindi": "हिंदी में नकली सिफारिश",
+                "source": "gemma4_api",
+                "model": "gemma-4-e2b-it"
+            }
+            worker = UserFactory()
+            hh = HouseholdFactory(village=worker.village, block=worker.block, district=worker.district)
+            p = PatientFactory(household=hh, asha_worker=worker)
+            api_client.force_authenticate(worker)
+            resp = api_client.post(self.endpoint, {"patient_id": p.pk}, format="json")
+            assert resp.status_code == 200
+            assert "recommendation" in resp.data
+            rec = resp.data["recommendation"]
+            assert "hindi" in rec
+            assert "english" in rec
 
     def test_patient_access_denied(self, api_client):
         worker = UserFactory()

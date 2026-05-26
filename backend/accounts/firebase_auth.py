@@ -4,18 +4,30 @@ import logging
 import firebase_admin
 from django.conf import settings
 from firebase_admin import auth as firebase_auth
+from rest_framework import exceptions, status
+from rest_framework.exceptions import APIException
 
 logger = logging.getLogger(__name__)
 
 _app = None
 
 
+class ServiceUnavailable(APIException):
+    status_code = status.HTTP_503_SERVICE_UNAVAILABLE
+    default_detail = "Verification service error."
+    default_code = "service_unavailable"
+
+
 def _load_credentials():
     """Try env-var JSON first, then file path, finally None."""
     raw = settings.FIREBASE_SERVICE_ACCOUNT_JSON
     if raw:
+        # Strip wrapping quotes if they were preserved by the env parser
+        cleaned = raw.strip()
+        if (cleaned.startswith("'") and cleaned.endswith("'")) or (cleaned.startswith('"') and cleaned.endswith('"')):
+            cleaned = cleaned[1:-1].strip()
         try:
-            return json.loads(raw)
+            return json.loads(cleaned)
         except json.JSONDecodeError:
             logger.warning("FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON, trying file path")
     path = getattr(settings, "FIREBASE_SERVICE_ACCOUNT_PATH", None)
@@ -47,9 +59,16 @@ def _get_app():
 def verify_firebase_token(id_token):
     app = _get_app()
     if not app:
-        return None
+        raise ServiceUnavailable("Firebase credentials not configured — firebase auth disabled")
     try:
-        return firebase_auth.verify_id_token(id_token)
+        return firebase_auth.verify_id_token(id_token, check_revoked=True)
+    except firebase_auth.ExpiredIdTokenError as e:
+        raise exceptions.AuthenticationFailed("Session expired. Please try again.") from e
+    except firebase_auth.RevokedIdTokenError as e:
+        raise exceptions.AuthenticationFailed("Session revoked. Please log in again.") from e
+    except (firebase_auth.InvalidIdTokenError, ValueError) as e:
+        raise exceptions.AuthenticationFailed("Invalid verification.") from e
     except Exception as e:
         logger.error("Firebase token verification failed: %s", e)
-        return None
+        raise ServiceUnavailable("Verification service error.") from e
+

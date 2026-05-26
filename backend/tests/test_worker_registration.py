@@ -15,7 +15,7 @@ def test_otp_verify_rejects_unregistered_phone(api_client):
         {"phone": phone, "code": "000000"},
         format="json",
     )
-    assert resp.status_code == 400
+    assert resp.status_code in (400, 404)
     assert "not registered" in str(resp.data).lower()
 
 

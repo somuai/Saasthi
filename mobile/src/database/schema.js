@@ -10,7 +10,7 @@ const baseCols = [
 ];
 
 export default appSchema({
-  version: 2,
+  version: 4,
   tables: [
     tableSchema({
       name: "households",
@@ -267,6 +267,9 @@ export default appSchema({
         { name: "visit_lat", type: "number", isOptional: true },
         { name: "visit_lng", type: "number", isOptional: true },
         { name: "visit_accuracy_m", type: "number", isOptional: true },
+        { name: "visit_gps_timestamp", type: "string", isOptional: true },
+        { name: "distance_from_household_m", type: "number", isOptional: true },
+        { name: "gps_verification_status", type: "string", isOptional: true },
       ],
     }),
     tableSchema({

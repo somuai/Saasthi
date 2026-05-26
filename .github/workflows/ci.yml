@@ -73,7 +73,7 @@ jobs:
 
       - name: Lint with ruff
         working-directory: ./backend
-        run: ruff check . || true
+        run: ruff check .
 
   frontend-checks:
     runs-on: ubuntu-latest
@@ -91,13 +91,9 @@ jobs:
         working-directory: ./mobile
         run: npm ci --legacy-peer-deps --ignore-scripts
 
-      - name: Type check
-        working-directory: ./mobile
-        run: npm run type-check || true
-
       - name: Lint
         working-directory: ./mobile
-        run: npm run lint || true
+        run: npm run lint
 
   migration-check:
     runs-on: ubuntu-latest

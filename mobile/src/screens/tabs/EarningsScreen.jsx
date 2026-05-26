@@ -83,30 +83,19 @@ export default function EarningsScreen() {
     try {
       const token = await SecureStore.getItemAsync("accessToken");
       const url = apiUrl(`/incentives/ledger/payslip/${currentMonth}/`);
-      const response = await fetch(url, {
+      const fileUri = FileSystem.cacheDirectory + `payslip-${currentMonth}.pdf`;
+      const downloadResult = await FileSystem.downloadAsync(url, fileUri, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!response.ok) throw new Error("Failed");
-      const blob = await response.blob();
-      const fileUri = FileSystem.cacheDirectory + `payslip-${currentMonth}.pdf`;
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64 = reader.result.split(",")[1];
-        await FileSystem.writeAsStringAsync(fileUri, base64, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        if (await Sharing.isAvailableAsync()) {
-          await Sharing.shareAsync(fileUri);
-        } else {
-          Alert.alert("Downloaded", `Payslip saved to ${fileUri}`);
-        }
-        setDownloading(false);
-      };
-      reader.readAsDataURL(blob);
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(downloadResult.uri);
+      } else {
+        Alert.alert("Downloaded", `Payslip saved to ${downloadResult.uri}`);
+      }
     } catch {
       Alert.alert("Error", "Could not generate payslip. Try again.");
-      setDownloading(false);
     }
+    setDownloading(false);
   }
 
   function chipState(item) {

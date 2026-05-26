@@ -57,6 +57,6 @@ export function onMessageListener(callback) {
 export async function registerBackgroundHandler() {
   if (!messaging) return;
   messaging().setBackgroundMessageHandler(async (remoteMessage) => {
-    console.log("Background message:", remoteMessage);
+    logger.debug("Background message:", remoteMessage);
   });
 }

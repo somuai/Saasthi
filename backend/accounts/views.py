@@ -1,8 +1,11 @@
 from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from drf_spectacular.utils import extend_schema
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
@@ -30,7 +33,7 @@ def audit(request, action, resource="", resource_id="", metadata=None):
 
 class OTPRequestView(APIView):
     authentication_classes = []
-    permission_classes = []
+    permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "otp"
     serializer_class = OTPRequestSerializer
@@ -48,7 +51,7 @@ class OTPRequestView(APIView):
 
 class OTPVerifyView(APIView):
     authentication_classes = []
-    permission_classes = []
+    permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "otp"
     serializer_class = OTPVerifySerializer
@@ -61,9 +64,10 @@ class OTPVerifyView(APIView):
         return Response(payload)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class FirebaseVerifyView(APIView):
     authentication_classes = []
-    permission_classes = []
+    permission_classes = [AllowAny]
     throttle_classes = [ScopedRateThrottle]
     throttle_scope = "otp"
     serializer_class = FirebaseVerifySerializer

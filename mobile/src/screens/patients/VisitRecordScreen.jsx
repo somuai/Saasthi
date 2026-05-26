@@ -44,6 +44,8 @@ export default function VisitRecordScreen() {
   const [phcId, setPhcId] = useState(PHC_FACILITIES[0]?.id);
   const [notes, setNotes] = useState("");
   const [gps, setGps] = useState(null);
+  const [gpsLoading, setGpsLoading] = useState(true);
+  const [gpsRetries, setGpsRetries] = useState(0);
   const [timestamp] = useState(() => new Date().toISOString());
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
@@ -64,14 +66,45 @@ export default function VisitRecordScreen() {
   }, [database, patientId]);
 
   useEffect(() => {
-    if (!FEATURES.GPS_TRACKING) return;
+    if (!FEATURES.GPS_TRACKING) {
+      setGpsLoading(false);
+      return;
+    }
+    let cancelled = false;
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") return;
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-      setGps({ lat: loc.coords.latitude, lng: loc.coords.longitude, accuracy: loc.coords.accuracy, timestamp: loc.timestamp });
+      if (cancelled) return;
+      if (status !== "granted") {
+        setGpsLoading(false);
+        return;
+      }
+      try {
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeout: 15000,
+        });
+        if (cancelled) return;
+        setGps({
+          lat: loc.coords.latitude,
+          lng: loc.coords.longitude,
+          accuracy: loc.coords.accuracy,
+          timestamp: loc.timestamp,
+        });
+      } catch {
+        if (cancelled) return;
+        // keep gpsLoading true — user can retry
+      } finally {
+        if (!cancelled) setGpsLoading(false);
+      }
     })();
-  }, []);
+    return () => { cancelled = true; };
+  }, [gpsRetries]);
+
+  function retryGps() {
+    setGpsLoading(true);
+    setGps(null);
+    setGpsRetries((r) => r + 1);
+  }
 
   async function saveVisit() {
     if (!patient) return;
@@ -105,6 +138,7 @@ export default function VisitRecordScreen() {
           f.visitLat = gps?.lat ?? null;
           f.visitLng = gps?.lng ?? null;
           f.visitAccuracyM = gps?.accuracy ?? null;
+          f.visitGpsTimestamp = gps?.timestamp ? new Date(gps.timestamp).toISOString() : null;
           f.isSynced = false;
           f.isDeleted = false;
           f.isMock = false;
@@ -268,9 +302,20 @@ export default function VisitRecordScreen() {
 
         <View style={styles.gpsBox}>
           <Ionicons name="location" size={20} color={COLORS.primary} />
-          <Text style={styles.gpsTxt}>
-            {gps ? `GPS: ${gps.lat.toFixed(5)}, ${gps.lng.toFixed(5)}` : "GPS अनुमति लंबित / Location pending"}
-          </Text>
+          {gpsLoading ? (
+            <View style={styles.gpsLoadingRow}>
+              <ActivityIndicator size="small" color={COLORS.primary} />
+              <Text style={styles.gpsTxt}>GPS प्राप्त कर रहा है… / Acquiring location…</Text>
+            </View>
+          ) : gps ? (
+            <Text style={styles.gpsTxt}>
+              GPS: {gps.lat.toFixed(5)}, {gps.lng.toFixed(5)}
+            </Text>
+          ) : (
+            <Pressable onPress={retryGps} style={styles.gpsRetryBtn}>
+              <Text style={styles.gpsRetryTxt}>GPS पुनः प्रयास करें / Retry GPS</Text>
+            </Pressable>
+          )}
         </View>
 
         <View style={styles.notesRow}>
@@ -389,4 +434,7 @@ const styles = StyleSheet.create({
   verifyBadgeAmber: { backgroundColor: "#D4A017" },
   verifyBadgeTxt: { color: "#fff", fontSize: 13, fontWeight: "700", flex: 1 },
   notesRow: { flexDirection: "row", alignItems: "flex-end", gap: 8 },
+  gpsLoadingRow: { flexDirection: "row", alignItems: "center", gap: 8, flex: 1 },
+  gpsRetryBtn: { minHeight: tapTargetMin, justifyContent: "center" },
+  gpsRetryTxt: { color: COLORS.accent, fontSize: 13, fontWeight: "800" },
 });

@@ -4,10 +4,8 @@ export const FEATURES = {
   GPS_TRACKING: true,
   VOICE_INPUT: true,
   PDF_PAYSLIP: true,
-  PUSH_NOTIFICATIONS: true,
   TFLITE_SCORING: true,
   GEMMA_ONDEVICE: true,
-  ABDM_COMPLIANCE: true,
 };
 
 export const INCENTIVE_RATES = {

@@ -1,14 +1,12 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as SecureStore from "expo-secure-store";
+
+import { setTokens, clearTokens } from "../../services/auth";
 
 export const AUTH_USER_KEY = "shaasthi_auth_user_json";
 export const AUTH_WORKER_KEY = "shaasthi_auth_worker_json";
 /** Survives app kill between login and OTP verify */
 export const AUTH_PENDING_PHONE_KEY = "shaasthi_auth_pending_phone";
 export const AUTH_PENDING_LOCALE_KEY = "shaasthi_auth_pending_locale";
-
-const SECURE_ACCESS_KEY = "accessToken";
-const SECURE_REFRESH_KEY = "refreshToken";
 
 /** Network / unreachable — allow offline pilot login */
 export function shouldFallbackToOfflinePilot(error) {
@@ -22,8 +20,7 @@ export function isInvalidOtpError(error) {
 }
 
 export async function persistAuthTokens({ access, refresh }) {
-  if (access) await SecureStore.setItemAsync(SECURE_ACCESS_KEY, access);
-  if (refresh) await SecureStore.setItemAsync(SECURE_REFRESH_KEY, refresh);
+  await setTokens({ access, refresh });
 }
 
 export async function persistAuthSession(user, worker) {
@@ -47,5 +44,5 @@ export async function clearPendingLogin() {
 
 export async function clearAuthSession() {
   await AsyncStorage.multiRemove([AUTH_USER_KEY, AUTH_WORKER_KEY, AUTH_PENDING_PHONE_KEY, AUTH_PENDING_LOCALE_KEY]);
-  await Promise.allSettled([SecureStore.deleteItemAsync(SECURE_ACCESS_KEY), SecureStore.deleteItemAsync(SECURE_REFRESH_KEY)]);
+  await clearTokens();
 }
