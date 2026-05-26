@@ -155,11 +155,7 @@ export default function OtpScreen() {
     } catch (err) {
       if (useFirebase) {
         /* Firebase errors — check if it's a verification failure */
-        if (
-          err.code === "auth/invalid-verification-code" ||
-          err.code === "auth/code-expired" ||
-          err.code === "auth/session-expired"
-        ) {
+        if (err.code === "auth/invalid-verification-code" || err.code === "auth/code-expired" || err.code === "auth/session-expired") {
           setError("गलत या समाप्त OTP / Invalid or expired OTP");
           return;
         }

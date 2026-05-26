@@ -48,6 +48,7 @@ class RiskRule(models.Model):
         CHRONIC = "chronic", "Chronic"
         CRITICAL = "critical", "Critical"
         MATERNAL = "maternal", "Maternal"
+        CHILD = "child", "Child"
         GENERAL = "general", "General"
 
     code = models.CharField(max_length=80, unique=True)
@@ -118,6 +119,8 @@ class RiskAssessment(models.Model):
     ml_score = models.FloatField(null=True, blank=True)
     ml_confidence = models.FloatField(null=True, blank=True)
     ml_model_version = models.IntegerField(null=True, blank=True)
+
+    feature_vector = models.JSONField(null=True, blank=True, help_text="MCP feature extractor output (35-dim vector)")
 
     patient_population = models.CharField(
         max_length=10, default="general", blank=True, help_text="general|maternal|child"

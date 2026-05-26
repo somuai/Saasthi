@@ -56,7 +56,7 @@ def readiness(request):
             checks[label] = UNHEALTHY
             checks[f"{label}_detail"] = str(exc)
 
-    if not redis_ok:
+    if not redis_ok and not settings.DEBUG:
         overall = UNHEALTHY
 
     return Response(
@@ -86,10 +86,12 @@ def health_check(request):
             data["celery_workers"] = list(ping.keys())
         else:
             data["celery"] = "no_workers"
-            data["status"] = "degraded"
+            if not getattr(settings, "DEBUG", False):
+                data["status"] = "degraded"
     except Exception as exc:
         data["celery"] = "error"
         data["celery_detail"] = str(exc)
-        data["status"] = "degraded"
+        if not getattr(settings, "DEBUG", False):
+            data["status"] = "degraded"
 
     return Response(data)

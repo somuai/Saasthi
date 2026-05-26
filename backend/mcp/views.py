@@ -89,37 +89,55 @@ def _create_uip_immunizations(delivery_record):
 
 SURVEY_SESSION_MAP = {
     ANCVisit: ("anc_visit", "ANCVisit"),
+    CareInteraction: ("care_interaction", "CareInteraction"),
     DeliveryRecord: ("delivery_record", "DeliveryRecord"),
     PNCVisit: ("pnc_visit", "PNCVisit"),
     GrowthRecord: ("child_growth", "GrowthRecord"),
     ImmunizationRecord: ("immunization_update", "ImmunizationRecord"),
     DevelopmentMilestoneCheck: ("milestone_check", "MilestoneCheck"),
+    IFACompliance: ("ifa_compliance", "IFACompliance"),
 }
 
 
+def _resolve_session_patient(instance):
+    """Return the appropriate patient FK for an MCP instance model."""
+    if hasattr(instance, "mother_patient_id"):
+        return instance.mother_patient
+    if hasattr(instance, "child_patient_id"):
+        return instance.child_patient
+    return instance.patient
+
+
 def _create_mcp_session(instance, request_user, session_type, linked_type):
-    MCPSurveySession.objects.create(
-        patient=instance.patient if hasattr(instance, "mother_patient") is False else instance.mother_patient,
+    session = MCPSurveySession.objects.create(
+        patient=_resolve_session_patient(instance),
         asha_worker=request_user,
         session_date=date.today(),
         session_type=session_type,
         linked_record_id=instance.local_uuid,
         linked_record_type=linked_type,
     )
+    return session
 
 
-def _trigger_mcp_risk_assessment(instance, patient, request_user, population, session_type):
+def _trigger_mcp_risk_assessment(instance, patient, request_user, population, session_type, session=None):
+    if patient is None:
+        logger.warning("MCP risk assessment skipped: patient is None for %s", instance)
+        return
+    patient_local_uuid = ""
     try:
         from risk_engine.tasks import run_mcp_risk_assessment
 
         patient_local_uuid = str(patient.local_uuid)
         instance_local_uuid = str(getattr(instance, "local_uuid", ""))
+        session_local_uuid = str(session.local_uuid) if session else ""
         run_mcp_risk_assessment.delay(
             patient_local_uuid=patient_local_uuid,
             instance_local_uuid=instance_local_uuid,
             instance_model=instance._meta.model_name if hasattr(instance, "_meta") else "",
             population=population,
             session_type=session_type,
+            session_local_uuid=session_local_uuid,
         )
     except Exception:
         logger.exception("MCP risk assessment task enqueue failed for patient %s", patient_local_uuid)
@@ -161,6 +179,8 @@ class CareInteractionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         obj = serializer.save(created_by=self.request.user)
         audit(self.request, "mcp.care_interaction.create", "CareInteraction", obj.local_uuid)
+        session = _create_mcp_session(obj, self.request.user, "care_interaction", "CareInteraction")
+        _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "general", "care_interaction", session=session)
 
 
 class ANCVisitViewSet(viewsets.ModelViewSet):
@@ -175,8 +195,8 @@ class ANCVisitViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         obj = serializer.save(asha_worker=self.request.user)
         audit(self.request, "mcp.anc_visit.create", "ANCVisit", obj.local_uuid)
-        _create_mcp_session(obj, self.request.user, "anc_visit", "ANCVisit")
-        _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "maternal", "anc_visit")
+        session = _create_mcp_session(obj, self.request.user, "anc_visit", "ANCVisit")
+        _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "maternal", "anc_visit", session=session)
 
 
 class DeliveryRecordViewSet(viewsets.ModelViewSet):
@@ -191,8 +211,8 @@ class DeliveryRecordViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         obj = serializer.save(asha_worker=self.request.user)
         audit(self.request, "mcp.delivery.create", "DeliveryRecord", obj.local_uuid)
-        _create_mcp_session(obj, self.request.user, "delivery_record", "DeliveryRecord")
-        _trigger_mcp_risk_assessment(obj, obj.mother_patient, self.request.user, "maternal", "delivery_record")
+        session = _create_mcp_session(obj, self.request.user, "delivery_record", "DeliveryRecord")
+        _trigger_mcp_risk_assessment(obj, obj.mother_patient, self.request.user, "maternal", "delivery_record", session=session)
         _create_uip_immunizations(obj)
 
 
@@ -208,8 +228,8 @@ class PNCVisitViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         obj = serializer.save(asha_worker=self.request.user)
         audit(self.request, "mcp.pnc_visit.create", "PNCVisit", obj.local_uuid)
-        _create_mcp_session(obj, self.request.user, "pnc_visit", "PNCVisit")
-        _trigger_mcp_risk_assessment(obj, obj.mother_patient, self.request.user, "maternal", "pnc_visit")
+        session = _create_mcp_session(obj, self.request.user, "pnc_visit", "PNCVisit")
+        _trigger_mcp_risk_assessment(obj, obj.mother_patient, self.request.user, "maternal", "pnc_visit", session=session)
 
 
 class GrowthRecordViewSet(viewsets.ModelViewSet):
@@ -224,8 +244,8 @@ class GrowthRecordViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         obj = serializer.save(asha_worker=self.request.user)
         audit(self.request, "mcp.growth_record.create", "GrowthRecord", obj.local_uuid)
-        _create_mcp_session(obj, self.request.user, "child_growth", "GrowthRecord")
-        _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "child", "child_growth")
+        session = _create_mcp_session(obj, self.request.user, "child_growth", "GrowthRecord")
+        _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "child", "child_growth", session=session)
 
 
 class DevelopmentMilestoneCheckViewSet(viewsets.ModelViewSet):
@@ -240,9 +260,9 @@ class DevelopmentMilestoneCheckViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         obj = serializer.save(asha_worker=self.request.user)
         audit(self.request, "mcp.milestone_check.create", "DevelopmentMilestoneCheck", obj.local_uuid)
-        _create_mcp_session(obj, self.request.user, "milestone_check", "MilestoneCheck")
+        session = _create_mcp_session(obj, self.request.user, "milestone_check", "MilestoneCheck")
         if obj.any_warning_sign:
-            _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "child", "milestone_check")
+            _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "child", "milestone_check", session=session)
 
 
 class ImmunizationRecordViewSet(viewsets.ModelViewSet):
@@ -258,10 +278,10 @@ class ImmunizationRecordViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         obj = serializer.save(asha_worker=self.request.user)
         audit(self.request, "mcp.immunization.create", "ImmunizationRecord", obj.local_uuid)
-        _create_mcp_session(obj, self.request.user, "immunization_update", "ImmunizationRecord")
+        session = _create_mcp_session(obj, self.request.user, "immunization_update", "ImmunizationRecord")
         _create_incentive(obj, self.request.user)
-        if obj.status in ("given", "overdue"):
-            _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "child", "immunization_update")
+        if obj.status in ("given", "missed", "overdue"):
+            _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "child", "immunization_update", session=session)
 
     @action(detail=False, methods=["get"])
     def due_today(self, request):
@@ -287,6 +307,8 @@ class IFAComplianceViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         obj = serializer.save(asha_worker=self.request.user)
         audit(self.request, "mcp.ifa_compliance.create", "IFACompliance", obj.local_uuid)
+        session = _create_mcp_session(obj, self.request.user, "ifa_compliance", "IFACompliance")
+        _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "maternal", "ifa_compliance", session=session)
 
 
 class MCPSurveySessionViewSet(viewsets.ReadOnlyModelViewSet):

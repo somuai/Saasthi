@@ -97,7 +97,9 @@ export default function VisitRecordScreen() {
         if (!cancelled) setGpsLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [gpsRetries]);
 
   function retryGps() {

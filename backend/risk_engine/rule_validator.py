@@ -54,7 +54,8 @@ class RuleValidator:
 
     @staticmethod
     def is_valid_field_path(path: str) -> bool:
-        return path.startswith("patient.") or path.startswith("survey.answers.")
+        valid_prefixes = ("patient.", "survey.answers.", "anc.", "growth.", "pnc.", "milestone.", "immunization.", "delivery.")
+        return path.startswith(valid_prefixes)
 
     @staticmethod
     def are_numeric_ranges_overlapping(existing: RiskRule, new_operator: str, new_value) -> bool:

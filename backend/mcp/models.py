@@ -80,14 +80,32 @@ class ANCVisit(models.Model):
 
 
 class DeliveryRecord(models.Model):
+    class DeliveryPlace(models.TextChoices):
+        HOME = "home", "Home"
+        INSTITUTION = "institution", "Institution"
+        EN_ROUTE = "en_route", "En Route"
+        OTHER = "other", "Other"
+
+    class DeliveryType(models.TextChoices):
+        NORMAL = "normal", "Normal"
+        CS = "cs", "C-Section"
+        INSTRUMENTAL = "instrumental", "Instrumental"
+        OTHER = "other", "Other"
+
+    class DeliveryOutcome(models.TextChoices):
+        LIVE_BIRTH = "live_birth", "Live Birth"
+        STILL_BIRTH = "still_birth", "Still Birth"
+        ABORTION = "abortion", "Abortion"
+        MISSED_ABORTION = "missed_abortion", "Missed Abortion"
+
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
     mother_patient = models.ForeignKey("registry.Patient", related_name="deliveries", on_delete=models.SET_NULL, null=True)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     delivery_date = models.DateField()
-    delivery_place = models.CharField(max_length=20)
+    delivery_place = models.CharField(max_length=20, choices=DeliveryPlace.choices)
     institution_name = models.CharField(max_length=200, null=True, blank=True)
-    delivery_type = models.CharField(max_length=10)
-    delivery_outcome = models.CharField(max_length=15)
+    delivery_type = models.CharField(max_length=15, choices=DeliveryType.choices)
+    delivery_outcome = models.CharField(max_length=15, choices=DeliveryOutcome.choices)
     baby_sex = models.CharField(max_length=10, null=True, blank=True)
     birth_weight_kg = models.FloatField(null=True, blank=True)
     birth_weight_grams = models.IntegerField(null=True, blank=True)
@@ -118,11 +136,20 @@ class DeliveryRecord(models.Model):
 
 
 class PNCVisit(models.Model):
+    class VisitTiming(models.TextChoices):
+        WITHIN_24HRS = "24hrs", "Within 24 hours"
+        DAY_3 = "day3", "Day 3"
+        DAY_7 = "day7", "Day 7"
+        DAY_14 = "day14", "Day 14"
+        DAY_21 = "day21", "Day 21"
+        DAY_28 = "day28", "Day 28"
+        EXTRA = "extra", "Extra Visit"
+
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
     mother_patient = models.ForeignKey("registry.Patient", related_name="pnc_visits", on_delete=models.SET_NULL, null=True)
     delivery_record = models.ForeignKey(DeliveryRecord, null=True, blank=True, on_delete=models.SET_NULL)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
-    visit_timing = models.CharField(max_length=10)
+    visit_timing = models.CharField(max_length=10, choices=VisitTiming.choices)
     visit_date = models.DateField()
     mother_complaints = models.TextField(blank=True)
     mother_pallor = models.CharField(max_length=10, null=True, blank=True)
@@ -322,6 +349,7 @@ class MCPSurveySession(models.Model):
         ("child_growth", "Child Growth"),
         ("immunization_update", "Immunization Update"),
         ("milestone_check", "Milestone Check"),
+        ("care_interaction", "Care Interaction"),
         ("general_survey", "General Survey"),
         ("registration", "MCP Registration"),
     ]
@@ -338,6 +366,7 @@ class MCPSurveySession(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
+        ordering = ["-session_date", "-created_at"]
         indexes = [
             models.Index(fields=["patient", "session_date"], name="ix_mcp_session_patient_date"),
             models.Index(fields=["session_type"], name="ix_mcp_session_type"),

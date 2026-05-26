@@ -17,10 +17,7 @@ module.exports = function withEasClientCompatFix(config) {
   return withDangerousMod(config, [
     "android",
     (cfg) => {
-      const pluginFile = path.join(
-        cfg.modRequest.projectRoot,
-        "node_modules/expo-modules-core/android/ExpoModulesCorePlugin.gradle"
-      );
+      const pluginFile = path.join(cfg.modRequest.projectRoot, "node_modules/expo-modules-core/android/ExpoModulesCorePlugin.gradle");
       if (!fs.existsSync(pluginFile)) {
         return cfg;
       }

@@ -15,8 +15,21 @@ from .models import RiskAssessment, RiskRule
 logger = logging.getLogger(__name__)
 
 
-def resolve_path(patient, survey_response, field_path: str) -> Any:
-    """Resolve dot-notation paths; never raises."""
+MCP_ROOT_MODELS = {
+    "anc": "ancvisit",
+    "growth": "growthrecord",
+    "pnc": "pncvisit",
+    "milestone": "developmentmilestonecheck",
+    "immunization": "immunizationrecord",
+    "delivery": "deliveryrecord",
+}
+
+
+def resolve_path(patient, survey_response, field_path: str, mcp_instance=None) -> Any:
+    """Resolve dot-notation paths; never raises.
+    Supports patient.*, survey.*, and MCP roots (anc.*, growth.*, pnc.*,
+    milestone.*, immunization.*, delivery.*) resolved from mcp_instance.
+    """
     if not field_path:
         return None
     parts = field_path.split(".")
@@ -60,9 +73,31 @@ def resolve_path(patient, survey_response, field_path: str) -> Any:
                     return None
                 obj = obj.get(part) if isinstance(obj, dict) else getattr(obj, part, None)
             return obj
+
+        # MCP model roots — resolve against the mcp_instance
+        model_key = root.lower()
+        if model_key in MCP_ROOT_MODELS:
+            if mcp_instance is None:
+                return None
+            mcp_model_key = MCP_ROOT_MODELS[model_key]
+            actual_model = mcp_model_key.lower().replace(" ", "")
+            if not _model_matches(mcp_instance, actual_model):
+                return None
+            obj = mcp_instance
+            for part in parts[1:]:
+                if obj is None:
+                    return None
+                obj = obj.get(part) if isinstance(obj, dict) else getattr(obj, part, None)
+            return obj
+
     except (KeyError, AttributeError, TypeError):
         logger.warning("resolve_value failed for path=%s patient=%s", field_path, patient, exc_info=True)
         return None
+
+
+def _model_matches(instance, expected_key):
+    name = instance._meta.model_name.lower().replace(" ", "")
+    return name == expected_key
 
 
 def expected_value_from_rule(rule: RiskRule) -> Any:
@@ -132,6 +167,16 @@ RECOMMENDATION_TEMPLATES = {
         "en": "Refer to PHC/CHC immediately. High-risk pregnancy.",
         "hi": "PHC/CHC में तुरंत भेजें। उच्च जोखिम गर्भावस्था।",
         "urgency": "immediate",
+    },
+    ("high", "child"): {
+        "en": "Refer to CHC/NRC immediately. Child at high risk.",
+        "hi": "तुरंत CHC/NRC भेजें। बच्चे को उच्च जोखिम है।",
+        "urgency": "immediate",
+    },
+    ("medium", "child"): {
+        "en": "Schedule CHC visit within 3 days. Monitor child nutrition and growth.",
+        "hi": "3 दिनों में CHC विज़िट शेड्यूल करें। बच्चे के पोषण और विकास की निगरानी करें।",
+        "urgency": "within_3_days",
     },
     ("medium", "general"): {
         "en": "Schedule PHC visit within 3 days. Monitor symptoms daily.",
@@ -261,15 +306,20 @@ class RiskEngine:
             ),
         )
 
-    def evaluate(self, patient, survey_response=None, surveyed_at=None) -> AssessmentResult:
+    def evaluate(self, patient, survey_response=None, surveyed_at=None, mcp_instance=None, population=None) -> AssessmentResult:
         as_of = self._as_of(surveyed_at)
         active_rules = self.get_active_rules(as_of=as_of)
+        if population:
+            active_rules = [
+                r for r in active_rules
+                if r.category == population or r.category in ("general", "communicable", "chronic", "critical")
+            ]
         snapshot = self.build_rules_snapshot(active_rules)
 
         for rule in active_rules:
             if not rule.is_hard_flag:
                 continue
-            actual = resolve_path(patient, survey_response, rule.field_path)
+            actual = resolve_path(patient, survey_response, rule.field_path, mcp_instance=mcp_instance)
             expected = expected_value_from_rule(rule)
             if compare(actual, rule.operator, expected):
                 rec_en = rule.hard_flag_message_en or "Emergency referral required"
@@ -321,7 +371,7 @@ class RiskEngine:
         for rule in active_rules:
             if rule.is_hard_flag:
                 continue
-            actual = resolve_path(patient, survey_response, rule.field_path)
+            actual = resolve_path(patient, survey_response, rule.field_path, mcp_instance=mcp_instance)
             expected = expected_value_from_rule(rule)
             if compare(actual, rule.operator, expected):
                 total_score += rule.weight
@@ -364,8 +414,10 @@ class RiskEngine:
         surveyed_at=None,
         *,
         save: bool = True,
+        mcp_instance=None,
+        population=None,
     ) -> RiskAssessment:
-        result = self.evaluate(patient, survey_response, surveyed_at=surveyed_at)
+        result = self.evaluate(patient, survey_response, surveyed_at=surveyed_at, mcp_instance=mcp_instance, population=population)
         assessment = RiskAssessment(
             patient=patient,
             survey_response=survey_response,

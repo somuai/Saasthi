@@ -401,7 +401,7 @@ SCORING_RULES = [
     {
         "code": "mcp_missed_vaccines",
         "name": "Missed vaccines (> 0)",
-        "field_path": "immunization.missed_count",
+        "field_path": "patient.missed_vaccine_count",
         "operator": "greater_than",
         "value": {"expected_value": 0},
         "weight": 2,

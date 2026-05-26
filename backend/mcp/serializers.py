@@ -27,7 +27,7 @@ class PatientLocalUuidMixin(serializers.ModelSerializer):
 class CareInteractionSerializer(PatientLocalUuidMixin):
     class Meta:
         model = CareInteraction
-        fields = ['id', 'local_uuid', 'patient', 'protocol', 'notes', 'occurred_at', 'payload', 'created_by', 'created_at', 'updated_at']
+        fields = ['id', 'local_uuid', 'patient', 'protocol', 'notes', 'occurred_at', 'payload', 'created_by', 'created_at', 'updated_at', 'patient_local_uuid']
         read_only_fields = ["id", "created_by", "created_at", "updated_at"]
         extra_kwargs = {"patient": {"required": False}}
 
@@ -44,7 +44,8 @@ class ANCVisitSerializer(PatientLocalUuidMixin):
             'syphilis_test', 'ultrasonography', 'gdm_screening', 'blood_group',
             'rh_typing', 'tsh_value', 'hbsag', 'blood_sugar_value', 'tt_injection_given',
             'ifa_tablets_given', 'calcium_tablets_given', 'albendazole_given',
-            'is_high_risk', 'risk_flags_summary', 'created_at', 'updated_at'
+            'is_high_risk', 'risk_flags_summary', 'created_at', 'updated_at',
+            'patient_local_uuid',
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
         extra_kwargs = {"patient": {"required": False}, "asha_worker": {"required": False}}
@@ -119,7 +120,8 @@ class GrowthRecordSerializer(PatientLocalUuidMixin):
             'id', 'local_uuid', 'patient', 'asha_worker', 'recorded_date', 'recorded_by',
             'age_completed_months', 'weight_kg', 'height_cm', 'muac_cm', 'wfa_z_score',
             'wfh_z_score', 'hfa_z_score', 'nutritional_status', 'weight_change_kg',
-            'is_faltering', 'aww_notes', 'created_at', 'updated_at'
+            'is_faltering', 'aww_notes', 'created_at', 'updated_at',
+            'patient_local_uuid',
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
         extra_kwargs = {"patient": {"required": False}, "asha_worker": {"required": False}}
@@ -132,7 +134,7 @@ class DevelopmentMilestoneCheckSerializer(PatientLocalUuidMixin):
             'id', 'local_uuid', 'patient', 'asha_worker', 'check_date',
             'age_at_check_months', 'milestones_achieved', 'warning_signs',
             'any_warning_sign', 'developmental_concern', 'referred_to',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at', 'patient_local_uuid',
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
         extra_kwargs = {"patient": {"required": False}, "asha_worker": {"required": False}}
@@ -145,7 +147,8 @@ class ImmunizationRecordSerializer(PatientLocalUuidMixin):
             'id', 'local_uuid', 'patient', 'asha_worker', 'vaccine_name', 'dose_number',
             'scheduled_date', 'administered_date', 'administered_at', 'status',
             'missed_reason', 'next_reschedule', 'fic_eligible', 'cic_eligible',
-            'is_vitamin_a', 'vitamin_a_dose_num', 'created_at', 'updated_at'
+            'is_vitamin_a', 'vitamin_a_dose_num', 'created_at', 'updated_at',
+            'patient_local_uuid',
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
         extra_kwargs = {"patient": {"required": False}, "asha_worker": {"required": False}}
@@ -157,7 +160,7 @@ class IFAComplianceSerializer(PatientLocalUuidMixin):
         fields = [
             'id', 'local_uuid', 'patient', 'asha_worker', 'record_date', 'year_month',
             'week_number', 'dose_given', 'dose_day', 'bottle_number', 'albendazole_given',
-            'created_at', 'updated_at'
+            'created_at', 'updated_at', 'patient_local_uuid',
         ]
         read_only_fields = ["id", "created_at", "updated_at"]
         extra_kwargs = {"patient": {"required": False}, "asha_worker": {"required": False}}

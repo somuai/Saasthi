@@ -3,13 +3,14 @@ import { useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
+import { McpIcon } from "./McpIcon";
 
 const DEFAULT_TAB_META = {
   home: { icon: "home", hi: "होम", en: "Home" },
   patients: { icon: "people", hi: "मरीज", en: "Records" },
   followups: { icon: "calendar", hi: "फॉलो-अप", en: "Tracker" },
   earnings: { icon: "wallet", hi: "कमाई", en: "Ledger" },
-  mcp: { icon: "medkit", hi: "एमसीपी", en: "MCP" },
+  mcp: { icon: "medkit", customIcon: McpIcon, hi: "एमसीपी", en: "MCP" },
   map: { icon: "map", hi: "नक्शा", en: "Map" },
   "ai-assistant": { icon: "chatbubbles", hi: "AI", en: "AI" },
 };
@@ -52,11 +53,15 @@ export function ShaasthiTabBar({ state, descriptors, navigation }) {
                 style={[styles.tab, focused && styles.tabActive]}
               >
                 <View>
-                  <Ionicons
-                    name={focused ? meta.icon : `${meta.icon}-outline`}
-                    size={22}
-                    color={focused ? COLORS.primary : COLORS.textSecondary}
-                  />
+                  {meta.customIcon ? (
+                    <meta.customIcon size={22} color={focused ? COLORS.primary : COLORS.textSecondary} />
+                  ) : (
+                    <Ionicons
+                      name={focused ? meta.icon : `${meta.icon}-outline`}
+                      size={22}
+                      color={focused ? COLORS.primary : COLORS.textSecondary}
+                    />
+                  )}
                   {badge ? (
                     <View style={styles.badge}>
                       <Text style={styles.badgeTxt}>{badge}</Text>

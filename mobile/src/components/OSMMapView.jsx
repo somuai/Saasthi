@@ -99,25 +99,36 @@ export default function OSMMapView({ markers, initialRegion, showsUserLocation, 
     webviewRef.current?.injectJavaScript(js + ";true;");
   }, []);
 
-  const handleMessage = useCallback((event) => {
-    try {
-      const msg = JSON.parse(event.nativeEvent.data);
-      if (msg.type === "markerClick" && onMarkerPress) onMarkerPress(msg.id);
-      if (msg.type === "mapPress" && onMapPress) onMapPress();
-    } catch { /* ignore malformed messages */ }
-  }, [onMarkerPress, onMapPress]);
+  const handleMessage = useCallback(
+    (event) => {
+      try {
+        const msg = JSON.parse(event.nativeEvent.data);
+        if (msg.type === "markerClick" && onMarkerPress) onMarkerPress(msg.id);
+        if (msg.type === "mapPress" && onMapPress) onMapPress();
+      } catch {
+        /* ignore malformed messages */
+      }
+    },
+    [onMarkerPress, onMapPress],
+  );
 
   const handleLoad = useCallback(() => {
     setReady(true);
   }, []);
 
-  const sendMarkers = useCallback((data) => {
-    if (data && data.length) inject("setMarkers(" + JSON.stringify(data) + ")");
-  }, [inject]);
+  const sendMarkers = useCallback(
+    (data) => {
+      if (data && data.length) inject("setMarkers(" + JSON.stringify(data) + ")");
+    },
+    [inject],
+  );
 
-  const sendUserLocation = useCallback((lat, lng) => {
-    inject("setUserLocation(" + lat + "," + lng + ")");
-  }, [inject]);
+  const sendUserLocation = useCallback(
+    (lat, lng) => {
+      inject("setUserLocation(" + lat + "," + lng + ")");
+    },
+    [inject],
+  );
 
   useEffect(() => {
     if (ready && markers) sendMarkers(markers);
@@ -132,9 +143,13 @@ export default function OSMMapView({ markers, initialRegion, showsUserLocation, 
         if (!granted || cancelled) return;
         const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
         if (!cancelled) sendUserLocation(loc.coords.latitude, loc.coords.longitude);
-      } catch { /* location unavailable */ }
+      } catch {
+        /* location unavailable */
+      }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [ready, showsUserLocation, sendUserLocation]);
 
   return (

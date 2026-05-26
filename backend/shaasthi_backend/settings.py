@@ -276,6 +276,7 @@ CELERY_TASK_ALWAYS_EAGER = os.getenv("CELERY_TASK_ALWAYS_EAGER", "false").lower(
 CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_TASK_ROUTES = {
     "risk_engine.run_risk_assessment": {"queue": "risk_assessment"},
+    "risk_engine.run_mcp_risk_assessment": {"queue": "risk_assessment"},
 }
 CELERY_TASK_ANNOTATIONS = {
     "risk_engine.run_risk_assessment": {"rate_limit": "100/s"},

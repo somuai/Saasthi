@@ -17,8 +17,5 @@ export async function setTokens({ access, refresh }) {
 }
 
 export async function clearTokens() {
-  await Promise.allSettled([
-    SecureStore.deleteItemAsync(ACCESS_KEY),
-    SecureStore.deleteItemAsync(REFRESH_KEY),
-  ]);
+  await Promise.allSettled([SecureStore.deleteItemAsync(ACCESS_KEY), SecureStore.deleteItemAsync(REFRESH_KEY)]);
 }

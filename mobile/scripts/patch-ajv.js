@@ -2,12 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
 
-const AJV_KEYWORDS_DIR = path.join(
-  __dirname,
-  "..",
-  "node_modules",
-  "ajv-keywords",
-);
+const AJV_KEYWORDS_DIR = path.join(__dirname, "..", "node_modules", "ajv-keywords");
 const NESTED_AJV_DIR = path.join(AJV_KEYWORDS_DIR, "node_modules", "ajv");
 
 if (!fs.existsSync(NESTED_AJV_DIR)) {

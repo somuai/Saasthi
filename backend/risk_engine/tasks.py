@@ -92,7 +92,7 @@ def run_risk_assessment(self, patient_id, survey_response_id=None, surveyed_at=N
     default_retry_delay=30,
     name="risk_engine.enhance_with_gemma4",
 )
-def enhance_with_gemma4(self, assessment_id, photo_base64=None):
+def enhance_with_gemma4(self, assessment_id, photo_base64=None, population="general", clinical_context=None):
     """
     Background Celery task to enhance a RiskAssessment's recommendation
     using Gemma 4 LLM.
@@ -120,7 +120,10 @@ def enhance_with_gemma4(self, assessment_id, photo_base64=None):
             "explanations": assessment.explanations,
         }
 
-        result = gemma_service.generate(patient_context, assessment_dict, photo_base64)
+        result = gemma_service.generate(
+            patient_context, assessment_dict, photo_base64,
+            population=population, clinical_context=clinical_context,
+        )
         if result:
             assessment.recommended_action_en = result["english"]
             assessment.recommended_action_hi = result["hindi"]
@@ -159,7 +162,14 @@ def _get_instance(instance_local_uuid: str, instance_model: str):
     model_map = {}
     if not _MCP_INSTANCE_MODELS:
         try:
-            from mcp.models import ANCVisit, DeliveryRecord, GrowthRecord, ImmunizationRecord, PNCVisit
+            from mcp.models import (
+                ANCVisit,
+                DeliveryRecord,
+                DevelopmentMilestoneCheck,
+                GrowthRecord,
+                ImmunizationRecord,
+                PNCVisit,
+            )
 
             _MCP_INSTANCE_MODELS.update(
                 ancvisit=ANCVisit,
@@ -167,6 +177,7 @@ def _get_instance(instance_local_uuid: str, instance_model: str):
                 pncvisit=PNCVisit,
                 growthrecord=GrowthRecord,
                 immunizationrecord=ImmunizationRecord,
+                developmentmilestonecheck=DevelopmentMilestoneCheck,
             )
         except ImportError:
             pass
@@ -187,7 +198,13 @@ def _get_instance(instance_local_uuid: str, instance_model: str):
     name="risk_engine.run_mcp_risk_assessment",
 )
 def run_mcp_risk_assessment(
-    self, patient_local_uuid, instance_local_uuid="", instance_model="", population="general", session_type=""
+    self,
+    patient_local_uuid,
+    instance_local_uuid="",
+    instance_model="",
+    population="general",
+    session_type="",
+    session_local_uuid="",
 ):
     """
     Run risk assessment for MCP maternal/child populations.
@@ -198,39 +215,84 @@ def run_mcp_risk_assessment(
 
     try:
         patient = Patient.objects.get(local_uuid=patient_local_uuid)
-        _get_instance(instance_local_uuid, instance_model) if instance_local_uuid else None
+        mcp_instance = _get_instance(instance_local_uuid, instance_model) if instance_local_uuid else None
         surveyed_at = timezone.now()
+
+        # ── Compute derived attributes for rules ──────────────────────
+        missed_count = 0
+        if hasattr(patient, "immunizations"):
+            missed_count = patient.immunizations.filter(status="missed").count()
+        anc_count = 0
+        if hasattr(patient, "anc_visits"):
+            anc_count = patient.anc_visits.count()
+        # Inject transient attributes for rules that reference patient.* fields
+        # not on the Patient model (e.g. missed_vaccine_count, anc_visit_count)
+        patient.missed_vaccine_count = missed_count
+        patient.anc_visit_count = anc_count
 
         engine = RiskEngine()
         assessment = engine.create_assessment(
             patient,
-            survey=None,
+            survey_response=None,
             surveyed_at=surveyed_at,
             save=False,
+            mcp_instance=mcp_instance,
+            population=population,
         )
         assessment.patient_population = population
         assessment.mcp_session_type = session_type
 
+        clinical_context = None
         if population == "maternal":
             latest_anc = None
             if hasattr(patient, "anc_visits"):
                 latest_anc = patient.anc_visits.order_by("-visit_date").first()
             extractor = MCPFeatureExtractor()
             features = extractor.extract_maternal(patient, latest_anc)
-            assessment.ml_score = float(features[8]) if hasattr(assessment, "apply_ml_score") else None
+            assessment.ml_score = float(features[8])
+            assessment.feature_vector = features.tolist() if hasattr(features, "tolist") else features
+            if latest_anc:
+                clinical_context = {
+                    "pog_weeks": latest_anc.pog_weeks,
+                    "anc_count": patient.anc_visit_count,
+                    "hemoglobin": latest_anc.hemoglobin_gms,
+                    "bp_sys": latest_anc.bp_systolic,
+                    "bp_dia": latest_anc.bp_diastolic,
+                    "fetal_movements": latest_anc.fetal_movements,
+                    "tt_given": latest_anc.tt_injection_given,
+                    "ifa_count": latest_anc.ifa_tablets_given,
+                }
         elif population == "child":
             latest_growth = None
             if hasattr(patient, "growth_records"):
                 latest_growth = patient.growth_records.order_by("-recorded_date").first()
-            missed_vaccines = 0
-            if hasattr(patient, "immunizations"):
-                missed_vaccines = patient.immunizations.filter(status="missed").count()
             extractor = MCPFeatureExtractor()
-            features = extractor.extract_child(patient, latest_growth, missed_vaccines)
-            assessment.ml_score = float(features[30]) if hasattr(assessment, "apply_ml_score") else None
+            features = extractor.extract_child(patient, latest_growth, missed_count)
+            assessment.ml_score = float(features[30])
+            assessment.feature_vector = features.tolist() if hasattr(features, "tolist") else features
+            if latest_growth:
+                clinical_context = {
+                    "age_months": latest_growth.age_completed_months,
+                    "weight_kg": latest_growth.weight_kg,
+                    "wfa_z": latest_growth.wfa_z_score,
+                    "nutritional_status": latest_growth.nutritional_status,
+                    "missed_vaccines": missed_count,
+                    "muac_cm": latest_growth.muac_cm,
+                }
 
         assessment.save()
         create_flags_for_assessment(assessment)
+
+        # ── Link MCPSurveySession → RiskAssessment ────────────────────
+        if session_local_uuid:
+            try:
+                from mcp.models import MCPSurveySession
+
+                MCPSurveySession.objects.filter(local_uuid=session_local_uuid).update(
+                    risk_assessment=assessment
+                )
+            except Exception:
+                logger.warning("session link failed for %s", session_local_uuid, exc_info=True)
 
         if assessment.level in ("medium", "high"):
             try:
@@ -242,9 +304,35 @@ def run_mcp_risk_assessment(
 
         if assessment.level in ("medium", "high"):
             try:
-                enhance_with_gemma4.delay(str(assessment.local_uuid))
+                enhance_with_gemma4.delay(
+                    str(assessment.local_uuid),
+                    population=population,
+                    clinical_context=clinical_context,
+                )
             except Exception:
                 logger.warning("enhance_with_gemma4 enqueue skipped for MCP task", exc_info=True)
+
+        # ── High-risk notification ──────────────────────────────────
+        if assessment.level == "high" and mcp_instance is not None:
+            try:
+                asha_user = getattr(mcp_instance, "asha_worker", None) or getattr(mcp_instance, "created_by", None)
+                if asha_user and asha_user.fcm_token:
+                    from notifications.services import send_fcm_notification
+
+                    patient_name = patient.full_name or f"Patient {patient.local_uuid}"
+                    send_fcm_notification(
+                        asha_user,
+                        title="High Risk Alert",
+                        body=f"{patient_name} flagged as high-risk. Immediate action needed.",
+                        payload={
+                            "type": "high_risk_alert",
+                            "patient_local_uuid": patient_local_uuid,
+                            "session_type": session_type,
+                            "risk_level": "high",
+                        },
+                    )
+            except Exception:
+                logger.warning("high-risk notification skipped", exc_info=True)
 
         return {
             "status": "completed",

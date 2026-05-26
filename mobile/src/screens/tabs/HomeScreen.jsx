@@ -5,6 +5,7 @@ import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useSelector, useDispatch } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
+import { McpIcon } from "../../components/McpIcon";
 import { GovtHeader } from "../../components/GovtHeader";
 import { BentoStatGrid } from "../../components/BentoStatGrid";
 import { SyncPendingBanner } from "../../components/SyncPendingBanner";
@@ -88,7 +89,6 @@ export default function HomeScreen() {
     await clearAuthSession();
     dispatch(signOut());
   }
-
 
   const hour = new Date().getHours();
   const greetEn = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
@@ -182,10 +182,14 @@ export default function HomeScreen() {
             { hi: "फॉलो-अप्स", en: "Follow-Ups", icon: "calendar-outline", route: "/(tabs)/followups", badge: overdueFu },
             { hi: "मेरा प्रोत्साहन", en: "My Incentives", icon: "wallet-outline", route: "/(tabs)/earnings" },
             { hi: "सिंक और सेटिंग", en: "Sync & Settings", icon: "settings-outline", route: "/(tabs)/sync" },
-            { hi: "एमसीपी कार्ड", en: "MCP Card", icon: "medkit-outline", route: "/(tabs)/mcp" },
+            { hi: "एमसीपी कार्ड", en: "MCP Card", icon: "medkit-outline", customIcon: McpIcon, route: "/(tabs)/mcp" },
           ].map((q) => (
             <Pressable key={q.en} style={styles.qCard} onPress={() => router.push(q.route)}>
-              <Ionicons name={q.icon} size={32} color={COLORS.primary} />
+              {q.customIcon ? (
+                <q.customIcon size={32} color={COLORS.primary} />
+              ) : (
+                <Ionicons name={q.icon} size={32} color={COLORS.primary} />
+              )}
               <Text style={styles.qHi}>{q.hi}</Text>
               <Text style={styles.qEn}>{q.en}</Text>
               {q.badge > 0 ? (

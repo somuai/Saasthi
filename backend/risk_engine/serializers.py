@@ -40,6 +40,8 @@ class RiskAssessmentSerializer(serializers.ModelSerializer):
     patient_local_uuid = serializers.UUIDField(write_only=True, required=False)
     survey_response_local_uuid = serializers.UUIDField(write_only=True, required=False, allow_null=True)
     surveyed_at = serializers.DateTimeField(required=False, allow_null=True, write_only=True)
+    mcp_instance_local_uuid = serializers.UUIDField(write_only=True, required=False, allow_null=True)
+    mcp_instance_model = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = RiskAssessment
@@ -72,6 +74,9 @@ class RiskAssessmentSerializer(serializers.ModelSerializer):
             "ml_model_version",
             "patient_population",
             "mcp_session_type",
+            "feature_vector",
+            "mcp_instance_local_uuid",
+            "mcp_instance_model",
             "created_at",
         ]
         read_only_fields = [
@@ -115,8 +120,19 @@ class RiskAssessmentSerializer(serializers.ModelSerializer):
         survey = validated_data.get("survey_response")
         if surveyed_at is None and survey and survey.submitted_at:
             surveyed_at = survey.submitted_at
+
+        mcp_instance = None
+        mcp_uuid = validated_data.pop("mcp_instance_local_uuid", None)
+        mcp_model = validated_data.pop("mcp_instance_model", None)
+        if mcp_uuid and mcp_model:
+            try:
+                from .tasks import _get_instance
+                mcp_instance = _get_instance(str(mcp_uuid), mcp_model)
+            except Exception:
+                pass
+
         engine = RiskEngine()
-        assessment = engine.create_assessment(patient, survey, surveyed_at=surveyed_at, save=False)
+        assessment = engine.create_assessment(patient, survey, surveyed_at=surveyed_at, save=False, mcp_instance=mcp_instance)
         for key, value in validated_data.items():
             if key not in {"patient", "survey_response"}:
                 setattr(assessment, key, value)
