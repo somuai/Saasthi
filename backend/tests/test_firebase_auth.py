@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from accounts.models import User
@@ -9,6 +9,15 @@ from rest_framework.test import APIClient
 from tests.factories import SupervisorFactory, WorkerRegistrationFactory
 
 FIREBASE_VERIFY_URL = "/api/v1/auth/firebase/verify/"
+
+
+@pytest.fixture(autouse=True)
+def mock_firebase_app(monkeypatch):
+    """Ensure Firebase App is initialized/mocked in CI environments without credentials."""
+    mock_app = MagicMock()
+    monkeypatch.setattr("accounts.firebase_auth._app", mock_app)
+    monkeypatch.setattr("accounts.firebase_auth._get_app", lambda: mock_app)
+    return mock_app
 
 
 @pytest.fixture
