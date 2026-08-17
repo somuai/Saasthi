@@ -1,8 +1,8 @@
 # SHAASTHI — Digital Health Platform for India's ASHA Workers
 
-[![CI](https://github.com/Luciferai04/Saasthi/actions/workflows/eval.yml/badge.svg)](https://github.com/Luciferai04/Saasthi/actions/workflows/eval.yml)
-[![Backend Tests](https://img.shields.io/badge/backend%20tests-493%20passing-brightgreen)](https://github.com/Luciferai04/Saasthi/actions)
-[![Mobile Tests](https://img.shields.io/badge/mobile%20tests-44%20passing-brightgreen)](https://github.com/Luciferai04/Saasthi/actions)
+[![CI](https://github.com/somuai/Saasthi/actions/workflows/ci.yml/badge.svg)](https://github.com/somuai/Saasthi/actions/workflows/ci.yml)
+[![Backend Tests](https://img.shields.io/badge/backend%20tests-493%20passing-brightgreen)](https://github.com/somuai/Saasthi/actions)
+[![Mobile Tests](https://img.shields.io/badge/mobile%20tests-44%20passing-brightgreen)](https://github.com/somuai/Saasthi/actions)
 [![Expo SDK](https://img.shields.io/badge/Expo-52-000020?logo=expo)](https://expo.dev)
 [![Django](https://img.shields.io/badge/Django-5.2-092E20?logo=django)](https://djangoproject.com)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python)](https://python.org)
@@ -10,12 +10,24 @@
 
 **Offline-first mobile platform purpose-built for India's 1M+ ASHA health workers.** Digitises household surveys, MCP Card workflows, explainable risk scoring, supervisor dashboards, and incentive management — all functioning without internet connectivity.
 
+---
+
+## Platform Demonstration
+
 <div align="center">
   <img src="docs/assets/shaasthi-demo.gif" alt="Saasthi Platform Demonstration" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" />
 </div>
 
-> 📖 **Read the in-depth [About & Architecture Guide](ABOUT.md)**  
-> 🚀 **Explore the [v1.0.0 Production Release Notes](RELEASE_NOTES.md)**
+### Full Video Walkthrough Options
+
+* **High-Definition Video Download (1080p MP4)**: [Download Full Demonstration (Shaasthi.mp4)](https://github.com/somuai/Saasthi/releases/download/v1.0.0/Shaasthi.mp4) directly from the [v1.0.0 Production Release Assets](https://github.com/somuai/Saasthi/releases/tag/v1.0.0).
+* **Local Playback**: If viewing locally, open `Downloads/Shaasthi.mp4` in QuickTime, VLC, or your browser.
+* **Animated Summary**: The high-frame-rate preview above provides a 35-second demonstration of offline survey completion, automated risk scoring, GPS doorstep verification, and supervisor dashboard analytics.
+
+---
+
+> **Read the in-depth [About & Architecture Guide](ABOUT.md)**  
+> **Explore the [v1.0.0 Production Release Notes](RELEASE_NOTES.md)**
 
 ---
 
@@ -50,7 +62,7 @@ India's ASHA (Accredited Social Health Activist) workers serve as the frontline 
 │  └──────────────────────────┬─────────────────────────────────┘ │
 │                             │ HTTPS (WatermelonDB sync)         │
 └─────────────────────────────┼───────────────────────────────────┘
-                              ▼
+                              v
 ┌──────────────────────────────────────────────────────────────────┐
 │                      Server (Docker Compose)                     │
 │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────┐ │
@@ -125,15 +137,15 @@ docker compose up -d
 
 | Module | Description | Status |
 |---|---|---|
-| **Patient Registry** | Household registration, patient profiles, demographics | ✅ Complete |
-| **Survey Engine** | 7-step health survey with offline scoring | ✅ Complete |
-| **Risk Assessment** | 27-rule explainable risk engine + hard-flag safety checks | ✅ Complete |
-| **MCP Card** | ANC/PNC schedules, growth tracking, immunisation calendar | ✅ Complete |
-| **Sync Engine** | WatermelonDB pull/push with conflict resolution | ✅ Complete |
-| **Follow-up Calendar** | GPS-tagged visits, OTP-verified doorstep confirmation | ✅ Complete |
-| **Incentive Ledger** | Auto-calculated ASHA worker incentives + PDF payslips | ✅ Complete |
-| **Supervisor Dashboard** | Aggregate analytics, flag CSV export | ✅ Complete |
-| **Push Notifications** | FCM-based daily reminders, follow-up alerts | ✅ Complete |
+| **Patient Registry** | Household registration, patient profiles, demographics | Complete |
+| **Survey Engine** | 7-step health survey with offline scoring | Complete |
+| **Risk Assessment** | 27-rule explainable risk engine + hard-flag safety checks | Complete |
+| **MCP Card** | ANC/PNC schedules, growth tracking, immunisation calendar | Complete |
+| **Sync Engine** | WatermelonDB pull/push with conflict resolution | Complete |
+| **Follow-up Calendar** | GPS-tagged visits, OTP-verified doorstep confirmation | Complete |
+| **Incentive Ledger** | Auto-calculated ASHA worker incentives + PDF payslips | Complete |
+| **Supervisor Dashboard** | Aggregate analytics, flag CSV export | Complete |
+| **Push Notifications** | FCM-based daily reminders, follow-up alerts | Complete |
 
 ### Advanced Features (Feature-Flagged)
 
@@ -161,7 +173,7 @@ docker compose up -d
 | Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/api/v1/auth/otp/request/` | Request OTP (rate-limited: 5/min per phone) |
-| `POST` | `/api/v1/auth/otp/verify/` | Verify OTP → JWT access + refresh tokens |
+| `POST` | `/api/v1/auth/otp/verify/` | Verify OTP -> JWT access + refresh tokens |
 | `POST` | `/api/v1/auth/token/refresh/` | Refresh expired access token |
 | `POST` | `/api/v1/auth/users/fcm-token/` | Register FCM push token |
 | `POST` | `/api/v1/auth/workers/bulk-import/` | CSV import of worker registrations |
@@ -236,7 +248,7 @@ docker compose up -d
 │   ├── shaasthi_backend/             # Settings, Celery, health check
 │   ├── surveys/                      # Survey response models
 │   ├── sync/                         # WatermelonDB pull/push sync
-│   └── tests/                        # 281 integration + unit tests
+│   └── tests/                        # 493 integration + unit tests
 │
 ├── mobile/                           # Expo React Native App
 │   ├── app/                          # Expo Router routes
@@ -252,8 +264,15 @@ docker compose up -d
 │   │   ├── screens/                  # Full-screen views (tabs + modals)
 │   │   ├── services/                 # FCM, sync, network status
 │   │   └── utils/                    # Locale, date helpers, jitter, worker ID
-│   ├── __tests__/                    # 14 suites, 37 Jest tests
+│   ├── __tests__/                    # 14 suites, 44 Jest tests
 │   └── assets/                       # Images, fonts, ML weights
+│
+├── dashboard/                        # Next.js 14 Web Supervisor Dashboard
+│   ├── src/
+│   │   ├── app/                      # App router (Login, Dashboard, Analytics, GIS)
+│   │   ├── components/               # UI components, Leaflet maps, Recharts
+│   │   └── providers/                # Auth provider, theme context
+│   └── tests/                        # Playwright E2E tests
 │
 ├── eval/                             # Automated evaluation harness (T1–T5)
 ├── contracts/                        # WatermelonDB sync contract fixtures
@@ -279,14 +298,14 @@ The risk assessment engine is the clinical core of the platform, designed for ex
 ### Scoring Flow
 
 ```
-Survey submission → scorePatient() → rule matching (27 clinical rules)
-                                   → hard-flag check (short-circuits to HIGH)
-                                   → weighted score calculation (0–100)
-                                   → level assignment: LOW (≤25) / MEDIUM (≤50) / HIGH (≤75) / CRITICAL (>75)
-                                   → category inference → recommendation selection
-                                   → [optional] Gemma AI natural-language enhancement
-                                   → RiskAssessment persisted + Flag created
-                                   → Auto-schedule follow-up if HIGH/CRITICAL
+Survey submission -> scorePatient() -> rule matching (27 clinical rules)
+                                   -> hard-flag check (short-circuits to HIGH)
+                                   -> weighted score calculation (0–100)
+                                   -> level assignment: LOW (<=25) / MEDIUM (<=50) / HIGH (<=75) / CRITICAL (>75)
+                                   -> category inference -> recommendation selection
+                                   -> [optional] Gemma AI natural-language enhancement
+                                   -> RiskAssessment persisted + Flag created
+                                   -> Auto-schedule follow-up if HIGH/CRITICAL
 ```
 
 ### Dual Scoring Modes
@@ -304,14 +323,14 @@ Survey submission → scorePatient() → rule matching (27 clinical rules)
 The sync architecture follows WatermelonDB's pull/push protocol:
 
 ```
-Device write → local SQLite (is_synced=false)
-     ↓ (trigger: 15-min interval / connectivity restore)
-Push pending changes → POST /api/v1/sync/push/ → atomic batch apply
-     ↓
-Pull server changes → GET /api/v1/sync/pull/?last_pulled_at=<ts>
-     ↓
-Risk assessment enqueued → Celery async processing
-     ↓
+Device write -> local SQLite (is_synced=false)
+     | (trigger: 15-min interval / connectivity restore)
+Push pending changes -> POST /api/v1/sync/push/ -> atomic batch apply
+     |
+Pull server changes -> GET /api/v1/sync/pull/?last_pulled_at=<ts>
+     |
+Risk assessment enqueued -> Celery async processing
+     |
 Flags + follow-ups created automatically
 ```
 
@@ -321,7 +340,7 @@ Flags + follow-ups created automatically
 
 ## Testing
 
-### Backend (281 tests)
+### Backend (493 tests)
 
 ```bash
 cd backend && python -m pytest
@@ -343,8 +362,9 @@ cd backend && python -m pytest
 | `unit/test_mcp_risk_engine` | 83 | MCP clinical hard flags, immunisation rules, feature extraction |
 | `unit/test_feature_extractor` | 5 | MCP feature extraction |
 | `unit/test_otp_service` | 44 | OTP hash, expiry, validation |
+| `test_firebase_auth` | 14 | Firebase ID token verification, PNV auth |
 
-### Frontend (37 tests)
+### Frontend (44 tests)
 
 ```bash
 cd mobile && npx jest
@@ -399,12 +419,12 @@ make eval-tier2        # Backend unit tests only
 
 | Variable | Required | Description |
 |---|---|---|
-| `DJANGO_SECRET_KEY` | ✅ | Unique 50+ char random string |
-| `DJANGO_DEBUG` | ✅ | Must be `false` in production |
-| `DJANGO_ALLOWED_HOSTS` | ✅ | Comma-separated domain names |
-| `DATABASE_URL` | ✅ | PostgreSQL connection string |
-| `REDIS_URL` | ✅ | Redis connection string (Celery broker) |
-| `CORS_ALLOWED_ORIGINS` | ✅ | Frontend origin(s) |
+| `DJANGO_SECRET_KEY` | Required | Unique 50+ char random string |
+| `DJANGO_DEBUG` | Required | Must be `false` in production |
+| `DJANGO_ALLOWED_HOSTS` | Required | Comma-separated domain names |
+| `DATABASE_URL` | Required | PostgreSQL connection string |
+| `REDIS_URL` | Required | Redis connection string (Celery broker) |
+| `CORS_ALLOWED_ORIGINS` | Required | Frontend origin(s) |
 | `SENTRY_DSN` | Optional | Sentry project DSN (enabled when `DEBUG=false`) |
 | `GEMMA_API_KEY` | Optional | Google AI API key (Gemma AI features) |
 | `FIREBASE_SERVICE_ACCOUNT_PATH` | Optional | FCM push notifications |
@@ -486,15 +506,15 @@ All experimental features are gated behind `FEATURES` in `mobile/src/constants/f
 
 | Flag | Status | Description |
 |---|---|---|
-| `VISIT_VERIFICATION_OTP` | ✅ Enabled | OTP verification on field visits |
-| `OFFLINE_MAP` | ✅ Enabled | Patient map with gender-coded markers |
-| `GPS_TRACKING` | ✅ Enabled | GPS capture on visit records |
-| `VOICE_INPUT` | ✅ Enabled | Hindi/English voice-to-text |
-| `PDF_PAYSLIP` | ✅ Enabled | PDF payslip generation |
-| `PUSH_NOTIFICATIONS` | ✅ Enabled | FCM push notifications |
-| `TFLITE_SCORING` | ✅ Enabled | On-device TFLite model scoring |
-| `GEMMA_ONDEVICE` | ✅ Enabled | AI Assistant chat |
-| `ABDM_COMPLIANCE` | ✅ Enabled | ABDM/FHIR compliance |
+| `VISIT_VERIFICATION_OTP` | Enabled | OTP verification on field visits |
+| `OFFLINE_MAP` | Enabled | Patient map with gender-coded markers |
+| `GPS_TRACKING` | Enabled | GPS capture on visit records |
+| `VOICE_INPUT` | Enabled | Hindi/English voice-to-text |
+| `PDF_PAYSLIP` | Enabled | PDF payslip generation |
+| `PUSH_NOTIFICATIONS` | Enabled | FCM push notifications |
+| `TFLITE_SCORING` | Enabled | On-device TFLite model scoring |
+| `GEMMA_ONDEVICE` | Enabled | AI Assistant chat |
+| `ABDM_COMPLIANCE` | Enabled | ABDM/FHIR compliance |
 
 ---
 
@@ -521,5 +541,5 @@ MIT — see [LICENSE](LICENSE) for full text.
 
 <p align="center">
   <strong>Built for India's frontline health workers</strong><br>
-  राष्ट्रीय स्वास्थ्य मिशन · National Health Mission
+  National Health Mission
 </p>
