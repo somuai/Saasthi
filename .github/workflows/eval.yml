@@ -85,7 +85,8 @@ jobs:
       - name: Mobile lint
         run: cd mobile && npx eslint src/
       - name: Mobile tests
-        run: cd mobile && npx jest --watchAll=false --passWithNoTests
+        run: cd mobile && npx jest --watchAll=false --no-watchman --passWithNoTests
+
 
   offline-eval:
     runs-on: ubuntu-latest
