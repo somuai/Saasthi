@@ -10,6 +10,10 @@
 
 **Offline-first mobile platform purpose-built for India's 1M+ ASHA health workers.** Digitises household surveys, MCP Card workflows, explainable risk scoring, supervisor dashboards, and incentive management — all functioning without internet connectivity.
 
+<div align="center">
+  <img src="docs/assets/shaasthi-demo.gif" alt="Saasthi Platform Demonstration" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);" />
+</div>
+
 > 📖 **Read the in-depth [About & Architecture Guide](ABOUT.md)**  
 > 🚀 **Explore the [v1.0.0 Production Release Notes](RELEASE_NOTES.md)**
 
