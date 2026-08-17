@@ -1,0 +1,21 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: saasthi-api-pdb
+  namespace: saasthi
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: saasthi-api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: saasthi-pgbouncer-pdb
+  namespace: saasthi
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: saasthi-pgbouncer

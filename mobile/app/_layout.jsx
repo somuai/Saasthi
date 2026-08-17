@@ -1,5 +1,11 @@
 import { useEffect } from "react";
+import { LogBox } from "react-native";
 import { Stack, useRouter, useSegments } from "expo-router";
+import "../src/utils/sentry";
+
+LogBox.ignoreLogs([
+  "new NativeEventEmitter()",
+]);
 import { useShaasthiFonts } from "../src/hooks/useShaasthiFonts";
 import { StatusBar } from "expo-status-bar";
 import { useSelector } from "react-redux";
@@ -10,7 +16,6 @@ import { ErrorBoundary } from "../src/components/ErrorBoundary";
 import { SplashScreen } from "../src/components/SplashScreen";
 import { UpdateRequiredScreen } from "../src/components/UpdateRequiredScreen";
 import { useAppVersion } from "../src/hooks/useAppVersion";
-import "../src/utils/sentry";
 
 function AuthGuard({ children }) {
   const user = useSelector((s) => s.auth.user);
@@ -51,7 +56,7 @@ function AuthGuard({ children }) {
   return children;
 }
 
-export default function RootLayout() {
+function RootLayoutContent() {
   const [fontsLoaded] = useShaasthiFonts();
   const { loading: versionLoading, blocked, updateUrl } = useAppVersion();
 
@@ -64,22 +69,28 @@ export default function RootLayout() {
   }
 
   return (
+    <ErrorBoundary>
+      <AuthGuard>
+        <StatusBar style="light" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: COLORS.background },
+          }}
+        >
+          <Stack.Screen name="index" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </AuthGuard>
+    </ErrorBoundary>
+  );
+}
+
+export default function RootLayout() {
+  return (
     <AppProvider>
-      <ErrorBoundary>
-        <AuthGuard>
-          <StatusBar style="light" />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              contentStyle: { backgroundColor: COLORS.background },
-            }}
-          >
-            <Stack.Screen name="index" />
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-          </Stack>
-        </AuthGuard>
-      </ErrorBoundary>
+      <RootLayoutContent />
     </AppProvider>
   );
 }

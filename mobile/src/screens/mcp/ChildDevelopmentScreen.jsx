@@ -12,6 +12,7 @@ import { ToggleRow } from "../../components/ToggleRow";
 import { COLORS } from "../../constants/colors";
 import { isoFromDate } from "../../utils/mcpHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
+import { useLocale, translateHindiText } from "../../utils/localization";
 
 const DEFAULT_MILESTONES = [
   { key: "social_smile", hi: "सामाजिक मुस्कान", en: "Social smile", months: 2 },
@@ -33,6 +34,9 @@ export default function ChildDevelopmentScreen() {
   const [referralNeeded, setReferralNeeded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState(null);
+
+  const locale = useLocale();
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
 
   useEffect(() => {
     try {
@@ -131,16 +135,16 @@ export default function ChildDevelopmentScreen() {
     <View style={styles.page}>
       <GovtHeader titleHi="बाल विकास" title={patient?.name || "Child dev."} showBack showSync />
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
-        <Text style={styles.h}>मील के पत्थर / Milestones (WHO-IYCF aligned)</Text>
+        <Text style={styles.h}>{hiText("मील के पत्थर / Milestones (WHO-IYCF aligned)")}</Text>
         {DEFAULT_MILESTONES.map((m) => (
           <Text key={m.key} style={styles.milestone}>
-            {m.hi} / {m.en} — {m.months}m
+            {hiText(m.hi)} / {m.en} — {m.months}m
           </Text>
         ))}
         <GovtInput labelHi="आयु (माह)" label="Age months" value={ageMonths} onChangeText={setAgeMonths} keyboardType="number-pad" />
         <ToggleRow labelHi="रेफरल आवश्यक" labelEn="Referral needed" value={referralNeeded} onChange={setReferralNeeded} />
         <GovtButton titleHi="मूल्यांकन सहेजें" titleEn="Save assessment" onPress={saveAssessment} loading={saving} />
-        <Text style={[styles.h, { marginTop: 16 }]}>इतिहास / History</Text>
+        <Text style={[styles.h, { marginTop: 16 }]}>{hiText("इतिहास / History")}</Text>
         {records.map((r) => (
           <View key={r.id} style={styles.row}>
             <Text style={styles.pickName}>{r.assessmentDate}</Text>

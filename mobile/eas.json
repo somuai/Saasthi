@@ -16,7 +16,8 @@
       },
       "env": {
         "EXPO_PUBLIC_ENV": "development",
-        "EXPO_PUBLIC_API_URL": "http://127.0.0.1:8000/api/v1"
+        "EXPO_PUBLIC_API_URL": "http://127.0.0.1:8000/api/v1",
+        "EXPO_PUBLIC_FIREBASE_PNV_ENABLED": "false"
       }
     },
     "development-device": {
@@ -25,7 +26,8 @@
         "simulator": false
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "http://192.168.29.70:8000/api/v1"
+        "EXPO_PUBLIC_API_URL": "http://192.168.29.70:8000/api/v1",
+        "EXPO_PUBLIC_FIREBASE_PNV_ENABLED": "false"
       }
     },
     "preview": {
@@ -48,7 +50,8 @@
       },
       "env": {
         "EXPO_PUBLIC_ENV": "production",
-        "EXPO_PUBLIC_API_URL": "https://api.shaasthi.in/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://api.shaasthi.in/api/v1",
+        "EXPO_PUBLIC_FIREBASE_PNV_ENABLED": "false"
       }
     }
   },

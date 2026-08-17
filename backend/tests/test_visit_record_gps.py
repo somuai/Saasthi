@@ -1,4 +1,3 @@
-
 import pytest
 from django.test import override_settings
 from django.utils import timezone

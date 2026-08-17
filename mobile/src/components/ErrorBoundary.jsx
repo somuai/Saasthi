@@ -1,43 +1,43 @@
-import { Component } from "react";
-import { StyleSheet, Text, View } from "react-native";
-import { COLORS } from "../constants/colors";
-import { spacing, typography } from "../constants/design";
-import { GovtButton } from "./GovtButton";
-import { logger } from "../utils/logger";
-import Sentry from "../utils/sentry";
-
-const initialState = { hasError: false, error: null };
+import React, { Component } from 'react';
+import { View, Text, StyleSheet, Button } from 'react-native';
+import { captureException } from "../utils/sentry";
 
 export class ErrorBoundary extends Component {
   constructor(props) {
     super(props);
-    this.state = initialState;
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error) {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, info) {
-    logger.error("ErrorBoundary caught:", error, info?.componentStack || "");
-    Sentry.captureException(error, {
-      extra: { componentStack: info?.componentStack },
+  componentDidCatch(error, errorInfo) {
+    captureException(error, {
+      extra: { componentStack: errorInfo.componentStack },
     });
   }
 
-  handleReset = () => this.setState(initialState);
+  resetError = () => {
+    this.setState({ hasError: false, error: null });
+  };
 
   render() {
     if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
       return (
         <View style={styles.container}>
-          <Text style={styles.title}>कुछ गड़बड़ हुई</Text>
-          <Text style={styles.subtitle}>Something went wrong</Text>
-          <Text style={styles.message}>{this.state.error?.message || "An unexpected error occurred."}</Text>
-          <GovtButton titleHi="पुनः प्रयास करें" titleEn="Retry" onPress={this.handleReset} />
+          <Text style={styles.title}>Something went wrong!</Text>
+          <Text style={styles.message}>
+            We have been notified about this issue. Please try again.
+          </Text>
+          <Button title="Try Again" onPress={this.resetError} color="#0F766E" />
         </View>
       );
     }
+
     return this.props.children;
   }
 }
@@ -45,13 +45,21 @@ export class ErrorBoundary extends Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: COLORS.background,
-    padding: spacing.xl,
-    gap: spacing.md,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#fff',
   },
-  title: { ...typography.title, textAlign: "center" },
-  subtitle: { ...typography.body, color: COLORS.muted, textAlign: "center" },
-  message: { ...typography.label, textAlign: "center", color: COLORS.error, marginBottom: spacing.lg },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    color: '#1f2937',
+  },
+  message: {
+    fontSize: 16,
+    textAlign: 'center',
+    color: '#4b5563',
+    marginBottom: 20,
+  },
 });

@@ -6,6 +6,7 @@ from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlparse
 
+from celery.schedules import crontab
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -15,10 +16,13 @@ load_dotenv(BASE_DIR / ".env")
 _SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 _INSECURE_DEV = False
 if not _SECRET_KEY:
-    if os.getenv("DJANGO_ALLOW_INSECURE_DEV", "false").lower() in {"1","true","yes"}:
+    if os.getenv("DJANGO_ALLOW_INSECURE_DEV", "false").lower() in {"1", "true", "yes"}:
         _SECRET_KEY = secrets.token_urlsafe(50)
         _INSECURE_DEV = True
-        print("WARNING: Using runtime-generated dev SECRET_KEY (sessions invalidated on restart). Set DJANGO_SECRET_KEY for persistence.", file=sys.stderr)
+        print(
+            "WARNING: Using runtime-generated dev SECRET_KEY (sessions invalidated on restart). Set DJANGO_SECRET_KEY for persistence.",
+            file=sys.stderr,
+        )
     else:
         print("FATAL: DJANGO_SECRET_KEY must be set in the environment.", file=sys.stderr)
         sys.exit(1)
@@ -38,11 +42,14 @@ if _DEBUG_VALUE is False and set(ALLOWED_HOSTS) <= _DEFAULT_HOSTS:
     print("FATAL: DJANGO_ALLOWED_HOSTS must be set to production domains.", file=sys.stderr)
     sys.exit(1)
 
-# ── Sentry (production only) ────────────────────────────────────────────
-_SENTRY_DSN = os.getenv("SENTRY_DSN")
+# ── Sentry Configuration
+SENTRY_DSN = os.environ.get("SENTRY_DSN")
 APP_VERSION = os.getenv("APP_VERSION", "0.1.0")
 
-if _SENTRY_DSN and not DEBUG:
+# Kafka Configuration
+KAFKA_BROKER_URL = os.environ.get("KAFKA_BROKER_URL", "kafka:9092")
+
+if SENTRY_DSN and not DEBUG:
     import sentry_sdk
     from sentry_sdk.integrations.celery import CeleryIntegration
     from sentry_sdk.integrations.django import DjangoIntegration
@@ -50,7 +57,7 @@ if _SENTRY_DSN and not DEBUG:
     from sentry_sdk.integrations.redis import RedisIntegration
 
     sentry_sdk.init(
-        dsn=_SENTRY_DSN,
+        dsn=SENTRY_DSN,
         release=APP_VERSION,
         environment=os.getenv("SENTRY_ENVIRONMENT", "production"),
         traces_sample_rate=float(os.getenv("SENTRY_TRACES_SAMPLE_RATE", "0.1")),
@@ -64,12 +71,14 @@ if _SENTRY_DSN and not DEBUG:
     )
 
 INSTALLED_APPS = [
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "channels",
     "rest_framework",
     "rest_framework_simplejwt",
     "rest_framework_simplejwt.token_blacklist",
@@ -88,11 +97,17 @@ INSTALLED_APPS = [
     "analytics",
     "notifications",
     "followups",
+    "dashboard",
+    "dispatch",
+    "location",
+    "django_prometheus",
 ]
 
 MIDDLEWARE = [
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "shaasthi_backend.middleware.RequestIDMiddleware",
     "shaasthi_backend.middleware.RequestLoggingMiddleware",
+    "shaasthi_backend.middleware.ThreadLocalMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "corsheaders.middleware.CorsMiddleware",
@@ -102,6 +117,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = "shaasthi_backend.urls"
@@ -123,6 +139,18 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = "shaasthi_backend.wsgi.application"
+ASGI_APPLICATION = "shaasthi_backend.asgi.application"
+
+# ── Channels ────────────────────────────────────────────────
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [os.getenv("REDIS_URL", "redis://localhost:6379/0")],
+        },
+    },
+}
+
 AUTH_USER_MODEL = "accounts.User"
 
 
@@ -144,6 +172,7 @@ def database_from_url(url):
             "CONN_HEALTH_CHECKS": True,
             "OPTIONS": {
                 "connect_timeout": int(os.getenv("DB_CONNECT_TIMEOUT", "10")),
+                "options": "-c statement_timeout=15000",
             },
         }
     return {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}
@@ -174,7 +203,7 @@ USE_TZ = True
 
 # ── HTTPS / Security (production only) ──────────────────────
 if not DEBUG:
-    SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "true").lower() in {"1", "true"}
+    SECURE_SSL_REDIRECT = os.getenv("SECURE_SSL_REDIRECT", "false" if DEBUG else "true").lower() in {"1", "true"}
     SESSION_COOKIE_SECURE = True
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
@@ -214,6 +243,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 50,
+    "MAX_PAGE_SIZE": 100,
     "DEFAULT_THROTTLE_CLASSES": ("rest_framework.throttling.ScopedRateThrottle",),
     "DEFAULT_THROTTLE_RATES": {
         "otp": os.getenv("THROTTLE_OTP", "5/min"),
@@ -234,6 +264,7 @@ REST_FRAMEWORK = {
         "notifications": os.getenv("THROTTLE_NOTIFICATIONS", "30/min"),
         "mcp_write": os.getenv("THROTTLE_MCP_WRITE", "30/min"),
         "risk_rules": os.getenv("THROTTLE_RISK_RULES", "10/min"),
+        "location_update": os.getenv("THROTTLE_LOCATION_UPDATE", "120/min"),
     },
     "EXCEPTION_HANDLER": "shaasthi_backend.exceptions.custom_exception_handler",
 }
@@ -261,11 +292,24 @@ EXPOSE_DEBUG_OTP = os.getenv("EXPOSE_DEBUG_OTP", "true" if DEBUG else "false").l
 GPS_ACCEPTABLE_RADIUS_M = int(os.getenv("GPS_ACCEPTABLE_RADIUS_M", "200"))
 GPS_WARNING_RADIUS_M = int(os.getenv("GPS_WARNING_RADIUS_M", "500"))
 
-# SMS delivery via Firebase (legacy MSG91 removed)
+# ── SMS Provider (fallback for web/supervisor OTP) ─────────────
+# Primary OTP delivery is Firebase Phone Auth (mobile).
+# SMS_PROVIDER=log    → logs OTP to console (sufficient for clinic/office web users)
+# SMS_PROVIDER=msg91  → sends via MSG91 API (requires SMS_API_KEY)
+SMS_PROVIDER = os.getenv("SMS_PROVIDER", "log")
+SMS_API_KEY = os.getenv("SMS_API_KEY", "")
+SMS_SENDER_ID = os.getenv("SMS_SENDER_ID", "SHASTH")
+SMS_TEMPLATE_ID = os.getenv("SMS_TEMPLATE_ID", "")
 
 # Firebase Admin SDK — supports env-var JSON or file path
 FIREBASE_SERVICE_ACCOUNT_JSON = os.getenv("FIREBASE_SERVICE_ACCOUNT_JSON")
 FIREBASE_SERVICE_ACCOUNT_PATH = os.getenv("FIREBASE_SERVICE_ACCOUNT_PATH")
+FIREBASE_PNV_ENABLED = os.getenv("FIREBASE_PNV_ENABLED", "false").lower() in {"1", "true", "yes"}
+FIREBASE_PNV_ACCEPT_TEST_TOKENS = DEBUG and os.getenv("FIREBASE_PNV_ACCEPT_TEST_TOKENS", "false").lower() in {
+    "1",
+    "true",
+    "yes",
+}
 
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL", REDIS_URL)
@@ -277,6 +321,34 @@ CELERY_TIMEZONE = "Asia/Kolkata"
 CELERY_TASK_ROUTES = {
     "risk_engine.run_risk_assessment": {"queue": "risk_assessment"},
     "risk_engine.run_mcp_risk_assessment": {"queue": "risk_assessment"},
+    "incentives.calculate_monthly": {"queue": "risk_assessment"},
+    "dispatch.dispatch_emergency": {"queue": "emergency"},
+    "dispatch.escalate_to_supervisor": {"queue": "emergency"},
+    "location.persist_location_batch": {"queue": "location"},
+    "location.update_h3_cell_stats": {"queue": "location"},
+}
+
+CELERY_BEAT_SCHEDULE = {
+    "cleanup-expired-otp-challenges": {
+        "task": "accounts.cleanup_expired_otp",
+        "schedule": crontab(hour="3", minute="0"),
+        "options": {"expires": 3600},
+    },
+    "calculate-monthly-incentives": {
+        "task": "incentives.calculate_monthly",
+        "schedule": crontab(day_of_month="1", hour="2", minute="0"),
+        "options": {"expires": 28800},
+    },
+    "persist-location-batch": {
+        "task": "location.persist_location_batch",
+        "schedule": 60.0,  # Every 60 seconds
+        "options": {"expires": 50},
+    },
+    "update-h3-cell-stats": {
+        "task": "location.update_h3_cell_stats",
+        "schedule": 300.0,  # Every 5 minutes
+        "options": {"expires": 240},
+    },
 }
 CELERY_TASK_ANNOTATIONS = {
     "risk_engine.run_risk_assessment": {"rate_limit": "100/s"},

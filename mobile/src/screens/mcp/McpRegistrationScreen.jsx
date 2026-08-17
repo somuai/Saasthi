@@ -12,6 +12,7 @@ import { ToggleRow } from "../../components/ToggleRow";
 import { COLORS } from "../../constants/colors";
 import { calculateEDD, isoFromDate } from "../../utils/mcpHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
+import { localizePair, useLocale } from "../../utils/localization";
 
 function CompletionBar({ value }) {
   return (
@@ -55,6 +56,8 @@ export default function McpRegistrationScreen() {
   const database = useDatabase();
   const router = useRouter();
   const dispatch = useDispatch();
+  const locale = useLocale();
+  const pair = (hi, en) => localizePair(hi, en, locale);
   const [patients, setPatients] = useState([]);
   const [patient, setPatient] = useState(null);
   const [mother, setMother] = useState(null);
@@ -146,7 +149,7 @@ export default function McpRegistrationScreen() {
 
   async function saveRegistration() {
     if (!canSave) {
-      setFormError("नाम, सही LMP तिथि और गर्भ संख्या भरें / Fill name, valid LMP date and gravida.");
+      setFormError(pair("नाम, सही LMP तिथि और गर्भ संख्या भरें", "Fill name, valid LMP date and gravida."));
       return;
     }
 
@@ -251,21 +254,28 @@ export default function McpRegistrationScreen() {
                   <Ionicons name="clipboard" size={24} color={COLORS.primary} />
                 </View>
                 <View style={styles.heroText}>
-                  <Text style={styles.heroTitle}>Start MCP in two taps</Text>
-                  <Text style={styles.heroSubtitle}>पहले मौजूदा मरीज चुनें, या नया गर्भवती रिकॉर्ड बनाएं।</Text>
+                  <Text style={styles.heroTitle}>{pair("दो टैप में MCP शुरू करें", "Start MCP in two taps")}</Text>
+                  <Text style={styles.heroSubtitle}>
+                    {pair(
+                      "पहले मौजूदा मरीज चुनें, या नया गर्भवती रिकॉर्ड बनाएं।",
+                      "First choose an existing patient, or create a new pregnancy record.",
+                    )}
+                  </Text>
                 </View>
               </View>
               <Pressable style={styles.newBtn} onPress={() => setMode("form")}>
                 <Ionicons name="add-circle" size={22} color="#fff" />
                 <View>
-                  <Text style={styles.newBtnText}>नया MCP रिकॉर्ड</Text>
-                  <Text style={styles.newBtnSub}>Create new pregnancy record</Text>
+                  <Text style={styles.newBtnText}>{pair("नया MCP रिकॉर्ड", "New MCP record")}</Text>
+                  <Text style={styles.newBtnSub}>{pair("नया गर्भवती रिकॉर्ड बनाएं", "Create new pregnancy record")}</Text>
                 </View>
               </Pressable>
-              <Text style={styles.listTitle}>मौजूदा मरीज / Existing records</Text>
+              <Text style={styles.listTitle}>{pair("मौजूदा मरीज", "Existing records")}</Text>
             </View>
           }
-          ListEmptyComponent={<Text style={styles.emptyPick}>कोई मरीज नहीं — नया रिकॉर्ड बनाएं</Text>}
+          ListEmptyComponent={
+            <Text style={styles.emptyPick}>{pair("कोई मरीज नहीं — नया रिकॉर्ड बनाएं", "No patients — create new record")}</Text>
+          }
           renderItem={({ item }) => (
             <Pressable style={styles.pick} onPress={() => router.setParams({ patientId: item.id })}>
               <View style={styles.pickAvatar}>
@@ -307,8 +317,12 @@ export default function McpRegistrationScreen() {
 
         <SectionCard
           step="1"
-          title="Patient Details / मरीज विवरण"
-          subtitle={patient ? "Existing patient selected" : "Create the mother profile first"}
+          title={pair("मरीज विवरण", "Patient Details")}
+          subtitle={
+            patient
+              ? pair("मौजूदा मरीज चुना गया", "Existing patient selected")
+              : pair("पहले मां की प्रोफाइल बनाएं", "Create the mother profile first")
+          }
         >
           {!patient ? (
             <>
@@ -345,7 +359,14 @@ export default function McpRegistrationScreen() {
           )}
         </SectionCard>
 
-        <SectionCard step="2" title="Pregnancy / गर्भावस्था" subtitle="Use YYYY-MM-DD so EDD is calculated automatically">
+        <SectionCard
+          step="2"
+          title={pair("गर्भावस्था", "Pregnancy")}
+          subtitle={pair(
+            "YYYY-MM-DD का उपयोग करें ताकि EDD की गणना स्वचालित रूप से हो सके",
+            "Use YYYY-MM-DD so EDD is calculated automatically",
+          )}
+        >
           <GovtInput
             labelHi="LMP तिथि"
             label="LMP date (YYYY-MM-DD)"
@@ -374,7 +395,14 @@ export default function McpRegistrationScreen() {
           <ToggleRow labelHi="उच्च जोखिम" labelEn="High risk" value={form.isHighRisk} onChange={(v) => setField("isHighRisk", v)} />
         </SectionCard>
 
-        <SectionCard step="3" title="Benefits / योजना" subtitle="Capture JSY, PMMVY and bank details only if available">
+        <SectionCard
+          step="3"
+          title={pair("योजना", "Benefits")}
+          subtitle={pair(
+            "JSY, PMMVY और बैंक विवरण तभी प्राप्त करें जब वे उपलब्ध हों",
+            "Capture JSY, PMMVY and bank details only if available",
+          )}
+        >
           <ToggleRow
             labelHi="JSY पंजीकृत"
             labelEn="JSY registered"
@@ -404,7 +432,11 @@ export default function McpRegistrationScreen() {
           />
         </SectionCard>
 
-        <SectionCard step="4" title="Delivery Plan / प्रसव योजना" subtitle="This helps follow-up and referral planning">
+        <SectionCard
+          step="4"
+          title={pair("प्रसव योजना", "Delivery Plan")}
+          subtitle={pair("यह फॉलो-अप और रेफरल योजना में मदद करता है", "This helps follow-up and referral planning")}
+        >
           <GovtInput
             labelHi="चिन्हित संस्था"
             label="Identified delivery institution"

@@ -1,4 +1,5 @@
 import asyncio
+import atexit
 import json
 import logging
 import os
@@ -7,7 +8,12 @@ import re
 logger = logging.getLogger(__name__)
 
 GEMMA_API_KEY = os.getenv("GEMMA_API_KEY") or os.getenv("GOOGLE_API_KEY")
-MODEL_ID = os.getenv("GEMMA_MODEL_ID", "gemma-4-e2b-it")
+FIELD_MODEL = os.getenv("MEDGEMMA_FIELD_MODEL", "medgemma-4b-it")
+ADMIN_MODEL = os.getenv("MEDGEMMA_ADMIN_MODEL", "medgemma-27b-it")
+MODEL_ID = FIELD_MODEL  # Backward compatibility fallback
+
+EN_DISCLAIMER = "\n\nAI recommendations are decision support only. Not a substitute for clinical judgment. All recommendations must be verified by a qualified medical professional."
+HI_DISCLAIMER = "\n\nAI পরামর্শগুলি কেবল সিদ্ধান্ত সহায়তার জন্য। এটি ক্লিনিকাল সিদ্ধান্তের বিকল্প নয়। সমস্ত সুপারিশ একজন যোগ্যতাসম্পন্ন চিকিৎসা পেশাদার দ্বারা যাচাই করা উচিত।"
 
 
 MATERNAL_SYSTEM_PROMPT = """You are a maternal health assistant for ASHA workers
@@ -21,12 +27,12 @@ CLINICAL PROTOCOLS TO FOLLOW:
 - Pradhan Mantri Surakshit Matritva Abhiyaan: 9th of every month for ANC checkup by doctor
 
 LANGUAGE:
-- Respond in BOTH Hindi (Devanagari) and English
-- Format: JSON {"hindi": "...", "english": "..."}
+- Respond in BOTH Bengali (Bengali script) and English
+- Format: JSON {"bengali": "<Bengali text>", "english": "..."}
 - Maximum 3 sentences each
-- Use respectful language: "माँ को..." / "गर्भवती महिला को..."
-- Mention SPECIFIC facility: PHC / CHC / FRU / District Hospital
-- Mention SPECIFIC timeline: "24 घंटे में" / "आज ही"
+- Use respectful language: "মাকে..." / "গর্ভবতী মহিলাকে..."
+- Mention the NEAREST SPECIFIC facility name if the village is provided (e.g., "রামপুর প্রাথমিক স্বাস্থ্য কেন্দ্র", "গোপালপুর উপ-কেন্দ্র")
+- Mention SPECIFIC timeline: "২৪ ঘণ্টার মধ্যে" / "আজই"
 - For JSY: always remind to bring JSY card to hospital
 - NEVER use medical jargon ASHA workers don't know
 
@@ -40,28 +46,28 @@ and the Universal Immunization Programme (UIP).
 CLINICAL PROTOCOLS TO FOLLOW:
 - Growth: WHO growth standards, weigh monthly, plot on MCP card
 - Malnutrition: SAM (below -3SD or MUAC < 11.5cm) -> NRC; MAM -> RUTF at AWC
-- Immunization: UIP schedule BCG through TT, Vitamin A 9 doses
+- Immunization: UIP schedule BCG through UIP, Vitamin A 9 doses
 - Pneumonia: fast breathing thresholds (>60/min <2mo, >50/min 2-12mo, >40/min 1-5yr)
 - Diarrhoea: ORS + Zinc 14 days, continue breastfeeding
 - Development: warn signs at 3,6,9,12,18,24,36 months -> early intervention
 
 LANGUAGE:
-- Respond ONLY as JSON {"hindi": "...", "english": "..."}
-- Hindi in Devanagari script
+- Respond ONLY as JSON {"bengali": "<Bengali text>", "english": "..."}
+- The 'bengali' key MUST contain the translation in Bengali using Bengali script
 - Maximum 3 sentences each
-- Use "बच्चे को..." / "माँ को बच्चे को..."
-- Mention SPECIFIC action: "IFA syrup दें" / "Penta-2 टीका लगवाएं"
-- Mention SPECIFIC facility for SAM: "NRC" / "पोषण पुनर्वास केंद्र"
+- Use "শিশুকে..." / "মাকে শিশুকে..."
+- Mention SPECIFIC action: "IFA syrup দিন" / "Penta-2 टीका দিন"
+- Mention SPECIFIC facility for SAM: "NRC" / "পুষ্টি পুনর্বাসন কেন্দ্র"
 - For missed vaccines: mention VHSND (Village Health Sanitation Nutrition Day)"""
 
 GENERAL_SYSTEM_PROMPT = (
     "You are a health assistant for ASHA workers in rural India under NHM. "
-    "Respond ONLY as JSON: {'hindi': 'Devanagari text', 'english': 'English text'} "
-    "Hindi MUST use Devanagari script. "
+    "Respond ONLY as JSON: {'bengali': 'Bengali text in Bengali script', 'english': 'English text'} "
+    "The 'bengali' key MUST contain the translation in Bengali using Bengali script. "
     "Maximum 3 sentences per language. "
     "Be specific: name facility type (PHC/CHC/Hospital) and urgency window. "
     "Reference the actual conditions driving the risk. "
-    "Never use jargon ASHA workers won't understand."
+    "Never use jargon ASHA workers don't understand."
 )
 
 
@@ -90,6 +96,23 @@ class GemmaService:
         except Exception:
             logger.exception("Failed to configure Google Gen AI client.")
 
+    def close(self):
+        client = self.client
+        self.client = None
+        if not client:
+            return
+        close = getattr(client, "close", None)
+        if not close:
+            return
+        previous_disable_level = logging.root.manager.disable
+        try:
+            logging.disable(logging.CRITICAL)
+            close()
+        except Exception:
+            logger.debug("Gemma client close failed.", exc_info=True)
+        finally:
+            logging.disable(previous_disable_level)
+
     def generate(
         self,
         patient_context: dict,
@@ -97,6 +120,7 @@ class GemmaService:
         photo_base64: str = None,
         population: str = "general",
         clinical_context: dict = None,
+        model_id: str = FIELD_MODEL,
     ) -> dict | None:
         api_key = self.api_key or GEMMA_API_KEY
 
@@ -106,6 +130,27 @@ class GemmaService:
         level = assessment.get("level", "low")
         factors = assessment.get("explanations", [])[:4]
         triggered_by_hard_flag = assessment.get("triggered_by_hard_flag", False)
+        nearest_facility = patient_context.get("nearest_facility", "")
+        if not nearest_facility and village:
+            try:
+                from .models import HealthcareFacility
+
+                facility = (
+                    HealthcareFacility.objects.filter(village__iexact=village, is_active=True)
+                    .order_by("facility_type")
+                    .first()
+                )
+                if not facility:
+                    facility = (
+                        HealthcareFacility.objects.filter(block__iexact=village, is_active=True)
+                        .order_by("facility_type")
+                        .first()
+                    )
+                if facility:
+                    nearest_facility = f"{facility.name} ({facility.get_facility_type_display()})"
+                    patient_context["nearest_facility"] = nearest_facility
+            except Exception:
+                pass
 
         system_instruction = {
             "maternal": MATERNAL_SYSTEM_PROMPT,
@@ -135,9 +180,13 @@ class GemmaService:
                 f"MUAC: {clinical_context.get('muac_cm', '?')} cm\n"
             )
 
+        nearest_facility = patient_context.get("nearest_facility", "")
+        facility_line = f"Nearest facility: {nearest_facility}\n" if nearest_facility else ""
+
         prompt = (
             f"Patient: {name}, Age: {age}\n"
             f"Village: {village}\n"
+            f"{facility_line}"
             f"{anc_context}"
             f"Risk: {level.upper()} ({assessment.get('normalized_score', '?')}/100)\n"
             f"Emergency flag: {'YES - ' + assessment.get('hard_flag_label', '') if triggered_by_hard_flag else 'No'}\n"
@@ -147,15 +196,44 @@ class GemmaService:
 
         if not self.client or not api_key or api_key in ("mock", "change-me-in-production"):
             logger.info("Gemma Service using mock fallback generator.")
-            return self._mock_response(level, factors)
+            return self._mock_response(level, factors, model_id)
 
         try:
-            return asyncio.run(self._call_api(system_instruction, prompt, photo_base64))
+            return asyncio.run(self._call_api(system_instruction, prompt, photo_base64, model_id))
         except Exception:
             logger.exception("Error during Gemma 4 recommendation generation.")
             return None
 
-    def _mock_response(self, level: str, factors: list) -> dict:
+    def generate_admin_summary(self, district_data: dict) -> str | None:
+        """Generate high-level admin summaries using the 27B clinical reasoning model."""
+        if not self.client or not self.api_key or self.api_key in ("mock", "change-me-in-production"):
+            return f"Mock Admin Summary for {district_data.get('district', 'District')}: High risk cases showing stabilizing trend. {EN_DISCLAIMER}"
+
+        prompt = (
+            f"Provide a senior clinical summary and action items based on the following district health stats:\n"
+            f"District: {district_data.get('district', 'N/A')}\n"
+            f"Active Beneficiaries: {district_data.get('total_beneficiaries', 0)}\n"
+            f"High Risk Cases: {district_data.get('high_risk_cases', 0)}\n"
+            f"Open Risk Flags: {district_data.get('open_flags', 0)}\n"
+            f"Outbreaks Detected: {len(district_data.get('outbreaks', []))} active clusters.\n"
+        )
+        try:
+            loop = asyncio.get_event_loop()
+
+            def make_call():
+                return self.client.models.generate_content(
+                    model=ADMIN_MODEL,
+                    contents=prompt,
+                    config=None,
+                )
+
+            response = asyncio.run(loop.run_in_executor(None, make_call))
+            return response.text + EN_DISCLAIMER
+        except Exception:
+            logger.exception("Failed to generate admin summary with MedGemma 27B.")
+            return None
+
+    def _mock_response(self, level: str, factors: list, model_id: str) -> dict:
         factors_desc = " and ".join([f.get("name", "").lower() for f in factors[:2]])
         desc_en = f" due to {factors_desc}" if factors_desc else ""
         desc_hi = (
@@ -164,34 +242,36 @@ class GemmaService:
 
         return {
             "critical": {
-                "english": f"EMERGENCY{desc_en}: Patient shows critical symptoms. Refer to District Hospital immediately for clinical evaluation.",
-                "hindi": f"आपातकालीन स्थिति{desc_hi}: रोगी में गंभीर लक्षण दिख रहे हैं। तुरंत जिला अस्पताल भेजें।",
+                "english": f"EMERGENCY{desc_en}: Patient shows critical symptoms. Refer to District Hospital immediately for clinical evaluation.{EN_DISCLAIMER}",
+                "hindi": f"জরুরি অবস্থা{desc_hi}: রোগীর গুরুতর লক্ষণ দেখা যাচ্ছে। অবিলম্বে জেলা হাসপাতালে স্থানান্তর করুন।{HI_DISCLAIMER}",
                 "source": "gemma4_api",
-                "model": MODEL_ID,
+                "model": model_id,
             },
             "high": {
-                "english": f"High risk health status{desc_en}. Refer patient to Primary Health Centre (PHC) within 24 hours.",
-                "hindi": f"उच्च जोखिम स्थिति{desc_hi}। रोगी को 24 घंटे के भीतर प्राथमिक स्वास्थ्य केंद्र (PHC) भेजें।",
+                "english": f"High risk health status{desc_en}. Refer patient to Primary Health Centre (PHC) within 24 hours.{EN_DISCLAIMER}",
+                "hindi": f"উচ্চ ঝুঁকিপূর্ণ অবস্থা{desc_hi}। রোগীকে ২৪ ঘণ্টার মধ্যে প্রাথমিক স্বাস্থ্য কেন্দ্রে (PHC) স্থানান্তর করুন।{HI_DISCLAIMER}",
                 "source": "gemma4_api",
-                "model": MODEL_ID,
+                "model": model_id,
             },
             "medium": {
-                "english": f"Moderate risk alert{desc_en}. Schedule a PHC visit within 3 days and monitor vitals daily.",
-                "hindi": f"मध्यम जोखिम सतर्कता{desc_hi}। 3 दिनों के भीतर PHC विजिट शेड्यूल करें और रोज़ स्वास्थ्य की निगरानी करें।",
+                "english": f"Moderate risk alert{desc_en}. Schedule a PHC visit within 3 days and monitor vitals daily.{EN_DISCLAIMER}",
+                "hindi": f"মাঝারি ঝুঁকির সতর্কতা{desc_hi}। ৩ দিনের মধ্যে PHC ভিজিট নির্ধারণ করুন এবং প্রতিদিন স্বাস্থ্য পর্যবেক্ষণ করুন।{HI_DISCLAIMER}",
                 "source": "gemma4_api",
-                "model": MODEL_ID,
+                "model": model_id,
             },
         }.get(
             level,
             {
-                "english": "Low risk health status. Monitor symptoms and follow up in two weeks during routine visit.",
-                "hindi": "सामान्य स्वास्थ्य स्थिति। लक्षणों की निगरानी रखें और दो सप्ताह में सामान्य जांच करें।",
+                "english": f"Low risk health status. Monitor symptoms and follow up in two weeks during routine visit.{EN_DISCLAIMER}",
+                "hindi": f"স্বাভাবিক স্বাস্থ্য অবস্থা। লক্ষণগুলি পর্যবেক্ষণ করুন এবং দুই সপ্তাহের মধ্যে নিয়মিত পরীক্ষা করুন।{HI_DISCLAIMER}",
                 "source": "gemma4_api",
-                "model": MODEL_ID,
+                "model": model_id,
             },
         )
 
-    async def _call_api(self, system_instruction: str, prompt: str, photo_base64: str = None) -> dict | None:
+    async def _call_api(
+        self, system_instruction: str, prompt: str, photo_base64: str = None, model_id: str = FIELD_MODEL
+    ) -> dict | None:
         from google import genai
 
         client = self.client
@@ -225,7 +305,7 @@ class GemmaService:
 
         config = genai.types.GenerateContentConfig(
             system_instruction=system_instruction,
-            max_output_tokens=200,
+            max_output_tokens=2048,
             temperature=0.2,
             response_mime_type="application/json",
         )
@@ -234,7 +314,7 @@ class GemmaService:
 
         def make_call():
             return client.models.generate_content(
-                model=MODEL_ID,
+                model=model_id,
                 contents=contents,
                 config=config,
             )
@@ -242,25 +322,32 @@ class GemmaService:
         try:
             response = await asyncio.wait_for(
                 loop.run_in_executor(None, make_call),
-                timeout=20.0,
+                timeout=60.0,
             )
             text = response.text
             data = json.loads(text)
 
-            if "hindi" not in data or "english" not in data:
-                logger.warning("Gemma response missing english or hindi keys.")
+            if "english" not in data:
+                logger.warning("Gemma response missing english key.")
+                return None
+
+            if "bengali" in data and "hindi" not in data:
+                data["hindi"] = data["bengali"]
+
+            if "hindi" not in data:
+                logger.warning("Gemma response missing hindi or bengali keys.")
                 return None
 
             hindi_text = data["hindi"]
-            if not re.search(r"[\u0900-\u097F]", hindi_text):
-                logger.warning("Gemma response hindi key does not contain Devanagari characters.")
+            if not re.search(r"[\u0980-\u09FF]", hindi_text):
+                logger.warning("Gemma response hindi/bengali key does not contain Bengali characters.")
                 return None
 
             return {
-                "english": data["english"],
-                "hindi": data["hindi"],
+                "english": data["english"] + EN_DISCLAIMER,
+                "hindi": data["hindi"] + HI_DISCLAIMER,
                 "source": "gemma4_api",
-                "model": MODEL_ID,
+                "model": model_id,
             }
         except TimeoutError:
             logger.warning("Gemma API call timed out.")
@@ -271,3 +358,4 @@ class GemmaService:
 
 
 gemma_service = GemmaService()
+atexit.register(gemma_service.close)

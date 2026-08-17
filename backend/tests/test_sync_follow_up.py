@@ -109,9 +109,7 @@ def test_sync_push_follow_up_gps_warning_zone(worker_client, patient_with_gps_ho
     resp = worker_client.post(
         "/api/v1/sync/push/",
         push_payload(
-            {
-                "follow_ups": _follow_up_created(fuid, puid, visit_lat=28.6139, visit_lng=77.2130, visit_accuracy_m=10.0)
-            }
+            {"follow_ups": _follow_up_created(fuid, puid, visit_lat=28.6139, visit_lng=77.2130, visit_accuracy_m=10.0)}
         ),
         format="json",
     )
@@ -144,9 +142,7 @@ def test_sync_push_follow_up_no_household_gps(worker_client):
     resp = worker_client.post(
         "/api/v1/sync/push/",
         push_payload(
-            {
-                "follow_ups": _follow_up_created(fuid, puid, visit_lat=28.6139, visit_lng=77.2090, visit_accuracy_m=10.0)
-            }
+            {"follow_ups": _follow_up_created(fuid, puid, visit_lat=28.6139, visit_lng=77.2090, visit_accuracy_m=10.0)}
         ),
         format="json",
     )

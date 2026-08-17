@@ -135,6 +135,21 @@ class AdminUserFactory(UserFactory):
     role = User.Role.ADMIN
 
 
+class StateAdminFactory(UserFactory):
+    username = factory.Sequence(lambda n: f"state_admin_{n}")
+    role = User.Role.STATE_ADMIN
+
+
+class DistrictOfficerFactory(UserFactory):
+    username = factory.Sequence(lambda n: f"district_officer_{n}")
+    role = User.Role.DISTRICT_OFFICER
+
+
+class BlockManagerFactory(UserFactory):
+    username = factory.Sequence(lambda n: f"block_manager_{n}")
+    role = User.Role.BLOCK_MANAGER
+
+
 class HouseholdFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Household

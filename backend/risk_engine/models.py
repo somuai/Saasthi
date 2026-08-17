@@ -88,7 +88,9 @@ class RiskRule(models.Model):
 
 class RiskAssessment(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="risk_assessments", on_delete=models.SET_NULL, null=True)
+    patient = models.ForeignKey(
+        "registry.Patient", related_name="risk_assessments", on_delete=models.SET_NULL, null=True
+    )
     survey_response = models.ForeignKey(
         "surveys.SurveyResponse", null=True, blank=True, on_delete=models.SET_NULL, related_name="risk_assessments"
     )
@@ -127,6 +129,11 @@ class RiskAssessment(models.Model):
     )
     mcp_session_type = models.CharField(max_length=30, null=True, blank=True)
 
+    protocol_checklist = models.JSONField(default=list, blank=True, help_text="Action checklist steps [{hi, en}]")
+    hard_flag_category = models.CharField(
+        max_length=50, blank=True, help_text="Denormalized category from hard_flag_rule"
+    )
+
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -139,3 +146,41 @@ class RiskAssessment(models.Model):
 
     def __str__(self):
         return f"RiskAssessment for patient {self.patient_id}: {self.level} (score={self.total_score})"
+
+
+class HealthcareFacility(models.Model):
+    class Type(models.TextChoices):
+        PHC = "phc", "Primary Health Centre"
+        CHC = "chc", "Community Health Centre"
+        FRU = "fru", "First Referral Unit"
+        DH = "dh", "District Hospital"
+        SDH = "sdh", "Sub-Divisional Hospital"
+        NRC = "nrc", "Nutrition Rehabilitation Centre"
+        AWC = "awc", "Anganwadi Centre"
+        VHSND = "vhsnd", "VHSN Day Site"
+        OTHER = "other", "Other"
+
+    name = models.CharField(max_length=200)
+    name_hi = models.CharField(max_length=200, blank=True)
+    facility_type = models.CharField(max_length=20, choices=Type.choices, db_index=True)
+    region = models.CharField(max_length=120, blank=True, db_index=True)
+    district = models.CharField(max_length=120, blank=True, db_index=True)
+    block = models.CharField(max_length=120, blank=True, db_index=True)
+    village = models.CharField(max_length=120, blank=True, db_index=True)
+    address = models.TextField(blank=True)
+    lat = models.FloatField(null=True, blank=True)
+    lng = models.FloatField(null=True, blank=True)
+    phone = models.CharField(max_length=32, blank=True)
+    is_active = models.BooleanField(default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["district", "block", "name"]
+        indexes = [
+            models.Index(fields=["facility_type", "is_active"], name="ix_facility_type_active"),
+            models.Index(fields=["district", "block"], name="ix_facility_geo"),
+        ]
+
+    def __str__(self):
+        return f"{self.name} ({self.get_facility_type_display()})"

@@ -3,26 +3,16 @@ import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
-import Svg, { Path } from "react-native-svg";
 import { COLORS } from "../../src/constants/colors";
 import { TricolorStripe } from "../../src/components/TricolorStripe";
 import { AUTH_USER_KEY } from "../../src/features/auth/authSession";
 import { isWatermelonNativeAvailable } from "../../src/database/isNativeAvailable";
-
-function AshokaLion({ size = 96 }) {
-  return (
-    <Svg width={size * 0.75} height={size} viewBox="0 0 24 28">
-      <Path
-        fill="#fff"
-        d="M12 2c-1.5 2-4 3-6 4 1 2 1 4 0 6 2 1 4 1 6 0-1-2-1-4 0-6 2-1 4.5-2 6-4zm-6 10c-2 2-3 5-2 8h4c-1-3 0-6 2-8h-4zm12 0c2 2 3 5 2 8h-4c1-3 0-6-2-8h4zM8 22c0 3 2 5 4 6 2-1 4-3 4-6h-8z"
-      />
-    </Svg>
-  );
-}
+import { localizePair, translateHindiText, useLocale } from "../../src/utils/localization";
 
 export default function AuthSplashScreen() {
   const router = useRouter();
   const [progress, setProgress] = useState(0);
+  const locale = useLocale();
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -58,8 +48,8 @@ export default function AuthSplashScreen() {
         <View style={styles.center}>
           <Image source={require("../../assets/shaasthi-logo.png")} style={styles.logoImg} resizeMode="contain" />
           <Text style={styles.title}>SHAASTHI</Text>
-          <Text style={styles.titleHi}>सास्थी — ASHA संगिनी</Text>
-          <Text style={styles.nhm}>राष्ट्रीय स्वास्थ्य मिशन | National Health Mission</Text>
+          <Text style={styles.titleHi}>{translateHindiText("सास्थी — ASHA संगिनी", locale)}</Text>
+          <Text style={styles.nhm}>{localizePair("राष्ट्रीय स्वास्थ्य मिशन", "National Health Mission", locale)}</Text>
         </View>
         <View style={styles.footer}>
           <View style={styles.brandRow}>
@@ -72,7 +62,7 @@ export default function AuthSplashScreen() {
             <View style={[styles.fill, { width: `${progress}%` }]} />
           </View>
           <ActivityIndicator color="#fff" style={{ marginTop: 16 }} />
-          <Text style={styles.loading}>डेटाबेस तैयार हो रहा है… / Preparing offline data</Text>
+          <Text style={styles.loading}>{localizePair("डेटाबेस तैयार हो रहा है…", "Preparing offline data", locale)}</Text>
         </View>
       </SafeAreaView>
     </View>

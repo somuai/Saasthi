@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("followups", "0009_alter_visitrecord_gps_verification_status"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

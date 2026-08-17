@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saasthi-celery-beat
+  namespace: saasthi
+  labels:
+    app: saasthi-celery-beat
+spec:
+  replicas: 1 # Strictly 1 to avoid duplicate task generation
+  strategy:
+    type: Recreate # Ensure the old pod is killed before starting the new one to prevent duplication overlap
+  selector:
+    matchLabels:
+      app: saasthi-celery-beat
+  template:
+    metadata:
+      labels:
+        app: saasthi-celery-beat
+    spec:
+      containers:
+        - name: celery-beat
+          image: saasthi-backend:latest
+          imagePullPolicy: IfNotPresent
+          command: ["celery", "-A", "shaasthi_backend", "beat", "-l", "info", "--schedule=/tmp/celerybeat-schedule"]
+          env:
+            - name: DJANGO_DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: saasthi-config
+                  key: DJANGO_DEBUG
+            - name: DJANGO_ALLOWED_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  name: saasthi-config
+                  key: DJANGO_ALLOWED_HOSTS
+            - name: SMS_PROVIDER
+              valueFrom:
+                configMapKeyRef:
+                  name: saasthi-config
+                  key: SMS_PROVIDER
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: saasthi-secrets
+                  key: DJANGO_SECRET_KEY
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saasthi-secrets
+                  key: DATABASE_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql://saasthi_admin:$(DATABASE_PASSWORD)@saasthi-pgbouncer-service:6432/saasthi
+            - name: REDIS_URL
+              value: redis://saasthi-redis-service:6379/0
+            - name: CELERY_BROKER_URL
+              value: redis://saasthi-redis-service:6379/1
+            - name: GEMMA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: saasthi-secrets
+                  key: GEMMA_API_KEY
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: saasthi-secrets
+                  key: SENTRY_DSN
+            - name: FIREBASE_SERVICE_ACCOUNT_PATH
+              value: /run/secrets/firebase-service-account.json
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          volumeMounts:
+            - name: firebase-secret-volume
+              mountPath: /run/secrets
+              readOnly: true
+      volumes:
+        - name: firebase-secret-volume
+          secret:
+            secretName: saasthi-secrets
+            items:
+              - key: firebase-service-account.json
+                path: firebase-service-account.json

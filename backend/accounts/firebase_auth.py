@@ -72,3 +72,24 @@ def verify_firebase_token(id_token):
         logger.error("Firebase token verification failed: %s", e)
         raise ServiceUnavailable("Verification service error.") from e
 
+
+def verify_firebase_pnv_token(pnv_token, phone_hint=""):
+    """
+    Verify a Firebase Phone Number Verification token.
+
+    PNV is an Android-only carrier verification flow. The backend must never
+    accept a decoded client-side payload without signature verification, so this
+    stays unavailable until the Firebase PNV verifier is explicitly configured.
+    A tightly scoped test-token path exists only for local DEBUG runs.
+    """
+    if not settings.FIREBASE_PNV_ENABLED:
+        raise ServiceUnavailable("Firebase phone number verification is not enabled.")
+
+    if settings.FIREBASE_PNV_ACCEPT_TEST_TOKENS and pnv_token.startswith("test:"):
+        token_phone = pnv_token.removeprefix("test:").strip()
+        expected = phone_hint.strip()
+        if expected and token_phone != expected:
+            raise exceptions.AuthenticationFailed("PNV test token phone mismatch.")
+        return {"phone_number": token_phone, "provider": "firebase_pnv_test"}
+
+    raise ServiceUnavailable("Firebase PNV backend verifier is not configured.")

@@ -82,7 +82,7 @@ def run_risk_assessment(self, patient_id, survey_response_id=None, surveyed_at=N
         return {"status": "skipped", "reason": "patient_or_survey_not_found"}
     except Exception as exc:
         logger.exception("run_risk_assessment failed")
-        countdown = min(30 * 2 ** self.request.retries, 300)
+        countdown = min(30 * 2**self.request.retries, 300)
         raise self.retry(exc=exc, countdown=countdown) from exc
 
 
@@ -121,8 +121,11 @@ def enhance_with_gemma4(self, assessment_id, photo_base64=None, population="gene
         }
 
         result = gemma_service.generate(
-            patient_context, assessment_dict, photo_base64,
-            population=population, clinical_context=clinical_context,
+            patient_context,
+            assessment_dict,
+            photo_base64,
+            population=population,
+            clinical_context=clinical_context,
         )
         if result:
             assessment.recommended_action_en = result["english"]
@@ -149,7 +152,7 @@ def enhance_with_gemma4(self, assessment_id, photo_base64=None, population="gene
         return {"status": "skipped", "reason": "assessment_not_found"}
     except Exception as exc:
         logger.exception("enhance_with_gemma4 task failed")
-        countdown = min(30 * 2 ** self.request.retries, 300)
+        countdown = min(30 * 2**self.request.retries, 300)
         raise self.retry(exc=exc, countdown=countdown) from exc
 
 
@@ -288,9 +291,7 @@ def run_mcp_risk_assessment(
             try:
                 from mcp.models import MCPSurveySession
 
-                MCPSurveySession.objects.filter(local_uuid=session_local_uuid).update(
-                    risk_assessment=assessment
-                )
+                MCPSurveySession.objects.filter(local_uuid=session_local_uuid).update(risk_assessment=assessment)
             except Exception:
                 logger.warning("session link failed for %s", session_local_uuid, exc_info=True)
 
@@ -345,5 +346,5 @@ def run_mcp_risk_assessment(
         return {"status": "skipped", "reason": "patient_not_found"}
     except Exception as exc:
         logger.exception("run_mcp_risk_assessment failed")
-        countdown = min(30 * 2 ** self.request.retries, 300)
+        countdown = min(30 * 2**self.request.retries, 300)
         raise self.retry(exc=exc, countdown=countdown) from exc

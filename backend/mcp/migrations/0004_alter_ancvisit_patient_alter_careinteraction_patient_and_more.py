@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("mcp", "0003_deliveryrecord_developmentmilestonecheck_and_more"),
         ("registry", "0006_add_missing_db_indexes"),

@@ -4,8 +4,13 @@ from rest_framework import permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .models import IncentiveLedgerEntry, IncentiveRate
-from .serializers import IncentiveLedgerEntrySerializer, IncentiveRateSerializer
+from .models import ASHAWorkerProfile, IncentiveLedgerEntry, IncentiveRate
+from .serializers import (
+    ASHAWorkerProfileSerializer,
+    IncentiveLedgerEntrySerializer,
+    IncentiveRateSerializer,
+    MonthlySummarySerializer,
+)
 from .services.payslip_service import PayslipService
 
 
@@ -70,6 +75,29 @@ class IncentiveLedgerEntryViewSet(viewsets.ModelViewSet):
         entry.save(update_fields=["status", "paid_at"])
         return Response(self.get_serializer(entry).data)
 
+    @action(detail=False, methods=["get"], url_path=r"monthly_summary/(?P<month_year>[^/.]+)")
+    def monthly_summary(self, request, month_year=None):
+        if not month_year or len(month_year) != 7 or "-" not in month_year:
+            return Response({"detail": "Invalid month_year format. Use YYYY-MM."}, status=status.HTTP_400_BAD_REQUEST)
+        qs = self.get_queryset().filter(month_year=month_year)
+        by_category = {}
+        for entry in qs:
+            cat = entry.activity_type.split("_")[0] if "_" in entry.activity_type else entry.activity_type
+            by_category[cat] = by_category.get(cat, 0) + entry.amount_paise
+
+        total_paise = sum(entry.amount_paise for entry in qs)
+        data = {
+            "worker_id": request.user.pk,
+            "worker_name": request.user.get_full_name() or request.user.phone or "—",
+            "month_year": month_year,
+            "total_paise": total_paise,
+            "total_rupees": total_paise / 100,
+            "entries_count": qs.count(),
+            "by_category": by_category,
+        }
+        serializer = MonthlySummarySerializer(data)
+        return Response(serializer.data)
+
 
 class IncentiveRateViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = IncentiveRate.objects.filter(is_active=True)
@@ -77,3 +105,15 @@ class IncentiveRateViewSet(viewsets.ReadOnlyModelViewSet):
     pagination_class = None
     throttle_scope = "incentives"
     permission_classes = [permissions.IsAuthenticated]
+
+
+class ASHAWorkerProfileViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = ASHAWorkerProfileSerializer
+    throttle_scope = "incentives"
+    lookup_field = "asha_id"
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        if self.request.user.role in {"admin", "supervisor", "auditor"} or self.request.user.is_superuser:
+            return ASHAWorkerProfile.objects.select_related("user").all()
+        return ASHAWorkerProfile.objects.select_related("user").filter(user=self.request.user)

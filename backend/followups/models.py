@@ -83,6 +83,25 @@ class FollowUp(models.Model):
     visit_otp_bypassed = models.BooleanField(default=False)
     bypass_reason = models.CharField(max_length=200, blank=True, default="")
 
+    # Visit lifecycle state machine (dispatch.state_machine)
+    class VisitState(models.TextChoices):
+        SCHEDULED = "SCHEDULED", "Scheduled"
+        EN_ROUTE = "EN_ROUTE", "En Route"
+        ARRIVED = "ARRIVED", "Arrived"
+        IN_PROGRESS = "IN_PROGRESS", "In Progress"
+        COMPLETED = "COMPLETED", "Completed"
+        EMERGENCY = "EMERGENCY", "Emergency"
+        DISPATCH_SENT = "DISPATCH_SENT", "Dispatch Sent"
+        REFERRED = "REFERRED", "Referred"
+        VERIFIED = "VERIFIED", "Verified"
+        FLAGGED = "FLAGGED", "Flagged"
+        REVIEW = "REVIEW", "Under Review"
+        SKIPPED = "SKIPPED", "Skipped"
+
+    visit_state = models.CharField(
+        max_length=30, choices=VisitState.choices, default=VisitState.SCHEDULED, db_index=True
+    )
+
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     updated_at = models.DateTimeField(auto_now=True)
 

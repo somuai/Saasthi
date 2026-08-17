@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("flagging", "0002_flag_ix_flag_patient_status_flag_ix_flag_type_and_more"),
         ("registry", "0006_add_missing_db_indexes"),

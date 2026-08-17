@@ -1,13 +1,14 @@
 import PropTypes from "prop-types";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
-import { BilingualLabel } from "./BilingualLabel";
 import { SeverityPill } from "./SeverityPill";
 import { ToggleRow } from "./ToggleRow";
 import { GovtInput } from "./GovtInput";
+import { localizePair, useLocale } from "../utils/localization";
 
 export function SymptomCard({ labelHi, labelEn, value, onChange }) {
   const present = value?.present === true;
+  const locale = useLocale();
   return (
     <View style={styles.card}>
       <ToggleRow
@@ -18,7 +19,7 @@ export function SymptomCard({ labelHi, labelEn, value, onChange }) {
       />
       {present ? (
         <View style={styles.body}>
-          <Text style={styles.sevLabel}>गंभीरता / Severity</Text>
+          <Text style={styles.sevLabel}>{localizePair("गंभीरता", "Severity", locale)}</Text>
           <SeverityPill value={value?.severity || "mild"} onChange={(severity) => onChange?.({ ...value, present: true, severity })} />
           <GovtInput
             labelHi="दिन (वैकल्पिक)"

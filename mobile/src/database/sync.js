@@ -29,6 +29,7 @@ const TABLES = [
   "incentive_records",
   "anc_visit_records",
   "child_development",
+  "location_logs",
 ];
 
 let connectivityUnsub = null;

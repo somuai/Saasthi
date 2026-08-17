@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import { isoDate, getDaysOverdue } from "../utils/immunizationSchedule";
+import { localizePair, translateHindiText, useLocale } from "../utils/localization";
 
 const FAMILY_COLORS = {
   OPV: "#2563EB",
@@ -37,6 +38,7 @@ function familyColor(code) {
 }
 
 export function ImmunizationRow({ vaccine, onGive }) {
+  const locale = useLocale();
   const { name, nameHi, scheduledDate, administeredDate, isMissed, isAdministered, vaccineCode } = vaccine;
   const dot = familyColor(vaccineCode);
   const today = isoDate(new Date());
@@ -55,19 +57,19 @@ export function ImmunizationRow({ vaccine, onGive }) {
     statusRight = (
       <View style={styles.rightCol}>
         <Ionicons name="close-circle" size={22} color={COLORS.danger} />
-        <Text style={styles.missed}>चूका / Missed</Text>
+        <Text style={styles.missed}>{localizePair("चूका", "Missed", locale)}</Text>
       </View>
     );
   } else if (overdue) {
     statusRight = (
       <Text style={styles.overdue}>
-        Overdue {getDaysOverdue(dueStr)}d / देर {getDaysOverdue(dueStr)}
+        Overdue {getDaysOverdue(dueStr)}d / {translateHindiText("देर", locale)} {getDaysOverdue(dueStr)}
       </Text>
     );
   } else if (dueStr === today) {
     statusRight = (
       <Pressable style={styles.giveBtn} onPress={() => onGive?.(vaccine)}>
-        <Text style={styles.giveText}>दें / Give</Text>
+        <Text style={styles.giveText}>{localizePair("दें", "Give", locale)}</Text>
       </Pressable>
     );
   } else {
@@ -83,8 +85,8 @@ export function ImmunizationRow({ vaccine, onGive }) {
     <View style={styles.row}>
       <View style={[styles.circle, { backgroundColor: dot }]} />
       <View style={styles.center}>
-        <Text style={styles.hi}>{nameHi || name}</Text>
-        <Text style={styles.en}>{name}</Text>
+        <Text style={styles.hi}>{locale === "en" ? name : translateHindiText(nameHi || name, locale)}</Text>
+        {locale === "en" ? null : <Text style={styles.en}>{name}</Text>}
         <Text style={[styles.due, overdue && { color: COLORS.danger }]}>
           Due: {dueStr || "—"}
           {dueStr === today ? " · Today" : ""}

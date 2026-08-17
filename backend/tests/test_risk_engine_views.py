@@ -166,7 +166,9 @@ class TestGemmaQueryEndpoint:
 @pytest.mark.django_db
 class TestRiskRuleViewSet:
     def test_list_rules(self, auth_client):
-        RiskRule.objects.create(code="TEST_RULE", name="Test", field_path="test", operator=RiskRule.Operator.TRUTHY, weight=1)
+        RiskRule.objects.create(
+            code="TEST_RULE", name="Test", field_path="test", operator=RiskRule.Operator.TRUTHY, weight=1
+        )
         resp = auth_client.get("/api/v1/risk/rules/")
         assert resp.status_code == 200
         assert len(resp.data["results"]) >= 1
@@ -199,7 +201,9 @@ class TestRiskRuleViewSet:
         assert resp.status_code == 201
 
     def test_delete_rule_soft(self, admin_client):
-        rule = RiskRule.objects.create(code="DEL_ME", name="Delete me", field_path="test", operator=RiskRule.Operator.TRUTHY, weight=1)
+        rule = RiskRule.objects.create(
+            code="DEL_ME", name="Delete me", field_path="test", operator=RiskRule.Operator.TRUTHY, weight=1
+        )
         resp = admin_client.delete(f"/api/v1/risk/rules/{rule.id}/")
         assert resp.status_code == 204
         rule.refresh_from_db()

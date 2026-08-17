@@ -5,10 +5,12 @@ import { useRouter } from "expo-router";
 import { useSelector } from "react-redux";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 export function SyncIndicator({ compact }) {
   const router = useRouter();
-  const { isSyncing, pendingCount, lastSyncedAt, isOnline } = useSelector((s) => s.sync);
+  const { isSyncing, pendingCount, isOnline } = useSelector((s) => s.sync);
+  const locale = useLocale();
   const spin = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(1)).current;
 
@@ -71,8 +73,8 @@ export function SyncIndicator({ compact }) {
       )}
       {!compact && (
         <View>
-          <Text style={styles.hi}>{labelHi}</Text>
-          <Text style={styles.en}>{labelEn}</Text>
+          <Text style={styles.hi}>{locale === "en" ? labelEn : translateHindiText(labelHi, locale)}</Text>
+          {locale === "en" ? null : <Text style={styles.en}>{labelEn}</Text>}
         </View>
       )}
     </Pressable>

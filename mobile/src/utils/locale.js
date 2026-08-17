@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { normalizeLocale, setRuntimeLocale } from "./localization";
 
 export const LOCALE_KEY = "app_locale";
 
@@ -13,12 +14,14 @@ export const LOCALES = [
 export async function getStoredLocale() {
   try {
     const v = await AsyncStorage.getItem(LOCALE_KEY);
-    return v || "hi";
+    return setRuntimeLocale(normalizeLocale(v || "hi"));
   } catch {
-    return "hi";
+    return setRuntimeLocale("hi");
   }
 }
 
 export async function setStoredLocale(localeId) {
-  await AsyncStorage.setItem(LOCALE_KEY, localeId);
+  const next = setRuntimeLocale(localeId);
+  await AsyncStorage.setItem(LOCALE_KEY, next);
+  return next;
 }

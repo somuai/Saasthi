@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 
 import requests
-
 from _http import API, api_available, auth_headers, now_ms, request_otp, verify_otp
 
 PHONE = "+919988776602"
@@ -18,10 +17,10 @@ def main() -> int:
     otp = request_otp(PHONE)
     token = verify_otp(PHONE, otp)
     headers = auth_headers(token)
-    
+
     me = requests.get(f"{API}/auth/users/me/", headers=headers).json()
     requests.patch(f"{API}/auth/users/{me['id']}/", json={"village": "South"}, headers=headers)
-    
+
     ts = now_ms()
     patient_id = "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f"
     payloads = json.loads(FIXTURES.read_text(encoding="utf-8"))

@@ -20,11 +20,15 @@ import { endpoints } from "../../constants/api";
 import { COLORS } from "../../constants/colors";
 import { BilingualLabel } from "../../components/BilingualLabel";
 import { TricolorStripe } from "../../components/TricolorStripe";
-import { requestOtp } from "../../features/auth/authSlice";
-import { persistPendingLogin } from "../../features/auth/authSession";
+import { requestOtp, setOfflinePilotSession, setTokens, setUser, setWorkerData } from "../../features/auth/authSlice";
+import { clearPendingLogin, persistAuthSession, persistAuthTokens, persistPendingLogin } from "../../features/auth/authSession";
+import { isWatermelonNativeAvailable } from "../../database/isNativeAvailable";
 import { LOCALES, getStoredLocale, setStoredLocale } from "../../utils/locale";
+import { localizePair, translateHindiText } from "../../utils/localization";
+import { logger } from "../../utils/logger";
 import { tapTargetMin } from "../../constants/typography";
 import { setConfirmationResult, clearConfirmationResult } from "../../utils/firebaseConfirm";
+import { tryFirebasePnvVerification } from "../../services/phoneNumberVerification";
 
 export default function LoginScreen() {
   const [phone, setPhone] = useState("");
@@ -33,19 +37,39 @@ export default function LoginScreen() {
   const [locale, setLocale] = useState("hi");
   const router = useRouter();
   const dispatch = useDispatch();
+  const pair = (hi, en) => localizePair(hi, en, locale);
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
 
   useEffect(() => {
     getStoredLocale().then(setLocale);
   }, []);
 
   async function pickLocale(id) {
-    setLocale(id);
-    await setStoredLocale(id);
+    const next = await setStoredLocale(id);
+    setLocale(next);
+  }
+
+  async function completeServerLogin(payload) {
+    const { access, refresh, user, worker } = payload;
+    await persistAuthTokens({ access, refresh });
+    dispatch(setTokens({ access, refresh }));
+    const sessionUser = { ...user, language: locale };
+    dispatch(setUser(sessionUser));
+    dispatch(setWorkerData(worker));
+    dispatch(setOfflinePilotSession(false));
+    await persistAuthSession(sessionUser, worker);
+    await clearPendingLogin();
+    import("../../services/fcm").then(({ registerFcmTokenOnServer }) => registerFcmTokenOnServer());
+    if (access && isWatermelonNativeAvailable()) {
+      const { initAutoSync } = await import("../../database/sync");
+      initAutoSync();
+    }
+    router.replace(isWatermelonNativeAvailable() ? "/(tabs)/home" : "/(auth)/native-required");
   }
 
   async function handleSendOTP() {
     if (phone.length !== 10) {
-      setError("कृपया 10 अंक का नंबर दर्ज करें / Enter 10-digit number");
+      setError(pair("कृपया 10 अंक का नंबर दर्ज करें", "Enter 10-digit number"));
       return;
     }
     setLoading(true);
@@ -53,18 +77,33 @@ export default function LoginScreen() {
     clearConfirmationResult();
     let devOtp = "";
     let useFirebase = false;
-    /* Try Firebase Auth first */
+    /* Try Android Firebase Phone Number Verification first, then Firebase SMS. */
     try {
+      const pnvResult = await tryFirebasePnvVerification();
+      if (pnvResult.status === "verified") {
+        const res = await apiClient.post(endpoints.firebasePnvVerify, {
+          pnv_token: pnvResult.token,
+          phone: pnvResult.phoneNumber,
+        });
+        await completeServerLogin(res.data);
+        return;
+      }
+      if (pnvResult.status !== "disabled") {
+        logger.debug("Firebase PNV skipped", pnvResult.status);
+      }
+
       const auth = (await import("@react-native-firebase/auth")).default;
       const cr = await auth().signInWithPhoneNumber(`+91${phone}`);
       setConfirmationResult(cr);
       useFirebase = true;
     } catch (fbErr) {
+      logger.warn("Firebase phone verification failed, trying legacy OTP fallback", fbErr?.code || fbErr?.message);
       /* Firebase not available (no google-services.json, emulator, etc.) — fall back to legacy OTP */
       try {
         const res = await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
         devOtp = res.data?.debug_otp || "";
-      } catch {
+      } catch (apiErr) {
+        logger.error("Legacy OTP fallback failed", apiErr?.message);
         /* offline / no API — pilot continues */
       }
     } finally {
@@ -89,15 +128,22 @@ export default function LoginScreen() {
         <SafeAreaView style={styles.topInner}>
           <Image source={require("../../../assets/shaasthi-logo.png")} style={styles.logoImg} resizeMode="contain" />
           <Text style={styles.logo}>SHAASTHI</Text>
-          <Text style={styles.logoHi}>सास्थी</Text>
+          <Text style={styles.logoHi}>{hiText("सास्थी")}</Text>
           <Text style={styles.sub}>ASHA Healthcare Platform</Text>
-          <Text style={styles.nhm}>राष्ट्रीय स्वास्थ्य मिशन | National Health Mission</Text>
+          <Text style={styles.nhm}>{pair("राष्ट्रीय स्वास्थ्य मिशन", "National Health Mission")}</Text>
         </SafeAreaView>
       </View>
       <View style={styles.card}>
-        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.cardInner} keyboardShouldPersistTaps="handled">
-          <Text style={styles.signHi}>साइन इन करें</Text>
-          <Text style={styles.signEn}>Sign In — mobile OTP</Text>
+        <ScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.cardInner}
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="automatic"
+          showsVerticalScrollIndicator
+        >
+          <Text style={styles.signHi}>{locale === "en" ? "Sign In" : hiText("साइन इन करें")}</Text>
+          {locale === "en" ? null : <Text style={styles.signEn}>Sign In — mobile OTP</Text>}
           <View style={styles.langRow}>
             {LOCALES.map((l) => (
               <Pressable
@@ -143,8 +189,8 @@ export default function LoginScreen() {
             ) : (
               <View style={styles.ctaRow}>
                 <View>
-                  <Text style={styles.ctaHi}>OTP भेजें</Text>
-                  <Text style={styles.ctaEn}>Send OTP</Text>
+                  <Text style={styles.ctaHi}>{locale === "en" ? "Send OTP" : hiText("OTP भेजें")}</Text>
+                  {locale === "en" ? null : <Text style={styles.ctaEn}>Send OTP</Text>}
                 </View>
                 <Ionicons name="arrow-forward" size={22} color="#fff" />
               </View>
@@ -155,20 +201,20 @@ export default function LoginScreen() {
               <View style={{ height: 20 }} />
               <View style={styles.orRow}>
                 <View style={styles.line} />
-                <Text style={styles.or}>या / OR</Text>
+                <Text style={styles.or}>{pair("या", "OR")}</Text>
                 <View style={styles.line} />
               </View>
               <View style={{ height: 16 }} />
               <Pressable style={styles.outlineBtn} onPress={pilotLogin}>
-                <Text style={styles.outlineText}>Pilot login (no server) / पायलट</Text>
+                <Text style={styles.outlineText}>{pair("पायलट", "Pilot login (no server)")}</Text>
               </Pressable>
             </>
           )}
-          <Text style={styles.aadhaarHint}>आधार OTP — जल्द उपलब्ध / Aadhaar OTP — coming soon</Text>
+          <Text style={styles.aadhaarHint}>{pair("आधार OTP — जल्द उपलब्ध", "Aadhaar OTP — coming soon")}</Text>
           <View style={{ flex: 1, minHeight: 16 }} />
           <View style={styles.footer}>
             <Ionicons name="lock-closed-outline" size={14} color={COLORS.textHint} />
-            <Text style={styles.footerText}>NIC द्वारा सुरक्षित | Secured by NIC</Text>
+            <Text style={styles.footerText}>{pair("NIC द्वारा सुरक्षित", "Secured by NIC")}</Text>
           </View>
         </ScrollView>
       </View>
@@ -179,21 +225,21 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
   scrollContainer: { flex: 1 },
-  top: { flex: 0.36, backgroundColor: COLORS.primary },
-  topInner: { flex: 1, alignItems: "center", paddingHorizontal: 16 },
+  top: { flex: 0.3, minHeight: 220, backgroundColor: COLORS.primary },
+  topInner: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 16, paddingBottom: 16 },
   logoImg: { width: 72, height: 72, marginTop: 16 },
   logo: { color: "#fff", fontSize: 32, fontWeight: "800", letterSpacing: 3, marginTop: 8 },
   logoHi: { color: "#fff", fontSize: 16, marginTop: 4 },
   sub: { color: "rgba(255,255,255,0.75)", fontSize: 13, marginTop: 8 },
   nhm: { color: "rgba(255,255,255,0.55)", fontSize: 10, marginTop: 8, textAlign: "center" },
   card: {
-    flex: 0.64,
+    flex: 1,
     backgroundColor: COLORS.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     marginTop: -12,
   },
-  cardInner: { paddingHorizontal: 28, paddingTop: 28, paddingBottom: 32, flexGrow: 1 },
+  cardInner: { paddingHorizontal: 28, paddingTop: 28, paddingBottom: Platform.OS === "ios" ? 88 : 40, flexGrow: 1 },
   signHi: { fontSize: 22, fontWeight: "800", color: COLORS.textPrimary },
   signEn: { fontSize: 13, color: COLORS.textSecondary, marginTop: 4 },
   langRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 16 },

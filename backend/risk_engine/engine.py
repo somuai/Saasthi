@@ -190,6 +190,30 @@ RECOMMENDATION_TEMPLATES = {
     },
 }
 
+PROTOCOL_CHECKLIST_TEMPLATES = {
+    "hard_flag": [
+        {"hi": "मरीज को अकेले न जाने दें", "en": "Do not let patient go alone"},
+        {"hi": "आपात संकेत हों तो 108 कॉल करें", "en": "Call 108 if any danger sign"},
+        {"hi": "ANM को अभी सूचना दें", "en": "Call ANM immediately"},
+        {"hi": "MCP कार्ड या रजिस्टर में रेफरल लिखें", "en": "Document referral in MCP card/register"},
+    ],
+    "high": [
+        {"hi": "परिवार को मुख्य जोखिम बताएं", "en": "Tell family key risk factors"},
+        {"hi": "आज की तारीख रजिस्टर में लिखें", "en": "Write today's date in register"},
+        {"hi": "ANM सुपरवाइजर को सूचित करें", "en": "Inform ANM supervisor"},
+        {"hi": "24 घंटे में फॉलो-अप तय करें", "en": "Schedule follow-up within 24 hours"},
+    ],
+    "medium": [
+        {"hi": "परिवार से जोखिम कारण पर बात करें", "en": "Discuss key risk factors with family"},
+        {"hi": "3 दिन में फॉलो-अप करें", "en": "Schedule follow-up in 3 days"},
+        {"hi": "घर/मरीज रजिस्टर अपडेट करें", "en": "Update household register"},
+    ],
+    "low": [
+        {"hi": "परिवार को निगरानी जारी रखने को कहें", "en": "Ask family to continue monitoring"},
+        {"hi": "2 हफ्ते में नियमित फॉलो-अप करें", "en": "Plan routine follow-up in 2 weeks"},
+    ],
+}
+
 
 @dataclass
 class AssessmentResult:
@@ -206,6 +230,8 @@ class AssessmentResult:
     recommended_action_en: str
     recommended_action_hi: str
     recommended_urgency: str
+    protocol_checklist: list = None
+    hard_flag_category: str = ""
     recommendation_source: str = "rule_template"
     score_source: str = "rule_engine"
     rule_engine_score: int | None = None
@@ -306,12 +332,20 @@ class RiskEngine:
             ),
         )
 
-    def evaluate(self, patient, survey_response=None, surveyed_at=None, mcp_instance=None, population=None) -> AssessmentResult:
+    def _build_protocol_checklist(self, risk_level: str, primary_category: str, is_hard_flag: bool) -> list:
+        if is_hard_flag:
+            return PROTOCOL_CHECKLIST_TEMPLATES.get("hard_flag", [])
+        return PROTOCOL_CHECKLIST_TEMPLATES.get(risk_level, PROTOCOL_CHECKLIST_TEMPLATES["low"])
+
+    def evaluate(
+        self, patient, survey_response=None, surveyed_at=None, mcp_instance=None, population=None
+    ) -> AssessmentResult:
         as_of = self._as_of(surveyed_at)
         active_rules = self.get_active_rules(as_of=as_of)
         if population:
             active_rules = [
-                r for r in active_rules
+                r
+                for r in active_rules
                 if r.category == population or r.category in ("general", "communicable", "chronic", "critical")
             ]
         snapshot = self.build_rules_snapshot(active_rules)
@@ -358,6 +392,8 @@ class RiskEngine:
                     recommended_action_en=rec_en,
                     recommended_action_hi=rec_hi,
                     recommended_urgency="immediate",
+                    protocol_checklist=self._build_protocol_checklist("hard_flag", rule.category, is_hard_flag=True),
+                    hard_flag_category=rule.category or RiskRule.Category.CRITICAL,
                     recommendation_source=rule.flag_type if rule.is_hard_flag else "rule_template",
                     score_source="rule_engine",
                     rule_engine_score=0,
@@ -399,6 +435,8 @@ class RiskEngine:
             recommended_action_en=recommendation["en"],
             recommended_action_hi=recommendation["hi"],
             recommended_urgency=recommendation["urgency"],
+            protocol_checklist=self._build_protocol_checklist(risk_level, categories["primary"], is_hard_flag=False),
+            hard_flag_category="",
             recommendation_source="rule_template",
             score_source="rule_engine",
             rule_engine_score=total_score,
@@ -417,7 +455,9 @@ class RiskEngine:
         mcp_instance=None,
         population=None,
     ) -> RiskAssessment:
-        result = self.evaluate(patient, survey_response, surveyed_at=surveyed_at, mcp_instance=mcp_instance, population=population)
+        result = self.evaluate(
+            patient, survey_response, surveyed_at=surveyed_at, mcp_instance=mcp_instance, population=population
+        )
         assessment = RiskAssessment(
             patient=patient,
             survey_response=survey_response,
@@ -435,6 +475,8 @@ class RiskEngine:
             recommended_action_en=result.recommended_action_en,
             recommended_action_hi=result.recommended_action_hi,
             recommended_urgency=result.recommended_urgency,
+            protocol_checklist=result.protocol_checklist or [],
+            hard_flag_category=result.hard_flag_category or "",
             recommendation_source=result.recommendation_source,
             score_source=result.score_source,
             rule_engine_score=result.rule_engine_score,
@@ -465,6 +507,8 @@ def assess(patient, survey_response=None, surveyed_at=None):
         "recommended_action_en": result.recommended_action_en,
         "recommended_action_hi": result.recommended_action_hi,
         "recommended_urgency": result.recommended_urgency,
+        "protocol_checklist": result.protocol_checklist or [],
+        "hard_flag_category": result.hard_flag_category or "",
         "recommendation_source": result.recommendation_source,
         "score_source": result.score_source,
         "rule_engine_score": result.rule_engine_score,

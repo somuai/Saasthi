@@ -127,12 +127,15 @@ class RiskAssessmentSerializer(serializers.ModelSerializer):
         if mcp_uuid and mcp_model:
             try:
                 from .tasks import _get_instance
+
                 mcp_instance = _get_instance(str(mcp_uuid), mcp_model)
             except Exception:
                 pass
 
         engine = RiskEngine()
-        assessment = engine.create_assessment(patient, survey, surveyed_at=surveyed_at, save=False, mcp_instance=mcp_instance)
+        assessment = engine.create_assessment(
+            patient, survey, surveyed_at=surveyed_at, save=False, mcp_instance=mcp_instance
+        )
         for key, value in validated_data.items():
             if key not in {"patient", "survey_response"}:
                 setattr(assessment, key, value)

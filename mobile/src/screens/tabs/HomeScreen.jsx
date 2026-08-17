@@ -12,16 +12,21 @@ import { SyncPendingBanner } from "../../components/SyncPendingBanner";
 import { LoadingState } from "../../components/LoadingState";
 import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
+import { TAB_SCREEN_BOTTOM_PADDING } from "../../constants/layout";
 import { todayYmd, timeAgo } from "../../utils/dateHelpers";
 import { syncWithServer, countPendingRecords } from "../../database/sync";
 import { setPendingCount, syncStarted, syncSucceeded, syncFailed } from "../../features/sync/syncSlice";
 import { signOut } from "../../features/auth/authSlice";
 import { clearAuthSession } from "../../features/auth/authSession";
+import { localizePair, translateHindiText, useLocale } from "../../utils/localization";
+import { logger } from "../../utils/logger";
+import * as Location from "expo-location";
 
 export default function HomeScreen() {
   const router = useRouter();
   const database = useDatabase();
   const dispatch = useDispatch();
+  const locale = useLocale();
   const worker = useSelector((s) => s.auth.workerData);
   const { pendingCount, lastSyncedAt, isSyncing, isOnline } = useSelector((s) => s.sync);
 
@@ -31,6 +36,38 @@ export default function HomeScreen() {
   const [criticalN, setCriticalN] = useState(null);
   const [error, setError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentLocation, setCurrentLocation] = useState(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted" || cancelled) return;
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (cancelled) return;
+        const geo = await Location.reverseGeocodeAsync({
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        });
+        if (cancelled) return;
+        if (geo && geo.length > 0) {
+          const place = geo[0];
+          const locality = place.district || place.city || place.subregion || place.name || "";
+          if (locality && !locality.includes("+")) {
+            setCurrentLocation(locality);
+          } else if (place.city) {
+            setCurrentLocation(place.city);
+          }
+        }
+      } catch (e) {
+        logger.debug("[HomeScreen] Location or geocode unavailable", e?.message || e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const reload = useCallback(async () => {
     const t = todayYmd();
@@ -91,8 +128,27 @@ export default function HomeScreen() {
   }
 
   const hour = new Date().getHours();
-  const greetEn = hour < 12 ? "Good Morning" : hour < 17 ? "Good Afternoon" : "Good Evening";
-  const greetHi = hour < 12 ? "सुप्रभात" : hour < 17 ? "नमस्ते" : "शुभ संध्या";
+  let greetEn = "Good Morning";
+  let greetHi = "सुप्रभात";
+  let greetBn = "সুপ্রভাত";
+
+  if (hour >= 12 && hour < 17) {
+    greetEn = "Good Afternoon";
+    greetHi = "शुभ दोपहर";
+    greetBn = "শুভ দুপুর";
+  } else if (hour >= 17 && hour < 22) {
+    greetEn = "Good Evening";
+    greetHi = "शुभ संध्या";
+    greetBn = "শুভ সন্ধ্যা";
+  } else if (hour >= 22 || hour < 4) {
+    greetEn = "Good Night";
+    greetHi = "शुभ रात्रि";
+    greetBn = "শুভ রাত্রি";
+  }
+
+  const primaryGreet = locale === "en" ? greetEn : locale === "bn" ? greetBn : greetHi;
+  const pair = (hi, en) => localizePair(hi, en, locale);
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
 
   const homeHeader = (
     <GovtHeader
@@ -140,14 +196,22 @@ export default function HomeScreen() {
       >
         <View style={styles.greetCard}>
           <Text style={styles.greetEn}>
-            {greetEn}, {worker?.name || "ASHA"}
+            {primaryGreet}, {worker?.name || "ASHA"}
           </Text>
-          <Text style={styles.greetHi}>
-            {greetHi}, {worker?.name || "ASHA"}
-          </Text>
-          <Text style={styles.village}>
-            {worker?.village || "—"} • {worker?.block || "—"}
-          </Text>
+          {locale === "en" ? null : (
+            <Text style={styles.greetHi}>
+              {greetEn}, {worker?.name || "ASHA"}
+            </Text>
+          )}
+          <View style={styles.locationContainer}>
+            <Ionicons name="location" size={14} color={COLORS.primary} style={styles.locationIcon} />
+            <Text style={styles.village} numberOfLines={1}>
+              {currentLocation || `${worker?.village || "—"} • ${worker?.block || "—"}`}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.statsContainer}>
           <BentoStatGrid
             items={[
               { key: "s", icon: "folder-open-outline", value: surveysToday, labelHi: "सर्वे", labelEn: "Surveys", color: COLORS.primary },
@@ -162,7 +226,9 @@ export default function HomeScreen() {
         {lastSyncedAt && Date.now() - new Date(lastSyncedAt).getTime() > 3600000 && pendingCount > 0 ? (
           <View style={styles.staleBanner}>
             <Ionicons name="warning-outline" size={16} color="#fff" />
-            <Text style={styles.staleTxt}>सिंक नहीं हुआ / Not synced — {timeAgo(lastSyncedAt)}</Text>
+            <Text style={styles.staleTxt}>
+              {pair("सिंक नहीं हुआ", "Not synced")} — {timeAgo(lastSyncedAt, locale)}
+            </Text>
             <Pressable onPress={onRefresh} style={styles.staleBtn}>
               <Text style={styles.staleBtnTxt}>Sync</Text>
             </Pressable>
@@ -170,11 +236,11 @@ export default function HomeScreen() {
         ) : null}
 
         <Text style={styles.syncMeta}>
-          Last sync / आखरी सिंक: {timeAgo(lastSyncedAt)} · {isOnline ? "Online" : "Offline"}
+          {pair("आखरी सिंक", "Last sync")}: {timeAgo(lastSyncedAt, locale)} · {isOnline ? "Online" : "Offline"}
         </Text>
 
-        <Text style={styles.sectionHi}>त्वरित क्रियाएं</Text>
-        <Text style={styles.sectionEn}>Quick Actions</Text>
+        <Text style={styles.sectionHi}>{locale === "en" ? "Quick Actions" : hiText("त्वरित क्रियाएं")}</Text>
+        {locale === "en" ? null : <Text style={styles.sectionEn}>Quick Actions</Text>}
         <View style={styles.grid}>
           {[
             { hi: "परिवार पंजीकरण", en: "Register Household", icon: "person-add-outline", route: "/(tabs)/patients/add" },
@@ -190,8 +256,8 @@ export default function HomeScreen() {
               ) : (
                 <Ionicons name={q.icon} size={32} color={COLORS.primary} />
               )}
-              <Text style={styles.qHi}>{q.hi}</Text>
-              <Text style={styles.qEn}>{q.en}</Text>
+              <Text style={styles.qHi}>{locale === "en" ? q.en : hiText(q.hi)}</Text>
+              {locale === "en" ? null : <Text style={styles.qEn}>{q.en}</Text>}
               {q.badge > 0 ? (
                 <View style={styles.badge}>
                   <Text style={styles.badgeTxt}>{q.badge}</Text>
@@ -203,16 +269,16 @@ export default function HomeScreen() {
 
         <Pressable style={styles.logoutRow} onPress={logout}>
           <Ionicons name="log-out-outline" size={20} color={COLORS.danger} />
-          <Text style={styles.logoutTxt}>साइन आउट / Sign Out</Text>
+          <Text style={styles.logoutTxt}>{pair("साइन आउट", "Sign Out")}</Text>
         </Pressable>
 
         <Pressable style={styles.syncRow} onPress={onRefresh} disabled={isSyncing}>
           <Ionicons name="refresh" size={22} color={COLORS.primary} />
-          <Text style={styles.syncRowTxt}>{isSyncing ? "सिंक हो रहा है…" : "अभी सिंक करें / Sync now"}</Text>
+          <Text style={styles.syncRowTxt}>{isSyncing ? hiText("सिंक हो रहा है…") : pair("अभी सिंक करें", "Sync now")}</Text>
         </Pressable>
 
         <Text style={styles.disclaimer}>
-          Incentives are activity and outcome based — no per-patient brokerage. / प्रोत्साहन गतिविधि पर आधारित।
+          {pair("प्रोत्साहन गतिविधि पर आधारित।", "Incentives are activity and outcome based — no per-patient brokerage.")}
         </Text>
       </ScrollView>
     </View>
@@ -222,7 +288,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
   scrollContainer: { flex: 1 },
-  scroll: { flexGrow: 1, paddingBottom: 32 },
+  scroll: { flexGrow: 1, paddingBottom: TAB_SCREEN_BOTTOM_PADDING },
   notifBtn: { minWidth: 52, minHeight: 52, alignItems: "center", justifyContent: "center" },
   notifBadge: {
     position: "absolute",
@@ -238,15 +304,33 @@ const styles = StyleSheet.create({
   notifBadgeTxt: { color: "#fff", fontSize: 9, fontWeight: "800" },
   greetCard: {
     margin: 16,
-    backgroundColor: COLORS.greetingCard,
-    borderRadius: 12,
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: COLORS.greetingBorder,
-    padding: 16,
+    borderColor: "#E5E7EB",
+    padding: 18,
+    shadowColor: "#0F172A",
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4,
   },
-  greetEn: { fontSize: 16, fontWeight: "800", color: COLORS.primary },
-  greetHi: { fontSize: 14, color: COLORS.textSecondary, marginTop: 2 },
-  village: { fontSize: 12, color: COLORS.textSecondary, marginTop: 4, marginBottom: 12 },
+  greetEn: { fontSize: 18, fontWeight: "900", color: COLORS.primary },
+  greetHi: { fontSize: 15, fontWeight: "700", color: COLORS.textPrimary, marginTop: 2 },
+  locationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 4,
+    marginBottom: 0,
+  },
+  locationIcon: {
+    marginRight: 4,
+  },
+  village: { fontSize: 12, color: COLORS.textSecondary, flexShrink: 1 },
+  statsContainer: {
+    marginHorizontal: 16,
+    marginBottom: 8,
+  },
   syncMeta: { paddingHorizontal: 16, fontSize: 11, color: COLORS.textHint, marginBottom: 8 },
   sectionHi: { fontSize: 14, fontWeight: "800", color: COLORS.textPrimary, marginHorizontal: 16, marginTop: 8 },
   sectionEn: { fontSize: 11, color: COLORS.textSecondary, marginHorizontal: 16, marginBottom: 8 },

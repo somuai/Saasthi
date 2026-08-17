@@ -20,6 +20,7 @@ import {
 } from "../../features/auth/authSession";
 import { isWatermelonNativeAvailable } from "../../database/isNativeAvailable";
 import { setStoredLocale } from "../../utils/locale";
+import { localizePair, translateHindiText } from "../../utils/localization";
 import { tapTargetMin } from "../../constants/typography";
 import { getConfirmationResult, clearConfirmationResult, setConfirmationResult } from "../../utils/firebaseConfirm";
 
@@ -43,7 +44,6 @@ function buildPilotUser(phone, locale) {
 export default function OtpScreen() {
   const params = useLocalSearchParams();
   const [phone, setPhone] = useState(params.phone ? String(params.phone) : "");
-  const [devOtp, setDevOtp] = useState(params.devOtp ? String(params.devOtp) : "");
   const [locale, setLocaleState] = useState(params.locale ? String(params.locale) : "hi");
   const useFirebase = params.useFirebase === "1";
   const [otp, setOtp] = useState("");
@@ -54,6 +54,8 @@ export default function OtpScreen() {
   const [error, setError] = useState("");
   const router = useRouter();
   const dispatch = useDispatch();
+  const pair = (hi, en) => localizePair(hi, en, locale);
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
 
   useEffect(() => {
     if (params.phone && params.locale) return;
@@ -100,7 +102,7 @@ export default function OtpScreen() {
   async function handleVerify(otpString) {
     const code = otpString || otp;
     if (phone.length !== 10) {
-      setError("मोबाइल नंबर गायब — लॉगिन पर वापस जाएँ / Missing phone — return to login");
+      setError(pair("मोबाइल नंबर गायब — लॉगिन पर वापस जाएँ", "Missing phone — return to login"));
       return;
     }
     if (code.length !== 6) return;
@@ -119,7 +121,7 @@ export default function OtpScreen() {
       if (useFirebase) {
         const cr = getConfirmationResult();
         if (!cr) {
-          setError("OTP session expired — please request again");
+          setError(pair("OTP सत्र समाप्त — फिर से अनुरोध करें", "OTP session expired — please request again"));
           setLoading(false);
           return;
         }
@@ -156,20 +158,20 @@ export default function OtpScreen() {
       if (useFirebase) {
         /* Firebase errors — check if it's a verification failure */
         if (err.code === "auth/invalid-verification-code" || err.code === "auth/code-expired" || err.code === "auth/session-expired") {
-          setError("गलत या समाप्त OTP / Invalid or expired OTP");
+          setError(pair("गलत या समाप्त OTP", "Invalid or expired OTP"));
           return;
         }
         if (err.code === "auth/too-many-requests") {
-          setError("बहुत अधिक प्रयास — Too many attempts. Try after 1 hour.");
+          setError(pair("बहुत अधिक प्रयास", "Too many attempts. Try after 1 hour."));
           return;
         }
         if (err.code === "auth/network-request-failed") {
-          setError("कोई इंटरनेट कनेक्शन नहीं — No internet connection.");
+          setError(pair("कोई इंटरनेट कनेक्शन नहीं", "No internet connection."));
           return;
         }
         /* Backend validation failed */
         if (err.response?.status === 400) {
-          setError("गलत या समाप्त OTP / Invalid or expired OTP");
+          setError(pair("गलत या समाप्त OTP", "Invalid or expired OTP"));
           return;
         }
         if (err.response?.status === 404) {
@@ -177,7 +179,7 @@ export default function OtpScreen() {
           return;
         }
         if (err.response?.status === 503) {
-          setError("सत्यापन सेवा अनुपलब्ध है / Verification service unavailable.");
+          setError(pair("सत्यापन सेवा अनुपलब्ध है", "Verification service unavailable."));
           return;
         }
         /* Network error — show generic message */
@@ -188,14 +190,14 @@ export default function OtpScreen() {
           await completeLogin(sessionUser, MOCK_WORKER, null);
           return;
         }
-        setError("सर्वर त्रुटि — बाद में प्रयास करें / Server error, try again");
+        setError(pair("सर्वर त्रुटि — बाद में प्रयास करें", "Server error, try again"));
       } else {
         if (isInvalidOtpError(err)) {
-          setError("गलत या समाप्त OTP / Invalid or expired OTP");
+          setError(pair("गलत या समाप्त OTP", "Invalid or expired OTP"));
           return;
         }
         if (!shouldFallbackToOfflinePilot(err)) {
-          setError("सर्वर त्रुटि — बाद में प्रयास करें / Server error, try again");
+          setError(pair("सर्वर त्रुटि — बाद में प्रयास करें", "Server error, try again"));
           return;
         }
         const sessionUser = buildPilotUser(phone, locale);
@@ -210,7 +212,7 @@ export default function OtpScreen() {
 
   async function handleResend() {
     if (phone.length !== 10) {
-      setError("मोबाइल नंबर गायब — लॉगिन पर वापस जाएँ / Missing phone — return to login");
+      setError(pair("मोबाइल नंबर गायब — लॉगिन पर वापस जाएँ", "Missing phone — return to login"));
       return;
     }
     setResending(true);
@@ -221,13 +223,11 @@ export default function OtpScreen() {
         const cr = await auth().signInWithPhoneNumber(`+91${phone}`);
         setConfirmationResult(cr);
       } else {
-        const res = await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
-        const nextDevOtp = res.data?.debug_otp ? String(res.data.debug_otp) : "";
-        if (nextDevOtp) setDevOtp(nextDevOtp);
+        await apiClient.post(endpoints.requestOtp, { phone: `+91${phone}` });
       }
     } catch (err) {
       if (!useFirebase && !shouldFallbackToOfflinePilot(err)) {
-        setError("OTP नहीं भेजा जा सका — बाद में प्रयास करें / Could not resend OTP");
+        setError(pair("OTP नहीं भेजा जा सका — बाद में प्रयास करें", "Could not resend OTP"));
         setResending(false);
         return;
       }
@@ -253,33 +253,44 @@ export default function OtpScreen() {
         <Pressable style={styles.back} onPress={() => router.back()} accessibilityLabel="Back">
           <Ionicons name="arrow-back" size={24} color={COLORS.primary} />
         </Pressable>
-        <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.cardInner} keyboardShouldPersistTaps="handled">
-          <Text style={styles.titleHi}>OTP सत्यापन</Text>
-          <Text style={styles.titleEn}>OTP Verification</Text>
+        <ScrollView
+          style={styles.scrollContainer}
+          contentContainerStyle={styles.cardInner}
+          keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
+          keyboardShouldPersistTaps="handled"
+          contentInsetAdjustmentBehavior="automatic"
+          showsVerticalScrollIndicator
+        >
+          <Text style={styles.titleHi}>{locale === "en" ? "OTP Verification" : hiText("OTP सत्यापन")}</Text>
+          {locale === "en" ? null : <Text style={styles.titleEn}>OTP Verification</Text>}
           <Text style={styles.info}>
-            आपके +91 XXXXXX{last4} पर OTP भेजा गया है{"\n"}
-            OTP sent to +91 …{last4}
+            {locale === "en"
+              ? `OTP sent to +91 …${last4}`
+              : `${translateHindiText(`आपके +91 XXXXXX${last4} पर OTP भेजा गया है`, locale)}\nOTP sent to +91 …${last4}`}
           </Text>
-          {devOtp ? (
-            <Pressable style={styles.devHint} onPress={() => setOtp(devOtp.slice(0, 6))}>
-              <Text style={styles.devHintTxt}>Dev OTP: {devOtp} (tap to fill)</Text>
-            </Pressable>
-          ) : null}
           <OtpInputRow value={otp} onChange={setOtp} onComplete={handleVerify} autoFocus />
           {error ? <Text style={styles.error}>{error}</Text> : null}
           {canResend ? (
             <Pressable onPress={handleResend} disabled={resending} style={styles.resendBtn}>
-              {resending ? <ActivityIndicator color={COLORS.accent} /> : <Text style={styles.resendActive}>फिर से भेजें / Resend OTP</Text>}
+              {resending ? (
+                <ActivityIndicator color={COLORS.accent} />
+              ) : (
+                <Text style={styles.resendActive}>{pair("फिर से भेजें", "Resend OTP")}</Text>
+              )}
             </Pressable>
           ) : (
-            <Text style={styles.resend}>OTP फिर से भेजें / Resend in 0:{String(timer).padStart(2, "0")}</Text>
+            <Text style={styles.resend}>
+              {locale === "en"
+                ? `Resend in 0:${String(timer).padStart(2, "0")}`
+                : `${hiText("OTP फिर से भेजें")} / Resend in 0:${String(timer).padStart(2, "0")}`}
+            </Text>
           )}
           <Pressable
             style={[styles.verify, otp.length < 6 || loading ? styles.verifyDisabled : null]}
             disabled={otp.length < 6 || loading}
             onPress={() => handleVerify()}
           >
-            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.verifyText}>सत्यापित करें / Verify</Text>}
+            {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.verifyText}>{pair("सत्यापित करें", "Verify")}</Text>}
           </Pressable>
         </ScrollView>
       </View>
@@ -289,11 +300,11 @@ export default function OtpScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: COLORS.background },
-  top: { flex: 0.2, backgroundColor: COLORS.primary },
+  top: { flex: 0.18, minHeight: 132, backgroundColor: COLORS.primary },
   topInner: { flex: 1, alignItems: "center", justifyContent: "center" },
   logo: { color: "#fff", fontSize: 22, fontWeight: "800" },
   card: {
-    flex: 0.8,
+    flex: 1,
     backgroundColor: COLORS.card,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -302,8 +313,8 @@ const styles = StyleSheet.create({
   scrollContainer: { flex: 1 },
   cardInner: {
     paddingHorizontal: 24,
-    paddingTop: 24,
-    paddingBottom: 32,
+    paddingTop: 64,
+    paddingBottom: Platform.OS === "ios" ? 88 : 40,
     flexGrow: 1,
   },
   back: { position: "absolute", top: 16, left: 16, zIndex: 2, padding: 8, minHeight: tapTargetMin, minWidth: tapTargetMin },

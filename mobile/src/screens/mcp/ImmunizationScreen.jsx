@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { LottieWrapper } from "../../components/LottieWrapper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -12,6 +13,7 @@ import { calculateVaccineDates, isoDate } from "../../utils/immunizationSchedule
 import { buildFicIncentiveIfEligible, ficProgress } from "../../utils/ficIncentive";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
 import { todayYmd } from "../../utils/dateHelpers";
+import { localizePair, translateHindiText, useLocale } from "../../utils/localization";
 
 const VACCINE_LABELS = {
   BCG: { en: "BCG", hi: "बीसीजी" },
@@ -28,12 +30,15 @@ export default function ImmunizationScreen() {
   const database = useDatabase();
   const router = useRouter();
   const dispatch = useDispatch();
+  const locale = useLocale();
+  const pair = (hi, en) => localizePair(hi, en, locale);
   const [patients, setPatients] = useState([]);
   const [patient, setPatient] = useState(null);
   const [records, setRecords] = useState([]);
   const [sheet, setSheet] = useState(null);
   const [ficToast, setFicToast] = useState(null);
   const [loadError, setLoadError] = useState(null);
+  const [showFicAnimation, setShowFicAnimation] = useState(false);
 
   useEffect(() => {
     try {
@@ -177,6 +182,8 @@ export default function ImmunizationScreen() {
     dispatch(incrementPendingCount(ficAwarded ? 3 : 2));
     setSheet(null);
     if (ficAwarded) {
+      setShowFicAnimation(true);
+      setTimeout(() => setShowFicAnimation(false), 3000);
       setFicToast("FIC पूर्ण / Fully immunized — ₹50 incentive recorded");
       setTimeout(() => setFicToast(null), 4000);
     }
@@ -199,7 +206,7 @@ export default function ImmunizationScreen() {
           keyExtractor={(p) => p.id}
           style={styles.flatList}
           contentContainerStyle={styles.flatListContent}
-          ListEmptyComponent={<Text style={styles.muted}>DOB वाले बच्चे चुनें / Select child with DOB</Text>}
+          ListEmptyComponent={<Text style={styles.muted}>{pair("DOB वाले बच्चे चुनें", "Select child with DOB")}</Text>}
           renderItem={({ item }) => (
             <Pressable style={styles.pick} onPress={() => router.setParams({ patientId: item.id })}>
               <Text style={styles.pickName}>{item.name}</Text>
@@ -220,7 +227,7 @@ export default function ImmunizationScreen() {
     <View style={styles.page}>
       <GovtHeader titleHi="टीकाकरण" title={patient?.name || "Immunization"} showBack showSync />
       <View style={styles.ficBar}>
-        <Text style={styles.ficHi}>FIC प्रगति / FIC progress</Text>
+        <Text style={styles.ficHi}>{pair("FIC प्रगति", "FIC progress")}</Text>
         <Text style={styles.ficEn}>
           {fic.done}/{fic.total} core vaccines
         </Text>
@@ -235,16 +242,16 @@ export default function ImmunizationScreen() {
         keyExtractor={(item) => item.code}
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent2}
-        ListEmptyComponent={<Text style={styles.muted}>DOB सेट करें / Set date of birth on patient</Text>}
+        ListEmptyComponent={<Text style={styles.muted}>{pair("DOB सेट करें", "Set date of birth on patient")}</Text>}
         renderItem={({ item }) => <ImmunizationRow vaccine={item} onGive={markGiven} />}
       />
       <Modal visible={Boolean(sheet)} transparent animationType="slide">
         <View style={styles.modalBg}>
           <View style={styles.sheet}>
-            <Text style={styles.sheetTitle}>Mark given / टीका दिया</Text>
+            <Text style={styles.sheetTitle}>{pair("टीका दिया", "Mark given")}</Text>
             <Text style={styles.muted}>{sheet?.name}</Text>
             <Pressable style={styles.btn} onPress={confirmGive}>
-              <Text style={styles.btnTxt}>Confirm / पुष्टि</Text>
+              <Text style={styles.btnTxt}>{pair("पुष्टि", "Confirm")}</Text>
             </Pressable>
             <Pressable onPress={() => setSheet(null)}>
               <Text style={styles.cancel}>Cancel</Text>
@@ -252,6 +259,22 @@ export default function ImmunizationScreen() {
           </View>
         </View>
       </Modal>
+      {showFicAnimation && (
+        <View
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(255,255,255,0.95)",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999,
+          }}
+        >
+          <LottieWrapper name="fic_complete" size={180} loop={false} autoPlay={true} />
+          <Text style={{ marginTop: 12, fontWeight: "900", fontSize: 20, color: COLORS.primary }}>Immunization Complete! 🥳</Text>
+          <Text style={{ fontSize: 13, color: COLORS.textSecondary }}>FIC registered successfully</Text>
+        </View>
+      )}
     </View>
   );
 }

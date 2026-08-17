@@ -68,6 +68,13 @@ npx expo run:android                  # native build
 - `console.log("Background message:", ...)` in `fcm.js` → `logger.debug()`
 - `console.error("ErrorBoundary caught:", ...)` in `ErrorBoundary.jsx` → `logger.error()`
 
+## Auth Strategy (Two-Tier)
+1. **Primary** — Firebase Phone Auth (mobile app via `signInWithPhoneNumber()`)
+2. **Fallback** — Custom OTP for web/supervisor clients (`POST /api/v1/auth/otp/`)
+   - `SMS_PROVIDER=log` (default) — OTP printed to server logs; adequate for clinic/office web users who can read the log
+   - `SMS_PROVIDER=msg91` — sends real SMS via MSG91 API when needed for web fallback
+   - No Twilio — 20–35× more expensive than MSG91 for India SMS
+
 ## Key Files
 - `backend/shaasthi_backend/settings.py` — all config
 - `backend/sync/views.py` — offline-sync push/pull (critical GPS wiring lives here)

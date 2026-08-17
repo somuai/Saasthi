@@ -7,7 +7,9 @@ from django.utils import timezone
 
 class SurveyResponse(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="survey_responses", on_delete=models.SET_NULL, null=True)
+    patient = models.ForeignKey(
+        "registry.Patient", related_name="survey_responses", on_delete=models.SET_NULL, null=True
+    )
     survey_type = models.CharField(max_length=80, db_index=True)
     answers = models.JSONField(default=dict, blank=True)
     submitted_at = models.DateTimeField(default=timezone.now)

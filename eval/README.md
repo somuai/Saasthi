@@ -12,6 +12,12 @@ make eval-offline
 cd backend && source .venv/bin/activate && python manage.py runserver
 # another terminal:
 make eval
+
+# Production release gate (offline/live API scenarios skipped)
+make eval-production-offline
+
+# Production release gate with live API scenarios
+make eval-production
 ```
 
 ## Tiers
@@ -23,11 +29,15 @@ make eval
 | T3 | Contract shape vs `contracts/*.json` (live pull optional) |
 | T4 | Live HTTP scenarios (`eval/scenarios/*.py`) |
 | T5 | Static compliance grep checks |
+| T6 | Production-readiness static gates (`eval/production_readiness.py`) |
+| T7 | Dashboard production build (`backend/dashboard npm run build`) |
+| T8 | Django deployment check (`manage.py check --deploy --fail-level WARNING`) |
 
 ## Debug a failure
 
 ```bash
 python3 eval/run.py --tier 2 --verbose
+python3 eval/run.py --tier 6 --verbose
 open eval/report.json
 ```
 
@@ -35,6 +45,16 @@ open eval/report.json
 
 - `SHAASTHI_API_URL` — default `http://127.0.0.1:8000`
 - `pip install -r eval/requirements.txt` for T4
+
+## Production gate
+
+`--production` adds three release-readiness tiers after the existing eval suite:
+
+- T6 fails on static blockers such as missing OCR runtime packages, unsafe health checks, dashboard routing gaps, unversioned ANM API routes, mobile production API fallback, direct mobile console usage, and missing sync/RBAC test coverage.
+- T7 builds the Django-hosted dashboard bundle so TypeScript/Vite errors cannot bypass CI.
+- T8 runs Django's deploy checks in a production-like environment and fails on warnings.
+
+The human checklist lives at `docs/production-qa-checklist.md`. Treat every T6 blocker either as a fix-before-release item or an explicit, reviewed release waiver.
 
 ## Risk scoring contract (server vs mobile)
 

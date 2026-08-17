@@ -28,7 +28,10 @@
   },
   "globals": {
     "__DEV__": "readonly",
-    "FileReader": "readonly"
+    "FileReader": "readonly",
+    "device": "readonly",
+    "element": "readonly",
+    "by": "readonly"
   },
   "rules": {
     "no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],

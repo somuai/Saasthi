@@ -20,6 +20,17 @@ class Referral(models.Model):
     destination = models.CharField(max_length=180)
     reason = models.TextField(blank=True)
     status = models.CharField(max_length=24, choices=Status.choices, default=Status.DRAFT)
+    assigned_doctor = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="assigned_referrals",
+        limit_choices_to={"role": "referral_partner"},
+    )
+    teleconsultation_scheduled_at = models.DateTimeField(null=True, blank=True)
+    teleconsultation_jitsi_link = models.URLField(max_length=500, blank=True, default="")
+    doctor_notes = models.TextField(blank=True, default="")
     metadata = models.JSONField(default=dict, blank=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
+import { LottieWrapper } from "../../components/LottieWrapper";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
 import { useDispatch } from "react-redux";
@@ -8,9 +9,11 @@ import { GovtButton } from "../../components/GovtButton";
 import { LoadingState } from "../../components/LoadingState";
 import { ErrorState } from "../../components/ErrorState";
 import { COLORS } from "../../constants/colors";
+import { TAB_SCREEN_BOTTOM_PADDING } from "../../constants/layout";
 import { todayYmd } from "../../utils/dateHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
 import { tapTargetMin } from "../../constants/typography";
+import { localizePair, translateHindiText, useLocale } from "../../utils/localization";
 
 function calendarDays(centerDate = new Date(), span = 35) {
   const start = new Date(centerDate);
@@ -25,6 +28,9 @@ function calendarDays(centerDate = new Date(), span = 35) {
 export default function FollowupsScreen() {
   const database = useDatabase();
   const dispatch = useDispatch();
+  const locale = useLocale();
+  const pair = (hi, en) => localizePair(hi, en, locale);
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
   const [rows, setRows] = useState(null);
   const [patients, setPatients] = useState(null);
   const [completingId, setCompletingId] = useState(null);
@@ -32,6 +38,7 @@ export default function FollowupsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [selectedDay, setSelectedDay] = useState(todayYmd());
   const days = useMemo(() => calendarDays(new Date(), 35), []);
+  const [showCompleteOverlay, setShowCompleteOverlay] = useState(false);
 
   const setupObservers = useCallback(() => {
     let subs = [];
@@ -114,6 +121,8 @@ export default function FollowupsScreen() {
         });
       });
       dispatch(incrementPendingCount(2));
+      setShowCompleteOverlay(true);
+      setTimeout(() => setShowCompleteOverlay(false), 2500);
     } finally {
       setCompletingId(null);
     }
@@ -125,11 +134,11 @@ export default function FollowupsScreen() {
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
           <Text style={styles.statN}>{todayTotal}</Text>
-          <Text style={styles.statL}>आज / Today</Text>
+          <Text style={styles.statL}>{pair("आज", "Today")}</Text>
         </View>
         <View style={[styles.statBox, styles.statDanger]}>
           <Text style={[styles.statN, { color: COLORS.danger }]}>{overdueTotal}</Text>
-          <Text style={styles.statL}>देर / Overdue</Text>
+          <Text style={styles.statL}>{pair("देर", "Overdue")}</Text>
         </View>
       </View>
       <FlatList
@@ -157,18 +166,20 @@ export default function FollowupsScreen() {
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={<Text style={styles.empty}>इस दिन कोई फॉलो-अप नहीं / No follow-ups on {selectedDay}</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>{hiText(`इस दिन कोई फॉलो-अप नहीं / No follow-ups on ${selectedDay}`)}</Text>}
         renderItem={({ item }) => {
           const p = patients[item.patientId];
           const overdue = item.dueDate < today;
           return (
             <View style={[styles.row, overdue && styles.rowLate]}>
               <Text style={styles.name}>{p?.name || "Patient"}</Text>
-              <Text style={styles.due}>Due / देय: {item.dueDate}</Text>
+              <Text style={styles.due}>
+                {pair("देय", "Due")}: {item.dueDate}
+              </Text>
               <Text style={styles.type}>{item.followType}</Text>
               {overdue ? (
                 <View style={styles.overdueBadge}>
-                  <Text style={styles.overdueTxt}>OVERDUE / देर से</Text>
+                  <Text style={styles.overdueTxt}>{pair("देर से", "OVERDUE")}</Text>
                 </View>
               ) : null}
               <GovtButton
@@ -182,6 +193,22 @@ export default function FollowupsScreen() {
           );
         }}
       />
+      {showCompleteOverlay && (
+        <View
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(255,255,255,0.95)",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999,
+          }}
+        >
+          <LottieWrapper name="visit_complete" size={150} loop={false} autoPlay={true} />
+          <Text style={{ marginTop: 12, fontWeight: "900", fontSize: 20, color: COLORS.primary }}>Visit Completed!</Text>
+          <Text style={{ fontSize: 13, color: COLORS.textSecondary }}>Incentive recorded</Text>
+        </View>
+      )}
     </View>
   );
 }
@@ -189,7 +216,7 @@ export default function FollowupsScreen() {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
   flatList: { flex: 1 },
-  flatListContent: { flexGrow: 1, padding: 16, paddingBottom: 100 },
+  flatListContent: { flexGrow: 1, padding: 16, paddingBottom: TAB_SCREEN_BOTTOM_PADDING },
   statsRow: { flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingTop: 8 },
   statBox: {
     flex: 1,

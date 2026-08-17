@@ -5,11 +5,12 @@ from django.contrib import admin
 from django.urls import include, path
 from rest_framework_simplejwt.views import TokenRefreshView
 
-from shaasthi_backend.health_views import health_check, liveness, readiness
+from shaasthi_backend.health_views import health_check, liveness, privacy_policy_view, readiness
 
 ADMIN_SLUG = os.getenv("ADMIN_URL_SLUG", "admin")
 
 urlpatterns = [
+    path("privacy/", privacy_policy_view, name="privacy_policy"),
     path("health/", health_check, name="health"),
     path("livez/", liveness, name="liveness"),
     path("readyz/", readiness, name="readiness"),
@@ -28,7 +29,13 @@ urlpatterns = [
     path("api/v1/notifications/", include("notifications.urls")),
     path("api/v1/", include("followups.urls")),
     path("api/v1/config/", include("shaasthi_backend.config_urls")),
+    path("api/v1/dashboard/admin/", include("dashboard.api.urls")),
     path("api/v1/dashboard/", include("analytics.dashboard_urls")),
+    path("api/anm/", include("api.routers.anm")),
+    path("api/v1/dispatch/", include("dispatch.urls")),
+    path("api/v1/location/", include("location.urls")),
+    path("dashboard/", include("dashboard.urls")),
+    path("", include("django_prometheus.urls")),
 ]
 
 if settings.DEBUG:

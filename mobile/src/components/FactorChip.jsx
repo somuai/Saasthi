@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import { StyleSheet, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 const VARIANTS = {
   high: {
@@ -26,10 +27,11 @@ const VARIANTS = {
 
 export function FactorChip({ label, variant = "high" }) {
   const v = VARIANTS[variant] || VARIANTS.high;
+  const locale = useLocale();
   return (
     <View style={[styles.chip, { backgroundColor: v.bg, borderColor: v.border }]}>
       <Ionicons name={v.icon} size={16} color={v.text} />
-      <Text style={[styles.label, { color: v.text }]}>{label}</Text>
+      <Text style={[styles.label, { color: v.text }]}>{translateHindiText(label, locale)}</Text>
     </View>
   );
 }

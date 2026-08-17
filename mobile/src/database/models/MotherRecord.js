@@ -64,6 +64,10 @@ export default class MotherRecord extends Model {
   @text("pnc_day1_json") pncDay1Json;
   @text("pnc_day3_json") pncDay3Json;
   @text("pnc_day7_json") pncDay7Json;
+  @text("pnc_day14_json") pncDay14Json;
+  @text("pnc_day21_json") pncDay21Json;
+  @text("pnc_day28_json") pncDay28Json;
+  @text("pnc_day42_json") pncDay42Json;
   @text("pnc_week6_json") pncWeek6Json;
   @field("jsy_registered") jsyRegistered;
   @field("jsy_payment_received") jsyPaymentReceived;

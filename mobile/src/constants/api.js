@@ -14,6 +14,7 @@ export const endpoints = {
   requestOtp: "/auth/otp/request/",
   verifyOtp: "/auth/otp/verify/",
   firebaseVerify: "/auth/firebase/verify/",
+  firebasePnvVerify: "/auth/firebase/pnv/verify/",
   tokenRefresh: "/auth/token/refresh/",
   syncPull: "/sync/pull/",
   syncPush: "/sync/push/",

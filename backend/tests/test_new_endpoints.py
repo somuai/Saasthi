@@ -141,12 +141,13 @@ class TestGemmaQuery:
 
     def test_returns_mock_recommendation(self, api_client):
         from unittest.mock import patch
+
         with patch("risk_engine.views.gemma_service.generate") as mock_gen:
             mock_gen.return_value = {
                 "english": "Mock recommendation in English",
                 "hindi": "हिंदी में नकली सिफारिश",
                 "source": "gemma4_api",
-                "model": "gemma-4-e2b-it"
+                "model": "gemma-4-e2b-it",
             }
             worker = UserFactory()
             hh = HouseholdFactory(village=worker.village, block=worker.block, district=worker.district)

@@ -21,7 +21,9 @@
         "NSLocationWhenInUseUsageDescription": "Shaasthi uses your location to record field visit data for maternal and child health tracking.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Shaasthi needs background location access to continue tracking visits even when the app is in the background.",
         "NSPhotoLibraryUsageDescription": "Shaasthi can access your photo library to attach images to survey records.",
-        "NSCameraUsageDescription": "Shaasthi uses the camera to capture wound/rash photos for health assessments."
+        "NSCameraUsageDescription": "Shaasthi uses the camera to capture wound/rash photos for health assessments.",
+        "NSMicrophoneUsageDescription": "Shaasthi uses the microphone for voice input so ASHA workers can fill surveys hands-free.",
+        "UIBackgroundModes": ["fetch", "location"]
       }
     },
     "android": {
@@ -51,6 +53,9 @@
         {
           "ios": {
             "usesNonExemptEncryption": false
+          },
+          "android": {
+            "usesCleartextTraffic": false
           }
         }
       ],
@@ -82,10 +87,11 @@
     },
     "updates": {
       "url": "https://u.expo.dev/74497fca-f87f-42e1-bc20-f92362e558da",
-      "enabled": true,
+      "enabled": false,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 30000
     },
+    "runtimeVersion": "1.0.0",
     "extra": {
       "apiBaseUrl": "",
       "router": {

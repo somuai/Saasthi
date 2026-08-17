@@ -4,9 +4,11 @@ import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Q } from "@nozbe/watermelondb";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { COLORS } from "../constants/colors";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 export function DatabaseGate({ children }) {
   const database = useDatabase();
+  const locale = useLocale();
   const [ready, setReady] = useState(false);
   const [failed, setFailed] = useState(false);
 
@@ -28,10 +30,13 @@ export function DatabaseGate({ children }) {
   if (failed) {
     return (
       <View style={styles.center}>
-        <Text style={styles.hi}>डेटाबेस लोड नहीं हुआ</Text>
-        <Text style={styles.en}>Local database could not start.</Text>
+        <Text style={styles.hi}>
+          {locale === "en" ? "Local database could not start." : translateHindiText("डेटाबेस लोड नहीं हुआ", locale)}
+        </Text>
+        {locale === "en" ? null : <Text style={styles.en}>Local database could not start.</Text>}
         <Text style={styles.hint}>
-          Expo Go में ऐप नहीं चलेगा। Android: npm run native:android · iOS: npm run native:ios · फिर npm run start:dev
+          {translateHindiText("Expo Go में ऐप नहीं चलेगा।", locale)} Android: npm run native:android · iOS: npm run native:ios ·{" "}
+          {translateHindiText("फिर", locale)} npm run start:dev
         </Text>
         <Text style={styles.hintEn}>
           Do not use Expo Go. Android: npm run native:android · iOS: npm run native:ios · then npm run start:dev

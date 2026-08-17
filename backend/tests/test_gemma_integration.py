@@ -24,7 +24,7 @@ class TestGemmaMockFallback:
         assert result["model"] == MODEL_ID
         import re
 
-        assert re.search(r"[\u0900-\u097F]", result["hindi"])
+        assert re.search(r"[\u0980-\u09FF]", result["hindi"])
 
     def test_mock_critical_level(self):
         result = self.service.generate(
@@ -32,7 +32,7 @@ class TestGemmaMockFallback:
             {"level": "critical", "explanations": [{"name": "Convulsions"}]},
         )
         assert "emergency" in result["english"].lower()
-        assert "आपातकाल" in result["hindi"]
+        assert "জরুরি অবস্থা" in result["hindi"]
 
     def test_mock_high_level(self):
         result = self.service.generate(
@@ -54,7 +54,7 @@ class TestGemmaMockFallback:
             {"level": "low", "explanations": []},
         )
         assert "low risk" in result["english"].lower()
-        assert "सामान्य" in result["hindi"]
+        assert "স্বাভাবিক" in result["hindi"]
 
     def test_mock_with_factors_in_message(self):
         result = self.service.generate(

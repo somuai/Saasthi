@@ -10,7 +10,7 @@ const baseCols = [
 ];
 
 export default appSchema({
-  version: 4,
+  version: 6,
   tables: [
     tableSchema({
       name: "households",
@@ -117,6 +117,10 @@ export default appSchema({
         { name: "pnc_day1_json", type: "string", isOptional: true },
         { name: "pnc_day3_json", type: "string", isOptional: true },
         { name: "pnc_day7_json", type: "string", isOptional: true },
+        { name: "pnc_day14_json", type: "string", isOptional: true },
+        { name: "pnc_day21_json", type: "string", isOptional: true },
+        { name: "pnc_day28_json", type: "string", isOptional: true },
+        { name: "pnc_day42_json", type: "string", isOptional: true },
         { name: "pnc_week6_json", type: "string", isOptional: true },
         { name: "jsy_registered", type: "boolean", isOptional: true },
         { name: "jsy_payment_received", type: "boolean", isOptional: true },
@@ -313,6 +317,21 @@ export default appSchema({
         { name: "is_approved", type: "boolean", isOptional: true },
         { name: "approved_at", type: "string", isOptional: true },
         { name: "payment_received", type: "boolean", isOptional: true },
+      ],
+    }),
+    tableSchema({
+      name: "location_logs",
+      columns: [
+        ...baseCols,
+        { name: "latitude", type: "number" },
+        { name: "longitude", type: "number" },
+        { name: "accuracy_m", type: "number", isOptional: true },
+        { name: "altitude_m", type: "number", isOptional: true },
+        { name: "speed_mps", type: "number", isOptional: true },
+        { name: "battery_pct", type: "number", isOptional: true },
+        { name: "recorded_at", type: "string" },
+        { name: "is_during_visit", type: "boolean", isOptional: true },
+        { name: "visit_id", type: "string", isOptional: true },
       ],
     }),
   ],

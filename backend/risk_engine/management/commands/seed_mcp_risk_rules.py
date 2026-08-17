@@ -1,6 +1,7 @@
 """Seed MCP-specific risk rules for maternal and child health.
 Run ONCE: python manage.py seed_mcp_risk_rules
 """
+
 import logging
 
 from django.core.management.base import BaseCommand

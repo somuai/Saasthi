@@ -1,7 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors, radii, spacing, tapTarget } from "../constants/design";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 export function ListRow({ title, subtitle, meta, onPress }) {
+  const locale = useLocale();
+  const primaryTitle = translateHindiText(title, locale);
+  const primarySubtitle = translateHindiText(subtitle, locale);
+
   return (
     <Pressable
       accessibilityRole={onPress ? "button" : "text"}
@@ -9,10 +14,10 @@ export function ListRow({ title, subtitle, meta, onPress }) {
       style={({ pressed }) => [styles.row, pressed && onPress && styles.pressed]}
     >
       <View style={styles.textWrap}>
-        <Text style={styles.title}>{title}</Text>
-        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+        <Text style={styles.title}>{primaryTitle}</Text>
+        {subtitle ? <Text style={styles.subtitle}>{primarySubtitle}</Text> : null}
       </View>
-      {meta ? <Text style={styles.meta}>{meta}</Text> : null}
+      {meta ? <Text style={styles.meta}>{translateHindiText(meta, locale)}</Text> : null}
     </Pressable>
   );
 }

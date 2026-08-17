@@ -1,15 +1,17 @@
 import { useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import PropTypes from "prop-types";
 import * as SecureStore from "expo-secure-store";
 import { DatabaseProvider } from "@nozbe/watermelondb/react";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { Provider } from "react-redux";
+import { DatabaseGate } from "../components/DatabaseGate";
 import { getDatabase, isWatermelonNativeAvailable } from "../database";
 import { store } from "./store";
 import { setOnlineStatus } from "../features/sync/syncSlice";
 import { subscribeConnectivity } from "../utils/connectivity";
 import { setUser, setWorkerData, setTokens, setOfflinePilotSession } from "../features/auth/authSlice";
 import { AUTH_USER_KEY, AUTH_WORKER_KEY, clearAuthSession, persistAuthSession } from "../features/auth/authSession";
-import { DatabaseGate } from "../components/DatabaseGate";
 
 export { clearAuthSession, persistAuthSession };
 
@@ -64,7 +66,13 @@ function DatabaseShell({ children }) {
 export function AppProvider({ children }) {
   return (
     <Provider store={store}>
-      <DatabaseShell>{children}</DatabaseShell>
+      <SafeAreaProvider>
+        <DatabaseShell>{children}</DatabaseShell>
+      </SafeAreaProvider>
     </Provider>
   );
 }
+
+AppProvider.propTypes = {
+  children: PropTypes.node,
+};

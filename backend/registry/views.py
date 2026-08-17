@@ -1,12 +1,19 @@
 from accounts.models import User
 from accounts.views import audit
+from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.response import Response
 from shaasthi_backend.querysets import for_user_geography
 
 from .models import Household, Patient
-from .serializers import HouseholdSerializer, MapPatientSerializer, PatientSerializer
+from .serializers import (
+    HouseholdSerializer,
+    MapPatientSerializer,
+    PatientReassignSerializer,
+    PatientSerializer,
+)
 from .services.abdm_service import build_fhir_patient_bundle
 
 
@@ -68,6 +75,41 @@ class PatientViewSet(viewsets.ModelViewSet):
         patient = self.get_object()
         bundle = build_fhir_patient_bundle(patient)
         return Response(bundle)
+
+    @action(detail=False, methods=["post"], url_path="reassign")
+    def reassign(self, request):
+        if request.user.role not in (User.Role.SUPERVISOR, User.Role.ADMIN, User.Role.AUDITOR):
+            raise PermissionDenied("Only supervisors and admins can reassign patients.")
+        serializer = PatientReassignSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        patient_ids = serializer.validated_data["patient_ids"]
+        new_asha_id = serializer.validated_data["new_asha_id"]
+
+        new_asha = get_object_or_404(User, pk=new_asha_id, role=User.Role.HEALTH_WORKER)
+        patients = list(self.get_queryset().filter(pk__in=patient_ids))
+        if not patients:
+            raise NotFound("No patients found matching the given IDs.")
+
+        for patient in patients:
+            old_asha_id = patient.asha_worker_id
+            patient.asha_worker = new_asha
+            patient.save(update_fields=["asha_worker"])
+            audit(
+                request,
+                "patient.reassign",
+                "Patient",
+                patient.local_uuid,
+                {"from_asha": old_asha_id, "to_asha": new_asha_id},
+            )
+
+        return Response(
+            {
+                "detail": (f"{len(patients)} patient(s) reassigned to {new_asha.get_full_name() or new_asha.phone}."),
+                "new_asha_id": new_asha.pk,
+                "reassigned_count": len(patients),
+            }
+        )
 
     @action(detail=False, methods=["get"])
     def map_data(self, request):

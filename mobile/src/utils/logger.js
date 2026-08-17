@@ -4,7 +4,7 @@ let SentryModule;
 async function getSentry() {
   if (!SentryModule) {
     try {
-      SentryModule = (await import("../utils/sentry")).default;
+      SentryModule = await import("../utils/sentry");
     } catch {
       SentryModule = null;
     }

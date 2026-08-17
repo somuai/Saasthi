@@ -13,6 +13,7 @@ import { RISK_LEVEL_COLORS } from "../../ml/riskConstants";
 import { tapTargetMin } from "../../constants/typography";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { logger } from "../../utils/logger";
+import { translateHindiText, useLocale } from "../../utils/localization";
 
 const VISIT_LABELS = {
   first: { hi: "पहली बार", en: "First" },
@@ -24,6 +25,8 @@ export default function PatientProfileScreen() {
   const { id } = useLocalSearchParams();
   const database = useDatabase();
   const router = useRouter();
+  const locale = useLocale();
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
   const [patient, setPatient] = useState(null);
   const [surveys, setSurveys] = useState([]);
   const [error, setError] = useState(null);
@@ -117,9 +120,13 @@ export default function PatientProfileScreen() {
     riskColor: RISK_LEVEL_COLORS[patient.riskLevel] || COLORS.textHint,
   };
 
+  const isHighRisk = patient.riskLevel === "high" || patient.riskLevel === "critical";
+  const headerBgColor = isHighRisk ? "#D32F2F" : COLORS.matriMaAccent;
+  const pageBg = isHighRisk ? COLORS.background : COLORS.matriMaBg;
+
   return (
-    <View style={{ flex: 1, backgroundColor: COLORS.background }}>
-      <GovtHeader titleHi="मरीज प्रोफाइल" title="Patient profile" showBack showSync />
+    <View style={[{ flex: 1, backgroundColor: pageBg }, isHighRisk && { borderWidth: 3, borderColor: "#D32F2F" }]}>
+      <GovtHeader titleHi="मरीज प्रोफाइल" title="Patient profile" showBack showSync backgroundColor={headerBgColor} />
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
         <Text style={styles.name}>{patient.name}</Text>
         <RiskBadge risk={risk} />
@@ -149,7 +156,7 @@ export default function PatientProfileScreen() {
 
         {surveys.length > 0 ? (
           <>
-            <Text style={styles.sectionHi}>सर्वे इतिहास</Text>
+            <Text style={styles.sectionHi}>{hiText("सर्वे इतिहास")}</Text>
             <Text style={styles.sectionEn}>Survey history</Text>
             {surveys.map((s) => {
               const vl = VISIT_LABELS[s.visitType] || { hi: s.visitType, en: s.visitType };
@@ -161,7 +168,7 @@ export default function PatientProfileScreen() {
                     <View style={styles.historyInfo}>
                       <Text style={styles.historyDate}>{s.surveyDate || "—"}</Text>
                       <Text style={styles.historyMeta}>
-                        {vl.hi} · {s.computedRiskLevel || "—"}
+                        {hiText(vl.hi)} · {s.computedRiskLevel || "—"}
                       </Text>
                     </View>
                   </View>
@@ -187,9 +194,9 @@ export default function PatientProfileScreen() {
           </>
         ) : (
           <>
-            <Text style={styles.sectionHi}>सर्वे इतिहास</Text>
+            <Text style={styles.sectionHi}>{hiText("सर्वे इतिहास")}</Text>
             <Text style={styles.sectionEn}>Survey history</Text>
-            <Text style={styles.muted}>कोई सर्वे नहीं / No surveys yet</Text>
+            <Text style={styles.muted}>{hiText("कोई सर्वे नहीं / No surveys yet")}</Text>
           </>
         )}
       </ScrollView>

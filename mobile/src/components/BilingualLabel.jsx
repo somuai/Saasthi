@@ -1,18 +1,25 @@
 import PropTypes from "prop-types";
 import { StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
-import { TYPOGRAPHY } from "../constants/typography";
+import { scriptFontFamily, TYPOGRAPHY } from "../constants/typography";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 export function BilingualLabel({ labelHi, labelEn, required, size = "md" }) {
-  const hiStyle = size === "sm" ? TYPOGRAPHY.hindiPrimarySm : TYPOGRAPHY.hindiPrimaryMd;
+  const locale = useLocale();
+  // Primary label is rendered in the user's script — Bengali, Devanagari, or Latin.
+  // The font family MUST match the script or glyphs render as tofu.
+  const primaryFont = scriptFontFamily(locale);
+  const primaryBase = size === "sm" ? TYPOGRAPHY.hindiPrimarySm : TYPOGRAPHY.hindiPrimaryMd;
+  const hiStyle = { ...primaryBase, fontFamily: primaryFont };
   const enStyle = size === "sm" ? TYPOGRAPHY.englishSecondarySm : TYPOGRAPHY.englishSecondaryMd;
+  const primaryLabel = locale === "en" ? labelEn : translateHindiText(labelHi, locale);
   return (
     <View style={styles.wrap}>
       <Text style={hiStyle}>
-        {labelHi}
+        {primaryLabel}
         {required ? <Text style={styles.req}> *</Text> : null}
       </Text>
-      <Text style={enStyle}>{labelEn}</Text>
+      {locale === "en" ? null : <Text style={enStyle}>{labelEn}</Text>}
     </View>
   );
 }

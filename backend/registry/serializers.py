@@ -69,14 +69,18 @@ class PatientSerializer(serializers.ModelSerializer):
             "bank_branch_name",
             "gravida",
             "para",
+            "abortions",
             "last_delivery_date",
             "last_delivery_place",
             "obstetric_complications",
             "past_medical_history",
             "lmp_date",
             "edd",
+            "blood_group",
+            "rh_typing",
             "is_high_risk_pregnancy",
             "anc_visit_count",
+            "mcp_registration_date",
             "mother_patient",
             "birth_weight_kg",
             "birth_place",
@@ -124,6 +128,11 @@ class PatientSerializer(serializers.ModelSerializer):
                     "ASHA worker geography (village/block/district) must be set before registering patients."
                 )
         return attrs
+
+
+class PatientReassignSerializer(serializers.Serializer):
+    patient_ids = serializers.ListField(child=serializers.IntegerField(), allow_empty=False)
+    new_asha_id = serializers.IntegerField()
 
 
 class MapPatientSerializer(serializers.ModelSerializer):

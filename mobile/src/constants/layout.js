@@ -1,0 +1,3 @@
+export const TAB_BAR_BOTTOM_GAP = 12;
+export const TAB_BAR_HORIZONTAL_MARGIN = 16;
+export const TAB_SCREEN_BOTTOM_PADDING = 168;

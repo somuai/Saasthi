@@ -1,12 +1,15 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
 import { spacing, typography } from "../constants/design";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 export function SplashScreen() {
+  const locale = useLocale();
+
   return (
     <View style={styles.root}>
       <Text style={styles.title}>SHAASTHI</Text>
-      <Text style={styles.subtitle}>राष्ट्रीय स्वास्थ्य मिशन</Text>
+      <Text style={styles.subtitle}>{translateHindiText("राष्ट्रीय स्वास्थ्य मिशन", locale)}</Text>
       <ActivityIndicator size="large" color="#fff" style={styles.spinner} />
     </View>
   );

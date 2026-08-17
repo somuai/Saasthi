@@ -6,7 +6,7 @@ services:
     volumes:
       - .:/app
     environment:
-      USE_GUNICORN: "false"
+      USE_GUNICORN: "true"
       DJANGO_DEBUG: "true"
 
   celery_worker:

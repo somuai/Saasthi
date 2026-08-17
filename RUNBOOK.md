@@ -155,3 +155,20 @@ Report: `eval/report.json`
 | Eval (live) | `make eval` | OVERALL: PASS (requires API :8000) |
 
 _Last verified in CI/workspace: 2026-05-18._
+
+## 5. Load Testing (K6 Chaos Engineering)
+
+To validate production readiness, especially when deploying PgBouncer and Kafka updates, use the `k6` load testing suite.
+
+**Prerequisites:** Install `k6` locally (`brew install k6` or via apt).
+
+```bash
+cd load_tests
+# Run the combined ASHA worker and Admin dashboard simulation
+k6 run main.js
+```
+
+**What to look for:**
+- `http_req_duration`: Ensure `p(95)` stays below 500ms.
+- `http_req_failed`: Must remain below 1% under heavy thundering herd loads.
+- Check Postgres connections via PgBouncer (`psql -h localhost -p 6432 -U pgbouncer -d pgbouncer -c "SHOW POOLS;"`) while the test is active to ensure connection pooling isn't starved.

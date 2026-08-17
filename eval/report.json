@@ -1,5 +1,5 @@
 {
-  "started_at": "2026-05-26T13:37:33Z",
+  "started_at": "2026-05-30T17:00:10Z",
   "tiers": [
     {
       "tier": "T1",
@@ -8,9 +8,9 @@
           "name": "T1_jest",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.71,
+          "duration_sec": 1.09,
           "stdout_tail": "\n> shaasthi-mobile@0.1.0 test\n> jest --watchAll=false\n\n",
-          "stderr_tail": "watchman warning:  Recrawled this watch 61 times, most recently because:\nMustScanSubDirs UserDroppedTo resolve, please review the information on\nhttps://facebook.github.io/watchman/docs/troubleshooting.html#recrawl\nTo clear this warning, run:\n`watchman watch-del '/Users/soumyajitghosh/Documents/Saasthi' ; watchman watch-project '/Users/soumyajitghosh/Documents/Saasthi'`\n\nPASS __tests__/authSession.test.js\nPASS __tests__/ficIncentive.test.js\nPASS __tests__/syncJitter.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/workerId.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/syncErrors.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       37 passed, 37 total\nSnapshots:   0 total\nTime:        0.363 s, estimated 1 s\nRan all test suites.\n"
+          "stderr_tail": "PASS __tests__/ficIncentive.test.js\nPASS __tests__/mcpCalculators.test.js\nPASS __tests__/authSession.test.js\nPASS __tests__/scorePatient.test.js\nPASS __tests__/riskGolden.test.js\nPASS __tests__/locale.test.js\nPASS __tests__/surveySubmit.test.js\nPASS __tests__/surveyDraft.test.js\nPASS __tests__/userInputStorage.test.js\nPASS __tests__/syncErrors.test.js\nPASS __tests__/syncContract.test.js\nPASS __tests__/syncJitter.test.js\nPASS __tests__/workerId.test.js\n\nTest Suites: 13 passed, 13 total\nTests:       38 passed, 38 total\nSnapshots:   0 total\nTime:        0.524 s, estimated 1 s\nRan all test suites.\n"
         }
       ]
     },
@@ -21,8 +21,8 @@
           "name": "T2_django",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 4.94,
-          "stdout_tail": "tion.py ..........                             [ 51%]\ntests/unit/test_feature_extractor.py ......                              [ 53%]\ntests/unit/test_mcp_risk_engine.py ................................      [ 61%]\ntests/unit/test_otp_service.py .............                             [ 64%]\ntests/unit/test_risk_engine.py ......................................... [ 75%]\n.......                                                                  [ 77%]\ntests/unit/test_risk_engine_safety_audit.py ............................ [ 84%]\n...                                                                      [ 85%]\ntests/test_gemma_integration.py ........                                 [ 87%]\ntests/test_gps_service.py ..........                                     [ 90%]\ntests/unit/test_feature_extractor.py ................                    [ 94%]\ntests/unit/test_risk_engine.py .....................                     [100%]\n\n=============================== warnings summary ===============================\ntests/test_e2e_pipeline.py: 3 warnings\ntests/test_firebase_auth.py: 14 warnings\ntests/test_household_location.py: 5 warnings\ntests/test_incentives.py: 7 warnings\ntests/test_new_endpoints.py: 16 warnings\ntests/test_notifications.py: 8 warnings\ntests/test_otp_auth.py: 1 warning\ntests/test_risk_and_flags.py: 6 warnings\ntests/test_risk_engine_views.py: 15 warnings\ntests/test_sync.py: 26 warnings\ntests/test_sync_follow_up.py: 7 warnings\ntests/test_sync_offline_timestamp.py: 2 warnings\ntests/test_visit_record_gps.py: 5 warnings\ntests/test_worker_registration.py: 10 warnings\n  /Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/django/core/handlers/base.py:61: UserWarning: No directory at: /Users/soumyajitghosh/Documents/Saasthi/backend/staticfiles/\n    mw_instance = middleware(adapted_handler)\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n====================== 382 passed, 125 warnings in 3.60s =======================\n",
+          "duration_sec": 20.91,
+          "stdout_tail": "..............      [ 66%]\ntests/unit/test_otp_service.py .............                             [ 68%]\ntests/unit/test_risk_engine.py ......................................... [ 78%]\n.......                                                                  [ 79%]\ntests/unit/test_risk_engine_safety_audit.py ............................ [ 85%]\n...                                                                      [ 86%]\ntests/test_gemma_integration.py ........                                 [ 88%]\ntests/test_gps_service.py ..........                                     [ 90%]\ntests/test_otp_auth.py ......                                            [ 91%]\ntests/unit/test_feature_extractor.py ................                    [ 95%]\ntests/unit/test_risk_engine.py .....................                     [100%]\n\n=============================== warnings summary ===============================\ntests/test_firebase_auth.py: 6 warnings\ntests/test_otp_auth.py: 5 warnings\ntests/test_sync.py: 2 warnings\ntests/test_worker_registration.py: 1 warning\n  /Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/jwt/api_jwt.py:147: InsecureKeyLengthWarning: The HMAC key is 19 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.\n    return self._jws.encode(\n\ntests/test_firebase_auth.py::TestFirebaseVerifyEndpoint::test_jwt_contains_role_claim\ntests/test_sync.py::test_push_data_isolation_rejects_wrong_geography\ntests/test_sync.py::test_pull_respects_geography\n  /Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/jwt/api_jwt.py:368: InsecureKeyLengthWarning: The HMAC key is 19 bytes long, which is below the minimum recommended length of 32 bytes for SHA256. See RFC 7518 Section 3.2.\n    decoded = self.decode_complete(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n====================== 450 passed, 17 warnings in 19.42s =======================\n",
           "stderr_tail": "ast):\n  File \"/opt/homebrew/Cellar/python@3.12/3.12.11/Frameworks/Python.framework/Versions/3.12/lib/python3.12/logging/__init__.py\", line 1163, in emit\n    stream.write(msg + self.terminator)\nValueError: I/O operation on closed file.\nCall stack:\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/google/genai/client.py\", line 687, in __del__\n    self.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/google/genai/client.py\", line 673, in close\n    self._api_client.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/google/genai/_api_client.py\", line 2170, in close\n    self._httpx_client.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpx/_client.py\", line 1270, in close\n    self._transport.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpx/_transports/default.py\", line 262, in close\n    self._pool.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py\", line 353, in close\n    self._close_connections(closing_connections)\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/connection_pool.py\", line 345, in _close_connections\n    connection.close()\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_sync/connection.py\", line 172, in close\n    with Trace(\"close\", logger, None, {}):\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_trace.py\", line 64, in __exit__\n    self.trace(f\"{self.name}.complete\", info)\n  File \"/Users/soumyajitghosh/Documents/Saasthi/backend/.venv/lib/python3.12/site-packages/httpcore/_trace.py\", line 47, in trace\n    self.logger.debug(message)\nMessage: 'close.complete'\nArguments: ()\n"
         }
       ]
@@ -58,13 +58,52 @@
           "name": "T5_compliance",
           "ok": true,
           "exit_code": 0,
-          "duration_sec": 0.02,
+          "duration_sec": 0.03,
           "stdout_tail": "PASS all compliance checks\n",
           "stderr_tail": ""
         }
       ]
+    },
+    {
+      "tier": "T6",
+      "results": [
+        {
+          "name": "T6_production_readiness",
+          "ok": false,
+          "exit_code": 1,
+          "duration_sec": 0.09,
+          "stdout_tail": "production code should use src/utils/logger.js; matches: mobile/src/database/createDatabase.js:13: console.warn(\"[WatermelonDB] setup error\", error);; mobile/src/constants/api.js:10: console.error(\"CRITICAL: EXPO_PUBLIC_API_URL not set in production build\");; mobile/src/utils/sentry.js:17: console.warn(\"[Sentry] EXPO_PUBLIC_SENTRY_DSN not set \u2014 skipping initialization\");; mobile/src/ml/TFLiteService.js:84: console.warn(\"[TFLite] Rule evaluation failed:\", rule?.factor, e?.message);; mobile/src/screens/tabs/MapScreen.jsx:34: console.log(\"[MapScreen] fetchMapData error (falling back offline):\", e.message || e);; mobile/src/screens/tabs/EarningsScreen.jsx:101: console.warn(\"Pre-download token validation failed or offline:\", err); (+5 more)\n[PASS] watermelon-schema-migration-version - WatermelonDB schema version 4 has a migration path through version 4\n[PASS] mapbox-not-required - Mapbox SDK/token references should not be required for OSM deployment; matches: no matches\n[FAIL] anm-api-versioned - ANM API should be mounted under /api/v1/anm/ to match mobile API versioning conventions\n[FAIL] dashboard-router-basename - dashboard BrowserRouter needs basename=/dashboard or hash routing when served under /dashboard/\n[FAIL] dashboard-spa-direct-link-fallback - dashboard URLs should serve the SPA for direct links like /dashboard/patients\n[FAIL] dashboard-command-runner-admin-only - dashboard command runner must be admin-only, audited, and isolated from supervisor users\n[FAIL] sync-direct-object-scope-tests - backend tests should reject direct patient/household sync writes outside the authenticated worker scope\n[PASS] anm-ocr-endpoint-present - ANM OCR extraction service and route are present\n[PASS] monthly-report-service-present - monthly report service and ANM report routes are present\n[PASS] mobile-extra-api-base-url-empty - app.json does not embed a non-empty API URL; production should use EXPO_PUBLIC_API_URL secrets\n\nProduction readiness: 17 passed, 0 warnings, 14 blockers\n",
+          "stderr_tail": ""
+        }
+      ]
+    },
+    {
+      "tier": "T7",
+      "results": [
+        {
+          "name": "T7_dashboard_build",
+          "ok": true,
+          "exit_code": 0,
+          "duration_sec": 3.7,
+          "stdout_tail": "\n> shaasthi-dashboard@0.1.0 build\n> tsc -b && vite build\n\nvite v6.4.2 building for production...\ntransforming...\n\u2713 2321 modules transformed.\nrendering chunks...\ncomputing gzip size...\nstatic/dashboard/index.html          0.68 kB \u2502 gzip:   0.37 kB\nstatic/dashboard/assets/logo.png    70.44 kB\nstatic/dashboard/assets/index.css   50.14 kB \u2502 gzip:  13.27 kB\nstatic/dashboard/index.js          983.18 kB \u2502 gzip: 282.01 kB\n\u2713 built in 2.16s\n",
+          "stderr_tail": "\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n"
+        }
+      ]
+    },
+    {
+      "tier": "T8",
+      "results": [
+        {
+          "name": "T8_backend_deploy_check",
+          "ok": false,
+          "exit_code": 1,
+          "duration_sec": 1.79,
+          "stdout_tail": "",
+          "stderr_tail": " base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.\n?: (drf_spectacular.W002) /Users/soumyajitghosh/Documents/Saasthi/backend/dashboard/api/views.py: Error [DashboardSummary]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.\n?: (drf_spectacular.W002) /Users/soumyajitghosh/Documents/Saasthi/backend/dashboard/api/views.py: Error [IncentiveApprove]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.\n?: (drf_spectacular.W002) /Users/soumyajitghosh/Documents/Saasthi/backend/dashboard/api/views.py: Error [IncentivePay]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.\n?: (drf_spectacular.W002) /Users/soumyajitghosh/Documents/Saasthi/backend/dashboard/api/views.py: Error [RecentActivity]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.\n?: (drf_spectacular.W002) /Users/soumyajitghosh/Documents/Saasthi/backend/sync/views.py: Error [SyncPushView]: unable to guess serializer. This is graceful fallback handling for APIViews. Consider using GenericAPIView as view base class, if view is under your control. Either way you may want to add a serializer_class (or method). Ignoring view for now.\n\nSystem check identified 57 issues (0 silenced).\n"
+        }
+      ]
     }
   ],
-  "ok": true,
-  "finished_at": "2026-05-26T13:37:38Z"
+  "ok": false,
+  "finished_at": "2026-05-30T17:00:37Z"
 }

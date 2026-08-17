@@ -5,7 +5,8 @@ from django.db.models.deletion import CASCADE
 
 def _get_project_models():
     return [
-        m for m in apps.get_models()
+        m
+        for m in apps.get_models()
         if not m._meta.abstract
         and not m._meta.proxy
         and not m._meta.app_label.startswith("django.")
@@ -31,7 +32,11 @@ class TestForeignKeyIntegrity:
         unexpected = []
         for model in _get_project_models():
             for field in _fk_fields(model):
-                if field.related_model and field.related_model.__name__ == "Patient" and field.remote_field.on_delete is CASCADE:
+                if (
+                    field.related_model
+                    and field.related_model.__name__ == "Patient"
+                    and field.remote_field.on_delete is CASCADE
+                ):
                     unexpected.append(f"{model.__name__}.{field.name}")
         # These are tightly-coupled child records — CASCADE is acceptable.
         acceptable = {
@@ -62,7 +67,11 @@ class TestForeignKeyIntegrity:
         unexpected = []
         for model in _get_project_models():
             for field in _fk_fields(model):
-                if field.related_model and field.related_model.__name__ == "User" and field.remote_field.on_delete is CASCADE:
+                if (
+                    field.related_model
+                    and field.related_model.__name__ == "User"
+                    and field.remote_field.on_delete is CASCADE
+                ):
                     unexpected.append(f"{model.__name__}.{field.name}")
         acceptable = {
             "WorkerRegistration",

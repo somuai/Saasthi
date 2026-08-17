@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - "alert.rules"
+
+scrape_configs:
+  - job_name: "shaasthi_api"
+    metrics_path: "/metrics"
+    static_configs:
+      - targets: ["api:8000"]

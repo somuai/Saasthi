@@ -8,17 +8,26 @@ import { TricolorStripe } from "./TricolorStripe";
 import { OfflineBanner } from "./OfflineBanner";
 import { PilotSyncBanner } from "./PilotSyncBanner";
 import { SyncIndicator } from "./SyncIndicator";
+import { translateHindiText, useLocale } from "../utils/localization";
 
-export function GovtHeader({ title, titleHi, showBack, showSync, rightComponent }) {
+export function GovtHeader({ title, titleEn, titleHi, showBack, showSync, rightComponent, backgroundColor }) {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
+  const rawInsets = useSafeAreaInsets();
+  // Guard against a missing SafeAreaProvider ancestor (returns all-zero insets on iOS,
+  // causing content to slide under the notch/Dynamic Island).
+  const insets = { top: rawInsets?.top || 0, bottom: rawInsets?.bottom || 0 };
+  const locale = useLocale();
+  const englishTitle = titleEn ?? title;
   const hi = titleHi ?? title;
   const showBrandText = !hi;
+  const primaryTitle = locale === "en" ? englishTitle || titleHi : translateHindiText(hi, locale);
+  const showSubTitle = locale !== "en" && titleHi && englishTitle && englishTitle !== titleHi;
+  const bg = backgroundColor ?? COLORS.primary;
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, { backgroundColor: bg }]}>
       <TricolorStripe />
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.primary} />
-      <View style={[styles.bar, { paddingTop: Math.max(insets.top, 8) }]}>
+      <StatusBar barStyle="light-content" backgroundColor={bg} />
+      <View style={[styles.bar, { paddingTop: Math.max(insets.top, 8), backgroundColor: bg }]}>
         <View style={[styles.left, showBack && styles.leftCompact]}>
           {showBack ? (
             <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.iconBtn}>
@@ -36,11 +45,11 @@ export function GovtHeader({ title, titleHi, showBack, showSync, rightComponent 
         </View>
         <View style={styles.center}>
           <Text style={styles.title} numberOfLines={1}>
-            {hi}
+            {primaryTitle}
           </Text>
-          {titleHi && title && title !== titleHi ? (
+          {showSubTitle ? (
             <Text style={styles.sub} numberOfLines={1}>
-              {title}
+              {englishTitle}
             </Text>
           ) : null}
         </View>
@@ -57,6 +66,7 @@ export function GovtHeader({ title, titleHi, showBack, showSync, rightComponent 
 
 GovtHeader.propTypes = {
   title: PropTypes.string,
+  titleEn: PropTypes.string,
   titleHi: PropTypes.string,
   showBack: PropTypes.bool,
   showSync: PropTypes.bool,
@@ -84,7 +94,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   brandRow: { flexDirection: "row", alignItems: "center", gap: 6, minWidth: 0 },
-  brandLogo: { width: 20, height: 20 },
+  brandLogo: { width: 28, height: 28 },
   brand: { color: "#fff", fontSize: 11, fontWeight: "800", letterSpacing: 0.5, flexShrink: 1 },
   center: { flex: 2.2, alignItems: "center", minWidth: 0, paddingHorizontal: 8 },
   title: { color: "#fff", fontSize: 16, fontWeight: "800", textAlign: "center" },

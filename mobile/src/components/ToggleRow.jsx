@@ -1,10 +1,11 @@
 import PropTypes from "prop-types";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
-import { tapTarget } from "../constants/design";
 import { BilingualLabel } from "./BilingualLabel";
+import { localizePair, useLocale } from "../utils/localization";
 
 export function ToggleRow({ labelHi, labelEn, value, onChange, required, disabled }) {
+  const locale = useLocale();
   const select = (v) => !disabled && onChange?.(v);
   return (
     <View style={[styles.card, disabled && styles.disabled]}>
@@ -18,7 +19,7 @@ export function ToggleRow({ labelHi, labelEn, value, onChange, required, disable
           onPress={() => select(true)}
           style={({ pressed }) => [styles.pill, value === true && styles.yesOn, pressed && { transform: [{ scale: 0.95 }] }]}
         >
-          <Text style={[styles.pillText, value === true && styles.pillOnText]}>हां / YES</Text>
+          <Text style={[styles.pillText, value === true && styles.pillOnText]}>{localizePair("हां", "YES", locale)}</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
@@ -26,7 +27,7 @@ export function ToggleRow({ labelHi, labelEn, value, onChange, required, disable
           onPress={() => select(false)}
           style={({ pressed }) => [styles.pill, value === false && styles.noOn, pressed && { transform: [{ scale: 0.95 }] }]}
         >
-          <Text style={[styles.pillText, value === false && styles.pillOnText]}>नहीं / NO</Text>
+          <Text style={[styles.pillText, value === false && styles.pillOnText]}>{localizePair("नहीं", "NO", locale)}</Text>
         </Pressable>
       </View>
     </View>

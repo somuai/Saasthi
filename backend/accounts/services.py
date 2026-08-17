@@ -29,9 +29,14 @@ def import_workers_csv(csv_content, supervisor, file_name=""):
             if not phone or not full_name:
                 results["errors"].append(f"Row {i}: phone and full_name are required")
                 continue
-            if len(phone) != 10 or not phone.isdigit():
+
+            from .serializers import normalize_phone
+
+            clean_phone, phone_10digit = normalize_phone(phone)
+            if not (len(phone_10digit) == 10 and phone_10digit.isdigit()):
                 results["errors"].append(f"Row {i}: invalid phone '{phone}'")
                 continue
+            phone = clean_phone
 
             village = row.get("village", "").strip()
             block = row.get("block", "").strip()

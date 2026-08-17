@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("incentives", "0003_fix_fk_on_delete_user"),
     ]
@@ -42,9 +41,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "amount_paise",
-                    models.PositiveIntegerField(
-                        help_text="Amount in paise (rupees × 100)"
-                    ),
+                    models.PositiveIntegerField(help_text="Amount in paise (rupees × 100)"),
                 ),
                 ("label_en", models.CharField(blank=True, max_length=120)),
                 ("label_hi", models.CharField(blank=True, max_length=120)),

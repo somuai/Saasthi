@@ -32,25 +32,23 @@ def test_sync_push_preserves_offline_timestamp(auth_client, sample_patient):
     # Push survey with old timestamp
     changes = {
         "survey_responses": {
-            "created": [{
-                "id": str(survey_uuid),
-                "patient_id": str(sample_patient.local_uuid),
-                "survey_type": "initial",
-                "answers": {"fever": False, "rash": True},
-                "score_snapshot": {"risk_level": "moderate"},
-                "submitted_at": offline_timestamp_iso,  # ← OLD TIME (offline)
-            }],
+            "created": [
+                {
+                    "id": str(survey_uuid),
+                    "patient_id": str(sample_patient.local_uuid),
+                    "survey_type": "initial",
+                    "answers": {"fever": False, "rash": True},
+                    "score_snapshot": {"risk_level": "moderate"},
+                    "submitted_at": offline_timestamp_iso,  # ← OLD TIME (offline)
+                }
+            ],
             "updated": [],
             "deleted": [],
         }
     }
 
     # Sync to server NOW (current time)
-    resp = auth_client.post(
-        "/api/v1/sync/push/",
-        {"device_id": "phone-123", "changes": changes},
-        format="json"
-    )
+    resp = auth_client.post("/api/v1/sync/push/", {"device_id": "phone-123", "changes": changes}, format="json")
 
     assert resp.status_code == 200
     assert resp.data["results"][0]["status"] == SyncEvent.Status.APPLIED
@@ -61,9 +59,7 @@ def test_sync_push_preserves_offline_timestamp(auth_client, sample_patient):
     # ✅ CRITICAL ASSERTION
     # submitted_at should match the client's offline time, NOT server's now()
     assert survey.submitted_at == offline_time, (
-        f"Timestamp not preserved! "
-        f"Expected: {offline_time}, "
-        f"Got: {survey.submitted_at}"
+        f"Timestamp not preserved! Expected: {offline_time}, Got: {survey.submitted_at}"
     )
 
     # synced_at should be near NOW (recent sync)
@@ -73,8 +69,7 @@ def test_sync_push_preserves_offline_timestamp(auth_client, sample_patient):
     # The two timestamps should be DIFFERENT (offline gap of ~8 hours)
     time_diff = survey.synced_at - survey.submitted_at
     assert time_diff.total_seconds() > 3600, (
-        f"Should have ~8 hour gap between submitted_at and synced_at, "
-        f"got {time_diff.total_seconds()} seconds"
+        f"Should have ~8 hour gap between submitted_at and synced_at, got {time_diff.total_seconds()} seconds"
     )
 
 
@@ -103,22 +98,20 @@ def test_sync_push_updates_preserve_timestamp(auth_client, sample_patient):
     changes = {
         "survey_responses": {
             "created": [],
-            "updated": [{
-                "id": str(survey_uuid),
-                "patient_id": str(sample_patient.local_uuid),
-                "survey_type": "initial",
-                "answers": {"fever": True, "rash": False},  # Updated answers
-                "submitted_at": original_timestamp_iso,  # Same timestamp as original
-            }],
+            "updated": [
+                {
+                    "id": str(survey_uuid),
+                    "patient_id": str(sample_patient.local_uuid),
+                    "survey_type": "initial",
+                    "answers": {"fever": True, "rash": False},  # Updated answers
+                    "submitted_at": original_timestamp_iso,  # Same timestamp as original
+                }
+            ],
             "deleted": [],
         }
     }
 
-    resp = auth_client.post(
-        "/api/v1/sync/push/",
-        {"device_id": "phone-123", "changes": changes},
-        format="json"
-    )
+    resp = auth_client.post("/api/v1/sync/push/", {"device_id": "phone-123", "changes": changes}, format="json")
 
     assert resp.status_code == 200
     assert resp.data["results"][0]["status"] == SyncEvent.Status.APPLIED

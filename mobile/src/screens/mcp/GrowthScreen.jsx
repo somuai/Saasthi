@@ -13,6 +13,7 @@ import { COLORS } from "../../constants/colors";
 import { classifyNutrition, nutritionLabel, weightForAgeZ, whoChartBandLines } from "../../constants/whoGrowth";
 import { isoFromDate } from "../../utils/mcpHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
+import { localizePair, useLocale } from "../../utils/localization";
 
 const W = Dimensions.get("window").width - 32;
 
@@ -21,6 +22,9 @@ export default function GrowthScreen() {
   const database = useDatabase();
   const router = useRouter();
   const dispatch = useDispatch();
+  const locale = useLocale();
+  const pair = (hi, en) => localizePair(hi, en, locale);
+
   const [patients, setPatients] = useState([]);
   const [patient, setPatient] = useState(null);
   const [records, setRecords] = useState([]);
@@ -152,7 +156,7 @@ export default function GrowthScreen() {
     <View style={styles.page}>
       <GovtHeader titleHi="वृद्धि" title={patient?.name || "Growth"} showBack showSync />
       <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scroll}>
-        <Text style={styles.h}>Weight trend / वजन प्रवृत्ति</Text>
+        <Text style={styles.h}>{pair("वजन प्रवृत्ति", "Weight trend")}</Text>
         <Svg width={W} height={140} style={styles.chart}>
           <Line x1={20} y1={120} x2={W - 20} y2={120} stroke={COLORS.border} strokeWidth={1} />
           <Polyline points={bands.minus2} fill="none" stroke={COLORS.warning} strokeWidth={1} strokeDasharray="4 3" />
@@ -174,7 +178,7 @@ export default function GrowthScreen() {
             <Text style={styles.statusTag}>{nutritionLabel(r.nutritionStatus)}</Text>
           </View>
         ))}
-        <Text style={styles.h}>New measurement / नया माप</Text>
+        <Text style={styles.h}>{pair("नया माप", "New measurement")}</Text>
         <GovtInput labelHi="आयु (माह)" label="Age months" value={ageMonths} onChangeText={setAgeMonths} keyboardType="number-pad" />
         <GovtInput labelHi="वजन (kg)" label="Weight kg" value={weight} onChangeText={setWeight} keyboardType="decimal-pad" />
         <GovtInput labelHi="ऊंचाई (cm)" label="Height cm" value={height} onChangeText={setHeight} keyboardType="decimal-pad" />

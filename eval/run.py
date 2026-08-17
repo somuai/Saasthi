@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""SHAASTHI eval orchestrator — runs T1–T5 and writes eval/report.json."""
+"""SHAASTHI eval orchestrator — runs QA tiers and writes eval/report.json."""
 
 from __future__ import annotations
 
@@ -94,10 +94,47 @@ def tier_compliance() -> dict:
     return run_cmd("T5_compliance", [_api_python(), str(EVAL_DIR / "compliance_check.py")], cwd=ROOT)
 
 
+def tier_production_readiness() -> dict:
+    return run_cmd("T6_production_readiness", [_api_python(), str(EVAL_DIR / "production_readiness.py")], cwd=ROOT)
+
+
+def tier_dashboard_build() -> dict:
+    dashboard_dir = ROOT / "backend" / "dashboard"
+    if not (dashboard_dir / "package.json").exists():
+        return {"name": "T7_dashboard_build", "ok": True, "skipped": True, "reason": "backend/dashboard not present"}
+    return run_cmd("T7_dashboard_build", ["npm", "run", "build"], cwd=dashboard_dir)
+
+
+def tier_backend_deploy_check() -> dict:
+    env = {
+        "DJANGO_DEBUG": "false",
+        "DJANGO_SECRET_KEY": "ci-production-readiness-key-not-for-prod-9J3rF7vK2qL5mN8pR4sT6wX1yZ0aB",
+        "DJANGO_ALLOWED_HOSTS": "qa.saasthi.local",
+        "DATABASE_URL": "sqlite:////tmp/saasthi_deploy_check.sqlite3",
+        "REDIS_URL": "redis://localhost:6379/0",
+        "CELERY_BROKER_URL": "redis://localhost:6379/1",
+        "CELERY_TASK_ALWAYS_EAGER": "true",
+        "EXPOSE_DEBUG_OTP": "false",
+        "CORS_ALLOWED_ORIGINS": "https://qa.saasthi.local",
+        "CSRF_TRUSTED_ORIGINS": "https://qa.saasthi.local",
+    }
+    return run_cmd(
+        "T8_backend_deploy_check",
+        [_api_python(), "manage.py", "check", "--deploy", "--fail-level", "WARNING"],
+        cwd=ROOT / "backend",
+        env=env,
+    )
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="SHAASTHI eval suite")
     parser.add_argument("--offline", action="store_true", help="Skip live API tiers (T3 live, T4)")
-    parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4, 5], help="Run single tier only")
+    parser.add_argument(
+        "--production",
+        action="store_true",
+        help="Include production release gates: static readiness, dashboard build, and Django deploy check",
+    )
+    parser.add_argument("--tier", type=int, choices=[1, 2, 3, 4, 5, 6, 7, 8], help="Run single tier only")
     parser.add_argument("--verbose", action="store_true")
     args = parser.parse_args()
 
@@ -131,6 +168,12 @@ def main() -> int:
         record("T4", tier_scenarios(args.offline))
     if args.tier is None or args.tier == 5:
         record("T5", tier_compliance())
+    if args.production or args.tier == 6:
+        record("T6", tier_production_readiness())
+    if args.production or args.tier == 7:
+        record("T7", tier_dashboard_build())
+    if args.production or args.tier == 8:
+        record("T8", tier_backend_deploy_check())
 
     report["ok"] = all_ok
     report["finished_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())

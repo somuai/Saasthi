@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { Animated, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 const HINDI = {
   low: "सामान्य",
@@ -24,6 +25,7 @@ const LEVEL_COLORS = {
 };
 
 export function RiskBadge({ risk, riskLevel, score, showScore, size = "md" }) {
+  const locale = useLocale();
   const level = (riskLevel || risk?.riskLevel || "low").toLowerCase();
   const numScore = score ?? risk?.score ?? 0;
   const dim = SIZE_MAP[size] || SIZE_MAP.md;
@@ -55,8 +57,10 @@ export function RiskBadge({ risk, riskLevel, score, showScore, size = "md" }) {
         },
       ]}
     >
-      <Text style={[styles.hi, { fontSize: dim.hi }]}>{HINDI[level] || level}</Text>
-      <Text style={[styles.en, { fontSize: dim.en }]}>{level.toUpperCase()}</Text>
+      <Text style={[styles.hi, { fontSize: dim.hi }]}>
+        {locale === "en" ? level.toUpperCase() : translateHindiText(HINDI[level] || level, locale)}
+      </Text>
+      {locale === "en" ? null : <Text style={[styles.en, { fontSize: dim.en }]}>{level.toUpperCase()}</Text>}
       {showScore ? <Text style={styles.score}>{Math.round(numScore)}/100</Text> : null}
     </View>
   );

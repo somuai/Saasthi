@@ -7,14 +7,15 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "backend"
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "shaasthi_backend.settings")
 
 import django
+
 django.setup()
 
-from flagging.models import Flag
-from flagging.services import create_flags_for_assessment
-from registry.models import Patient
-from surveys.models import SurveyResponse
-from risk_engine.engine import assess
-from risk_engine.models import RiskRule
+from flagging.models import Flag  # noqa: E402
+from flagging.services import create_flags_for_assessment  # noqa: E402
+from registry.models import Patient  # noqa: E402
+from risk_engine.engine import assess  # noqa: E402
+from risk_engine.models import RiskRule  # noqa: E402
+from surveys.models import SurveyResponse  # noqa: E402
 
 
 def main() -> int:
@@ -33,7 +34,7 @@ def main() -> int:
             "answers": {"comm_cough_2weeks": True},
         },
     )
-    
+
     # Ensure there is a rule that matches this
     RiskRule.objects.update_or_create(
         code="TB_COUGH_RISK",
@@ -50,10 +51,10 @@ def main() -> int:
     )
 
     Flag.objects.filter(patient=patient, flag_type="TB_RISK").delete()
-    
+
     # Run new assessment
     assessment_dict = assess(patient, survey)
-    
+
     # Mock an assessment object for create_flags_for_assessment
     class MockAssessment:
         def __init__(self, data, patient):
@@ -62,10 +63,10 @@ def main() -> int:
             self.level = data["level"]
             self.total_score = data["total_score"]
             self.local_uuid = "eval-assessment-1"
-            
+
     assessment = MockAssessment(assessment_dict, patient)
     created_flags = create_flags_for_assessment(assessment)
-    
+
     if len(created_flags) < 1 and not Flag.objects.filter(patient=patient, flag_type="TB_RISK").exists():
         print("FAIL flagging did not create TB_RISK")
         return 1

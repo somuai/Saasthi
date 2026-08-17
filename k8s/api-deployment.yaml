@@ -1,0 +1,171 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: saasthi-api
+  namespace: saasthi
+  labels:
+    app: saasthi-api
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: saasthi-api
+  template:
+    metadata:
+      labels:
+        app: saasthi-api
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - saasthi-api
+              topologyKey: kubernetes.io/hostname
+      containers:
+        - name: api
+          image: saasthi-backend:latest # Build target image name
+          imagePullPolicy: IfNotPresent
+          command: ["gunicorn", "shaasthi_backend.asgi:application", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--workers", "4", "--timeout", "60"]
+          env:
+            - name: DJANGO_DEBUG
+              valueFrom:
+                configMapKeyRef:
+                  name: saasthi-config
+                  key: DJANGO_DEBUG
+            - name: DJANGO_ALLOWED_HOSTS
+              valueFrom:
+                configMapKeyRef:
+                  name: saasthi-config
+                  key: DJANGO_ALLOWED_HOSTS
+            - name: CORS_ALLOWED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: saasthi-config
+                  key: CORS_ALLOWED_ORIGINS
+            - name: CSRF_TRUSTED_ORIGINS
+              valueFrom:
+                configMapKeyRef:
+                  name: saasthi-config
+                  key: CSRF_TRUSTED_ORIGINS
+            - name: DB_CONN_MAX_AGE
+              valueFrom:
+                configMapKeyRef:
+                  name: saasthi-config
+                  key: DB_CONN_MAX_AGE
+            - name: SMS_PROVIDER
+              valueFrom:
+                configMapKeyRef:
+                  name: saasthi-config
+                  key: SMS_PROVIDER
+            - name: DJANGO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: saasthi-secrets
+                  key: DJANGO_SECRET_KEY
+            - name: DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: saasthi-secrets
+                  key: DATABASE_PASSWORD
+            - name: DATABASE_URL
+              value: postgresql://saasthi_admin:$(DATABASE_PASSWORD)@saasthi-pgbouncer-service:6432/saasthi
+            - name: ANYIO_MAX_THREADS
+              value: "250"
+            - name: USE_GUNICORN
+              value: "true"
+            - name: REDIS_URL
+              value: redis://saasthi-redis-service:6379/0
+            - name: CELERY_BROKER_URL
+              value: redis://saasthi-redis-service:6379/1
+            - name: GEMMA_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: saasthi-secrets
+                  key: GEMMA_API_KEY
+            - name: SENTRY_DSN
+              valueFrom:
+                secretKeyRef:
+                  name: saasthi-secrets
+                  key: SENTRY_DSN
+            - name: FIREBASE_SERVICE_ACCOUNT_PATH
+              value: /run/secrets/firebase-service-account.json
+          ports:
+            - containerPort: 8000
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: firebase-secret-volume
+              mountPath: /run/secrets
+              readOnly: true
+          livenessProbe:
+            httpGet:
+              path: /health/
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/
+              port: 8000
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 5
+            successThreshold: 1
+            failureThreshold: 3
+      volumes:
+        - name: firebase-secret-volume
+          secret:
+            secretName: saasthi-secrets
+            items:
+              - key: firebase-service-account.json
+                path: firebase-service-account.json
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: saasthi-api-service
+  namespace: saasthi
+spec:
+  ports:
+    - port: 8000
+      targetPort: 8000
+  selector:
+    app: saasthi-api
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: saasthi-api-hpa
+  namespace: saasthi
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: saasthi-api
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

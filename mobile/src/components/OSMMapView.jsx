@@ -1,8 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Platform, StyleSheet, View } from "react-native";
 import PropTypes from "prop-types";
 import { WebView } from "react-native-webview";
-import * as Location from "expo-location";
 
 function buildMapHtml(initialLat, initialLng, initialZoom) {
   return `
@@ -10,8 +9,14 @@ function buildMapHtml(initialLat, initialLng, initialZoom) {
 <html>
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+function notifyNative(payload){
+  try{window.ReactNativeWebView&&window.ReactNativeWebView.postMessage(JSON.stringify(payload));}catch(e){}
+}
+window.onerror=function(message){notifyNative({type:'mapError',reason:String(message||'map_error')});};
+</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 html,body,#map{height:100%;width:100%}
@@ -29,15 +34,21 @@ html,body,#map{height:100%;width:100%}
 <body>
 <div id="map"></div>
 <script>
+if(!window.L){
+  notifyNative({type:'mapError',reason:'leaflet_unavailable'});
+} else {
+try {
 var map=L.map('map',{center:[${initialLat},${initialLng}],zoom:${initialZoom},zoomControl:true});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a>'}).addTo(map);
 L.control.scale({imperial:false,metric:true}).addTo(map);
 
-var markers={}, userMarker=null;
+var markers={}, userMarker=null, targetMarker=null, routePolyline=null;
+var hasCenteredUser=false;
 
 map.on('click',function(){window.ReactNativeWebView.postMessage(JSON.stringify({type:'mapPress'}));});
 
 window.mapReady = true;
+notifyNative({type:'mapReady'});
 
 function setMarkers(data){
   Object.values(markers).forEach(function(m){map.removeLayer(m);});
@@ -69,6 +80,53 @@ function setUserLocation(lat,lng){
     icon:L.divIcon({className:'marker-icon',html:'<div id="user-dot"></div>',iconSize:[18,18],iconAnchor:[9,9]}),
     zIndexOffset:1000
   }).addTo(map);
+
+  if(!hasCenteredUser){
+    map.setView([lat,lng], 16);
+    hasCenteredUser=true;
+  }
+}
+
+function setTargetStation(lat,lng,name,detail){
+  if(targetMarker){map.removeLayer(targetMarker);}
+  targetMarker=L.marker([lat,lng],{
+    icon:L.divIcon({
+      className:'marker-icon',
+      html:'<div style="width:28px;height:28px;border-radius:50%;background:#EF4444;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:900;font-size:16px;line-height:28px">+</div>',
+      iconSize:[28,28],
+      iconAnchor:[14,14]
+    })
+  }).addTo(map);
+  targetMarker.bindPopup('<div class="popup-name">' + name + '</div><div class="popup-detail">' + detail + '</div>').openPopup();
+}
+
+function drawRoute(uLat,uLng,tLat,tLng){
+  if(routePolyline){map.removeLayer(routePolyline);}
+
+  // Make a small 3-point curved path for aesthetics
+  var midLat=(uLat+tLat)/2+(tLng-uLng)*0.15;
+  var midLng=(uLng+tLng)/2-(tLat-uLat)*0.15;
+  var points=[
+    [uLat,uLng],
+    [midLat,midLng],
+    [tLat,tLng]
+  ];
+
+  routePolyline=L.polyline(points,{
+    color:'#3B82F6',
+    weight:5,
+    opacity:0.85,
+    dashArray:'10, 10',
+    lineCap:'round',
+    lineJoin:'round'
+  }).addTo(map);
+
+  var bounds=L.latLngBounds([[uLat,uLng],[tLat,tLng]]);
+  map.fitBounds(bounds,{padding:[60,60]});
+}
+} catch(e) {
+  notifyNative({type:'mapError',reason:String(e&&e.message?e.message:e)});
+}
 }
 </script>
 </body>
@@ -85,15 +143,32 @@ function regionToZoom(latDelta) {
   return 4;
 }
 
-export default function OSMMapView({ markers, initialRegion, showsUserLocation, onMarkerPress, onMapPress, style }) {
+export default function OSMMapView({
+  markers,
+  initialRegion,
+  showsUserLocation,
+  userLocation,
+  routeTarget,
+  recenterCount,
+  onMarkerPress,
+  onMapPress,
+  onMapReady,
+  onMapError,
+  style,
+}) {
   const webviewRef = useRef(null);
   const [ready, setReady] = useState(false);
 
-  const html = buildMapHtml(
-    initialRegion?.latitude || 20.5937,
-    initialRegion?.longitude || 78.9629,
-    regionToZoom(initialRegion?.latitudeDelta || 4),
+  const html = useMemo(
+    () =>
+      buildMapHtml(
+        initialRegion?.latitude || 20.5937,
+        initialRegion?.longitude || 78.9629,
+        regionToZoom(initialRegion?.latitudeDelta || 4),
+      ),
+    [initialRegion?.latitude, initialRegion?.longitude, initialRegion?.latitudeDelta],
   );
+  const source = useMemo(() => ({ html }), [html]);
 
   const inject = useCallback((js) => {
     webviewRef.current?.injectJavaScript(js + ";true;");
@@ -105,20 +180,21 @@ export default function OSMMapView({ markers, initialRegion, showsUserLocation, 
         const msg = JSON.parse(event.nativeEvent.data);
         if (msg.type === "markerClick" && onMarkerPress) onMarkerPress(msg.id);
         if (msg.type === "mapPress" && onMapPress) onMapPress();
+        if (msg.type === "mapReady") {
+          setReady(true);
+          onMapReady?.();
+        }
+        if (msg.type === "mapError") onMapError?.(msg.reason);
       } catch {
         /* ignore malformed messages */
       }
     },
-    [onMarkerPress, onMapPress],
+    [onMapError, onMapPress, onMapReady, onMarkerPress],
   );
-
-  const handleLoad = useCallback(() => {
-    setReady(true);
-  }, []);
 
   const sendMarkers = useCallback(
     (data) => {
-      if (data && data.length) inject("setMarkers(" + JSON.stringify(data) + ")");
+      inject("setMarkers(" + JSON.stringify(Array.isArray(data) ? data : []) + ")");
     },
     [inject],
   );
@@ -135,34 +211,39 @@ export default function OSMMapView({ markers, initialRegion, showsUserLocation, 
   }, [ready, markers, sendMarkers]);
 
   useEffect(() => {
-    if (!ready || !showsUserLocation) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const { granted } = await Location.requestForegroundPermissionsAsync();
-        if (!granted || cancelled) return;
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
-        if (!cancelled) sendUserLocation(loc.coords.latitude, loc.coords.longitude);
-      } catch {
-        /* location unavailable */
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [ready, showsUserLocation, sendUserLocation]);
+    if (ready) return undefined;
+    const timeout = setTimeout(() => {
+      onMapError?.("map_ready_timeout");
+    }, Platform.OS === "ios" ? 15000 : 8000);
+    return () => clearTimeout(timeout);
+  }, [onMapError, ready]);
+
+  useEffect(() => {
+    if (!ready || !showsUserLocation || !userLocation) return;
+    sendUserLocation(userLocation.latitude, userLocation.longitude);
+  }, [ready, showsUserLocation, userLocation, sendUserLocation]);
+
+  useEffect(() => {
+    if (!ready || !routeTarget || !userLocation) return;
+    const cleanName = String(routeTarget.name || "").replace(/'/g, "\\'");
+    const cleanDetail = String(routeTarget.detail || "").replace(/'/g, "\\'");
+    inject(`setTargetStation(${routeTarget.latitude}, ${routeTarget.longitude}, '${cleanName}', '${cleanDetail}')`);
+    inject(`drawRoute(${userLocation.latitude}, ${userLocation.longitude}, ${routeTarget.latitude}, ${routeTarget.longitude})`);
+  }, [ready, routeTarget, userLocation, recenterCount, inject]);
 
   return (
     <View style={[styles.container, style]}>
       <WebView
         ref={webviewRef}
         style={styles.webview}
-        source={{ html }}
+        source={source}
         originWhitelist={["*"]}
         javaScriptEnabled
         domStorageEnabled
         onMessage={handleMessage}
-        onLoad={handleLoad}
+        onError={(event) => onMapError?.(event.nativeEvent?.description || "webview_error")}
+        onHttpError={(event) => onMapError?.(event.nativeEvent?.description || "webview_http_error")}
+        onLoadStart={() => setReady(false)}
         scrollEnabled={false}
         bounces={false}
         overScrollMode="never"
@@ -180,8 +261,21 @@ OSMMapView.propTypes = {
     longitudeDelta: PropTypes.number,
   }),
   showsUserLocation: PropTypes.bool,
+  userLocation: PropTypes.shape({
+    latitude: PropTypes.number.isRequired,
+    longitude: PropTypes.number.isRequired,
+  }),
+  routeTarget: PropTypes.shape({
+    latitude: PropTypes.number.isRequired,
+    longitude: PropTypes.number.isRequired,
+    name: PropTypes.string.isRequired,
+    detail: PropTypes.string,
+  }),
+  recenterCount: PropTypes.number,
   onMarkerPress: PropTypes.func,
   onMapPress: PropTypes.func,
+  onMapReady: PropTypes.func,
+  onMapError: PropTypes.func,
   style: PropTypes.oneOfType([PropTypes.object, PropTypes.array, PropTypes.number]),
 };
 

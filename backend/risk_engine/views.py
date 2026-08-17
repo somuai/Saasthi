@@ -13,7 +13,7 @@ from shaasthi_backend.throttling import GemmaQueryThrottle, RiskAssessmentThrott
 from surveys.models import SurveyResponse
 
 from .gemma_service import gemma_service
-from .models import RiskAssessment, RiskRule
+from .models import HealthcareFacility, RiskAssessment, RiskRule
 from .rule_validator import RuleValidator
 from .schemas_serializers import RiskAssessmentResponseSerializer, RiskRuleCreateSerializer, build_assessment_response
 from .serializers import RiskAssessmentSerializer, RiskRuleSerializer
@@ -165,6 +165,27 @@ class RiskAssessmentViewSet(viewsets.ModelViewSet):
             raise NotFound("No assessment found for this patient")
         return Response(build_assessment_response(assessment))
 
+    @action(detail=False, methods=["get"], url_path=r"by-local-id/(?P<local_survey_id>[^/.]+)")
+    def by_local_id(self, request, local_survey_id=None):
+        try:
+            survey = SurveyResponse.objects.select_related("patient").get(local_uuid=local_survey_id)
+        except SurveyResponse.DoesNotExist as exc:
+            raise NotFound("Survey response not found") from exc
+
+        if (
+            not survey.patient_id
+            or not for_user_geography(Patient.objects.filter(pk=survey.patient_id), request.user).exists()
+        ):
+            raise PermissionDenied("No access to this survey response")
+
+        assessment = self.get_queryset().filter(survey_response=survey).order_by("-created_at").first()
+        if not assessment:
+            return Response(
+                {"detail": "assessment_processing", "local_survey_id": str(survey.local_uuid)},
+                status=status.HTTP_202_ACCEPTED,
+            )
+        return Response(build_assessment_response(assessment))
+
     @action(detail=True, methods=["post"])
     def flags(self, request, pk=None):
         assessment = self.get_object()
@@ -226,3 +247,23 @@ class RiskAssessmentViewSet(viewsets.ModelViewSet):
         }
         audit(request, "risk.gemma_query", "Patient", patient.local_uuid)
         return Response(response_data)
+
+
+class FacilityViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = HealthcareFacility.objects.filter(is_active=True)
+    permission_classes = [IsAuthenticated]
+    throttle_scope = "risk_rules"
+    filterset_fields = ["facility_type", "district", "block", "village"]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        district = self.request.query_params.get("district")
+        block = self.request.query_params.get("block")
+        village = self.request.query_params.get("village")
+        if district:
+            qs = qs.filter(district__iexact=district)
+        if block:
+            qs = qs.filter(block__iexact=block)
+        if village:
+            qs = qs.filter(village__iexact=village)
+        return qs.order_by("facility_type", "name")

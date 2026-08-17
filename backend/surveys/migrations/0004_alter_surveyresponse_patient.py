@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("registry", "0006_add_missing_db_indexes"),
         ("surveys", "0003_add_missing_db_indexes"),

@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("referrals", "0002_referral_ix_referral_patient_status_and_more"),
         ("registry", "0006_add_missing_db_indexes"),

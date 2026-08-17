@@ -6,7 +6,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("notifications", "0002_notification_ix_notif_recipient_created_and_more"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),

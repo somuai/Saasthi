@@ -139,8 +139,13 @@ def _trigger_mcp_risk_assessment(instance, patient, request_user, population, se
             session_type=session_type,
             session_local_uuid=session_local_uuid,
         )
+    except ConnectionError:
+        logger.warning(
+            "MCP risk assessment broker unreachable for patient %s, running inline skipped", patient_local_uuid
+        )
     except Exception:
-        logger.exception("MCP risk assessment task enqueue failed for patient %s", patient_local_uuid)
+        logger.exception("MCP risk assessment failed for patient %s", patient_local_uuid)
+        raise
 
 
 def _create_incentive(immunization_record, request_user):
@@ -163,8 +168,11 @@ def _create_incentive(immunization_record, request_user):
             description_en=f"Incentive for {'FIC' if immunization_record.fic_eligible else 'CIC'} eligible immunization",
             description_hi=f"{'FIC' if immunization_record.fic_eligible else 'CIC'} टीकाकरण के लिए प्रोत्साहन",
         )
+    except ConnectionError:
+        logger.warning("Incentive broker unreachable for immunization %s", immunization_record.local_uuid)
     except Exception:
         logger.exception("Incentive creation failed for immunization %s", immunization_record.local_uuid)
+        raise
 
 
 class CareInteractionViewSet(viewsets.ModelViewSet):
@@ -180,7 +188,9 @@ class CareInteractionViewSet(viewsets.ModelViewSet):
         obj = serializer.save(created_by=self.request.user)
         audit(self.request, "mcp.care_interaction.create", "CareInteraction", obj.local_uuid)
         session = _create_mcp_session(obj, self.request.user, "care_interaction", "CareInteraction")
-        _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "general", "care_interaction", session=session)
+        _trigger_mcp_risk_assessment(
+            obj, obj.patient, self.request.user, "general", "care_interaction", session=session
+        )
 
 
 class ANCVisitViewSet(viewsets.ModelViewSet):
@@ -212,7 +222,9 @@ class DeliveryRecordViewSet(viewsets.ModelViewSet):
         obj = serializer.save(asha_worker=self.request.user)
         audit(self.request, "mcp.delivery.create", "DeliveryRecord", obj.local_uuid)
         session = _create_mcp_session(obj, self.request.user, "delivery_record", "DeliveryRecord")
-        _trigger_mcp_risk_assessment(obj, obj.mother_patient, self.request.user, "maternal", "delivery_record", session=session)
+        _trigger_mcp_risk_assessment(
+            obj, obj.mother_patient, self.request.user, "maternal", "delivery_record", session=session
+        )
         _create_uip_immunizations(obj)
 
 
@@ -229,7 +241,9 @@ class PNCVisitViewSet(viewsets.ModelViewSet):
         obj = serializer.save(asha_worker=self.request.user)
         audit(self.request, "mcp.pnc_visit.create", "PNCVisit", obj.local_uuid)
         session = _create_mcp_session(obj, self.request.user, "pnc_visit", "PNCVisit")
-        _trigger_mcp_risk_assessment(obj, obj.mother_patient, self.request.user, "maternal", "pnc_visit", session=session)
+        _trigger_mcp_risk_assessment(
+            obj, obj.mother_patient, self.request.user, "maternal", "pnc_visit", session=session
+        )
 
 
 class GrowthRecordViewSet(viewsets.ModelViewSet):
@@ -262,7 +276,9 @@ class DevelopmentMilestoneCheckViewSet(viewsets.ModelViewSet):
         audit(self.request, "mcp.milestone_check.create", "DevelopmentMilestoneCheck", obj.local_uuid)
         session = _create_mcp_session(obj, self.request.user, "milestone_check", "MilestoneCheck")
         if obj.any_warning_sign:
-            _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "child", "milestone_check", session=session)
+            _trigger_mcp_risk_assessment(
+                obj, obj.patient, self.request.user, "child", "milestone_check", session=session
+            )
 
 
 class ImmunizationRecordViewSet(viewsets.ModelViewSet):
@@ -281,7 +297,9 @@ class ImmunizationRecordViewSet(viewsets.ModelViewSet):
         session = _create_mcp_session(obj, self.request.user, "immunization_update", "ImmunizationRecord")
         _create_incentive(obj, self.request.user)
         if obj.status in ("given", "missed", "overdue"):
-            _trigger_mcp_risk_assessment(obj, obj.patient, self.request.user, "child", "immunization_update", session=session)
+            _trigger_mcp_risk_assessment(
+                obj, obj.patient, self.request.user, "child", "immunization_update", session=session
+            )
 
     @action(detail=False, methods=["get"])
     def due_today(self, request):

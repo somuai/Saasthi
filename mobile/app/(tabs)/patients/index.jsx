@@ -1,3 +1,3 @@
-import PatientsListScreen from "../../../src/screens/patients/PatientsListScreen";
+import RecordsScreen from "../../../src/screens/patients/RecordsScreen";
 
-export default PatientsListScreen;
+export default RecordsScreen;

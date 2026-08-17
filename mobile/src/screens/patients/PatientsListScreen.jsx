@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
-import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList as RNFlatList, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlashList } from "@shopify/flash-list";
+import { LottieWrapper } from "../../components/LottieWrapper";
 import { useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -8,6 +10,8 @@ import { GovtHeader } from "../../components/GovtHeader";
 import { PatientCard } from "../../components/PatientCard";
 import { LoadingState } from "../../components/LoadingState";
 import { COLORS } from "../../constants/colors";
+import { TAB_SCREEN_BOTTOM_PADDING } from "../../constants/layout";
+import { localizePair, translateHindiText, useLocale } from "../../utils/localization";
 
 const FILTERS = [
   { id: "all", hi: "सभी", en: "All" },
@@ -19,6 +23,7 @@ const FILTERS = [
 export default function PatientsListScreen() {
   const database = useDatabase();
   const router = useRouter();
+  const locale = useLocale();
   const [patients, setPatients] = useState(null);
   const [searchText, setSearchText] = useState("");
   const [filter, setFilter] = useState("all");
@@ -55,6 +60,7 @@ export default function PatientsListScreen() {
   }
 
   const criticalCount = patients.filter((p) => p.riskLevel === "critical").length;
+  const localize = (hi, en) => localizePair(hi, en, locale);
 
   return (
     <View style={styles.page}>
@@ -63,7 +69,7 @@ export default function PatientsListScreen() {
         <Ionicons name="search" size={18} color={COLORS.textHint} style={{ marginLeft: 12 }} />
         <TextInput
           style={styles.search}
-          placeholder="नाम खोजें… / Search households…"
+          placeholder={localize("नाम खोजें…", "Search households…")}
           placeholderTextColor={COLORS.textHint}
           value={searchText}
           onChangeText={setSearchText}
@@ -77,26 +83,34 @@ export default function PatientsListScreen() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chips}>
         {FILTERS.map((c) => (
           <Pressable key={c.id} onPress={() => setFilter(c.id)} style={[styles.chip, filter === c.id && styles.chipOn]}>
-            <Text style={[styles.chipTxt, filter === c.id && styles.chipTxtOn]}>
-              {c.hi} / {c.en}
-            </Text>
+            <Text style={[styles.chipTxt, filter === c.id && styles.chipTxtOn]}>{localize(c.hi, c.en)}</Text>
           </Pressable>
         ))}
       </ScrollView>
       <Text style={styles.count}>
-        {patients.length} मरीज · {criticalCount} गंभीर
+        {patients.length} {locale === "en" ? "patients" : translateHindiText("मरीज", locale)} · {criticalCount}{" "}
+        {locale === "en" ? "critical" : translateHindiText("गंभीर", locale)}
       </Text>
-      <FlatList
+      <FlashList
         data={patients}
         keyExtractor={(item) => item.id}
         style={styles.flatList}
         contentContainerStyle={styles.flatListContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        ListEmptyComponent={<Text style={styles.empty}>कोई मरीज नहीं / No patients yet — Add from +</Text>}
+        estimatedItemSize={100}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <LottieWrapper name="empty_households" size={130} loop={true} style={{ marginBottom: 12 }} />
+            <Text style={styles.emptyTitle}>{localize("घर दर्ज करना शुरू करें", "Start registering households")}</Text>
+            <Text style={styles.emptySub}>
+              {localize("पहले घर जाएं, + टैप करें और परिवार जोड़ें", "Go to your first house, tap + and add the family")}
+            </Text>
+          </View>
+        }
         renderItem={({ item }) => <PatientCard patient={item} />}
       />
       <Pressable style={styles.fab} onPress={() => router.push("/(tabs)/patients/add")} accessibilityLabel="Add patient">
-        <Ionicons name="add" size={32} color="#fff" />
+        <Ionicons name="add" size={26} color="#fff" />
       </Pressable>
     </View>
   );
@@ -105,7 +119,7 @@ export default function PatientsListScreen() {
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
   flatList: { flex: 1 },
-  flatListContent: { flexGrow: 1, paddingBottom: 100 },
+  flatListContent: { flexGrow: 1, paddingBottom: TAB_SCREEN_BOTTOM_PADDING },
   searchWrap: {
     flexDirection: "row",
     alignItems: "center",
@@ -133,17 +147,23 @@ const styles = StyleSheet.create({
   chipTxt: { fontSize: 12, color: COLORS.textSecondary, fontWeight: "600" },
   chipTxtOn: { color: "#fff" },
   count: { paddingHorizontal: 16, fontSize: 12, color: COLORS.textSecondary, marginBottom: 8 },
-  empty: { textAlign: "center", marginTop: 40, color: COLORS.textSecondary, paddingHorizontal: 24 },
+  emptyContainer: { alignItems: "center", justifyContent: "center", marginTop: 60, paddingHorizontal: 32 },
+  emptyTitle: { fontSize: 16, fontWeight: "700", color: COLORS.textPrimary, marginBottom: 6, textAlign: "center" },
+  emptySub: { fontSize: 13, color: COLORS.textSecondary, textAlign: "center" },
   fab: {
     position: "absolute",
     right: 24,
     bottom: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.accent,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.primary,
     alignItems: "center",
     justifyContent: "center",
-    elevation: 4,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 3,
   },
 });

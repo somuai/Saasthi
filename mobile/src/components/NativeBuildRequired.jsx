@@ -4,27 +4,32 @@ import { useRouter } from "expo-router";
 import { COLORS } from "../constants/colors";
 import { TricolorStripe } from "./TricolorStripe";
 import { tapTargetMin } from "../constants/typography";
+import { localizePair, translateHindiText, useLocale } from "../utils/localization";
 
 export function NativeBuildRequired() {
   const router = useRouter();
+  const locale = useLocale();
+  const pair = (hi, en) => localizePair(hi, en, locale);
 
   return (
     <View style={styles.page}>
       <TricolorStripe />
       <SafeAreaView style={styles.safe}>
-        <Text style={styles.titleHi}>डेवलपमेंट बिल्ड आवश्यक</Text>
-        <Text style={styles.titleEn}>Development build required</Text>
+        <Text style={styles.titleHi}>
+          {locale === "en" ? "Development build required" : translateHindiText("डेवलपमेंट बिल्ड आवश्यक", locale)}
+        </Text>
+        {locale === "en" ? null : <Text style={styles.titleEn}>Development build required</Text>}
         <Text style={styles.body}>SHAASTHI uses offline SQLite (WatermelonDB). Expo Go does not include the native database module.</Text>
-        <Text style={styles.bodyHi}>एक बार नेटिव ऐप बनाएँ, फिर Metro से खोलें:</Text>
+        <Text style={styles.bodyHi}>{translateHindiText("एक बार नेटिव ऐप बनाएँ, फिर Metro से खोलें:", locale)}</Text>
         <View style={styles.codeBox}>
           <Text style={styles.code}>cd shaasthi-app</Text>
           <Text style={styles.code}>npm run native:android</Text>
-          <Text style={styles.codeHint}>या iOS: npm run native:ios</Text>
+          <Text style={styles.codeHint}>{translateHindiText("या", locale)} iOS: npm run native:ios</Text>
           <Text style={styles.code}>npm run start:dev</Text>
           <Text style={styles.codeHint}>Metro error on emulator? npm run android:reload</Text>
         </View>
         <Pressable style={styles.btn} onPress={() => router.replace("/(auth)/login")}>
-          <Text style={styles.btnTxt}>लॉगिन स्क्रीन / Back to login</Text>
+          <Text style={styles.btnTxt}>{pair("लॉगिन स्क्रीन", "Back to login")}</Text>
         </Pressable>
       </SafeAreaView>
     </View>

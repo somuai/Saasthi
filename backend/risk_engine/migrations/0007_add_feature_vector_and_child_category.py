@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("risk_engine", "0006_alter_riskassessment_patient"),
     ]

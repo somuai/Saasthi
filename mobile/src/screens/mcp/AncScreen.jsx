@@ -11,6 +11,7 @@ import { COLORS } from "../../constants/colors";
 import { calculateEDD, calculatePOG, getANCDueDates, isoFromDate } from "../../utils/mcpHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
 import { useDispatch } from "react-redux";
+import { localizePair, useLocale } from "../../utils/localization";
 
 const VISITS = [1, 2, 3, 4, 5];
 
@@ -19,6 +20,8 @@ export default function AncScreen() {
   const database = useDatabase();
   const router = useRouter();
   const dispatch = useDispatch();
+  const locale = useLocale();
+  const pair = (hi, en) => localizePair(hi, en, locale);
   const [patients, setPatients] = useState([]);
   const [patient, setPatient] = useState(null);
   const [mother, setMother] = useState(null);
@@ -125,7 +128,7 @@ export default function AncScreen() {
           data={patients}
           keyExtractor={(p) => p.id}
           contentContainerStyle={{ padding: 16 }}
-          ListEmptyComponent={<Text style={styles.muted}>कोई गर्भवती मरीज नहीं / No pregnant patients</Text>}
+          ListEmptyComponent={<Text style={styles.muted}>{pair("कोई गर्भवती मरीज नहीं", "No pregnant patients")}</Text>}
           renderItem={({ item }) => (
             <Pressable style={styles.pick} onPress={() => router.setParams({ patientId: item.id })}>
               <Text style={styles.pickName}>{item.name}</Text>

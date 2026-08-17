@@ -1,3 +1,4 @@
+import contextlib
 import hashlib
 import json
 import logging
@@ -231,6 +232,10 @@ WATERMELON_COLUMNS = {
         "pnc_day1_json",
         "pnc_day3_json",
         "pnc_day7_json",
+        "pnc_day14_json",
+        "pnc_day21_json",
+        "pnc_day28_json",
+        "pnc_day42_json",
         "pnc_week6_json",
         "jsy_registered",
         "jsy_payment_received",
@@ -767,6 +772,10 @@ def _wm_defaults(table_name):
             "pnc_day1_json": "",
             "pnc_day3_json": "",
             "pnc_day7_json": "",
+            "pnc_day14_json": "",
+            "pnc_day21_json": "",
+            "pnc_day28_json": "",
+            "pnc_day42_json": "",
             "pnc_week6_json": "",
             "jsy_registered": False,
             "jsy_payment_received": False,
@@ -1203,6 +1212,130 @@ def upsert_care_interaction(local_uuid, data, user):
         "created_by": user if user.is_authenticated else None,
     }
     obj, _ = CareInteraction.objects.update_or_create(local_uuid=local_uuid, defaults=defaults)
+
+    # Side effects for mother_records
+    is_mother_record = "lmp_date" in data or "pnc_day1_json" in data or "mcts_rch_id_mother" in data
+    if is_mother_record:
+        patient_updated = False
+        if "lmp_date" in data:
+            patient.lmp_date = data.get("lmp_date")
+            patient_updated = True
+        if "edd" in data:
+            patient.edd = data.get("edd")
+            patient_updated = True
+        if "gravida" in data:
+            patient.gravida = data.get("gravida")
+            patient_updated = True
+        if "is_high_risk" in data:
+            patient.is_high_risk_pregnancy = data.get("is_high_risk")
+            patient_updated = True
+        if "is_pmmvy_eligible" in data:
+            patient.pmmvy_eligible = data.get("is_pmmvy_eligible")
+            patient_updated = True
+        if "bank_account" in data:
+            patient.bank_account_number = data.get("bank_account")
+            patient_updated = True
+        if "bank_ifsc" in data:
+            patient.bank_ifsc = data.get("bank_ifsc")
+            patient_updated = True
+        if "bank_name" in data:
+            patient.bank_branch_name = data.get("bank_name")
+            patient_updated = True
+        if "blood_group" in data:
+            patient.blood_group = data.get("blood_group")
+            patient_updated = True
+        if "rh_type" in data:
+            patient.rh_typing = data.get("rh_type")
+            patient_updated = True
+        if "mcts_rch_id_mother" in data:
+            patient.mcts_rch_id = data.get("mcts_rch_id_mother")
+            patient_updated = True
+        if "prev_live_births" in data:
+            patient.para = data.get("prev_live_births")
+            patient_updated = True
+        if "delivery_date" in data:
+            patient.last_delivery_date = data.get("delivery_date")
+            patient_updated = True
+        if "delivery_place" in data:
+            patient.last_delivery_place = data.get("delivery_place")
+            patient_updated = True
+        if "birth_weight_kg" in data:
+            patient.birth_weight_kg = data.get("birth_weight_kg")
+            patient_updated = True
+        if "birth_registration_no" in data:
+            patient.birth_registration_number = data.get("birth_registration_no")
+            patient_updated = True
+
+        if "sub_centre_reg_no" in data or "fixed_vhsnd_day" in data:
+            if not isinstance(patient.metadata, dict):
+                patient.metadata = {}
+            if "sub_centre_reg_no" in data:
+                patient.metadata["sub_centre_reg_no"] = data.get("sub_centre_reg_no")
+            if "fixed_vhsnd_day" in data:
+                patient.metadata["fixed_vhsnd_day"] = data.get("fixed_vhsnd_day")
+            patient_updated = True
+
+        if patient_updated:
+            patient.save()
+
+        # Import PNCVisit model
+        import json
+
+        from mcp.models import PNCVisit
+
+        pnc_fields = {
+            "pnc_day1_json": "24hrs",
+            "pnc_day3_json": "day3",
+            "pnc_day7_json": "day7",
+            "pnc_day14_json": "day14",
+            "pnc_day21_json": "day21",
+            "pnc_day28_json": "day28",
+            "pnc_day42_json": "day42",
+        }
+
+        for field_name, visit_timing in pnc_fields.items():
+            raw_json = data.get(field_name)
+            if raw_json:
+                try:
+                    pnc_data = json.loads(raw_json) if isinstance(raw_json, str) else raw_json
+                    if pnc_data and isinstance(pnc_data, dict):
+                        visit_date = pnc_data.get("visitDate")
+                        if visit_date:
+                            baby_temp_c = pnc_data.get("babyTemp")
+                            baby_temp_f = None
+                            if baby_temp_c is not None:
+                                with contextlib.suppress(ValueError, TypeError):
+                                    baby_temp_f = float(baby_temp_c) * 9.0 / 5.0 + 32.0
+
+                            mother_temp_c = pnc_data.get("motherTemp")
+                            mother_temp_f = None
+                            if mother_temp_c is not None:
+                                with contextlib.suppress(ValueError, TypeError):
+                                    mother_temp_f = float(mother_temp_c) * 9.0 / 5.0 + 32.0
+
+                            pnc_defaults = {
+                                "visit_date": visit_date,
+                                "mother_temp_f": mother_temp_f,
+                                "bleeding_pv": "excessive" if pnc_data.get("excessiveBleeding") else "normal",
+                                "baby_weight_kg": pnc_data.get("babyWeightKg"),
+                                "baby_temp_f": baby_temp_f,
+                                "mother_complaints": pnc_data.get("notes", ""),
+                                "baby_convulsions": pnc_data.get("sepsisConvulsions", False),
+                                "baby_activity": "lethargic" if pnc_data.get("sepsisLethargy") else "normal",
+                                "baby_chest_indrawing": pnc_data.get("sepsisChestIndrawing", False),
+                                "umbilical_stump": "pus" if pnc_data.get("sepsisUmbilicalPus") else "normal",
+                                "baby_sucking": "poor" if pnc_data.get("sepsisPoorFeeding") else "normal",
+                                "baby_breathing": "fast" if pnc_data.get("sepsisFastBreathing") else "normal",
+                                "asha_worker": user if user.is_authenticated else None,
+                            }
+                            PNCVisit.objects.update_or_create(
+                                mother_patient=patient,
+                                visit_timing=visit_timing,
+                                defaults=pnc_defaults,
+                            )
+                except Exception as e:
+                    logger.exception("Failed to parse PNC JSON in sync view: %s", e)
+
     return obj
 
 
@@ -1294,7 +1427,9 @@ class SyncPullView(APIView):
         if len(patient_ids) > sync_max_patients:
             logger.warning(
                 "SyncPull truncated %d patient_ids to %d for user %s",
-                len(patient_ids), sync_max_patients, request.user,
+                len(patient_ids),
+                sync_max_patients,
+                request.user,
             )
             patient_ids = patient_ids[:sync_max_patients]
         cache = _fk_cache()
@@ -1302,6 +1437,21 @@ class SyncPullView(APIView):
         changes = {}
         for table in PULL_TABLES:
             changes[table] = serialize_changes(table, patient_ids, since, fk_cache=cache)
+
+        from services.telemetry import track_event
+
+        track_event(
+            distinct_id=str(request.user.local_uuid),
+            event_name="sync_pull_completed",
+            properties={
+                "since_timestamp": last_pulled_at,
+                "has_since": since is not None,
+                "patient_count": len(patient_ids),
+                "role": request.user.role,
+                "village": request.user.village,
+                "block": request.user.block,
+            },
+        )
 
         return Response({"changes": changes, "timestamp": int(time.time() * 1000)})
 
@@ -1325,7 +1475,6 @@ class SyncPushView(APIView):
         for table_name, ops in wm_changes.items():
             model_name = TABLE_TO_MODEL.get(table_name)
             if not model_name:
-                logger.debug("sync_push_skip_table table=%s", table_name)
                 continue
             for op in ("created", "updated"):
                 for record in ops.get(op, []):
@@ -1348,7 +1497,9 @@ class SyncPushView(APIView):
                     }
                 )
 
-        # Validate and deduplicate
+        # The WatermelonDB contract requires a write to be acknowledged only after it
+        # has been committed. A queued Kafka message cannot safely mark local records
+        # as synced because the consumer may be unavailable or fail later.
         serializer = SyncPushSerializer(data={"changes": flat_changes, "client_id": device_id})
         serializer.is_valid(raise_exception=True)
         client_id = serializer.validated_data["client_id"]
@@ -1358,13 +1509,10 @@ class SyncPushView(APIView):
         for change in serializer.validated_data["changes"]:
             event_uuid = change.get("event_uuid")
             local_uuid = str(change["local_uuid"])
-
-            # Deterministic dedup key when no event_uuid is provided
             dedup_uuid = event_uuid or uuid.uuid5(
                 uuid.NAMESPACE_DNS,
                 f"sync:{change['model']}:{local_uuid}:{'del' if change['deleted'] else 'up'}",
             )
-
             event_defaults = {
                 "client_id": client_id,
                 "event_type": "delete" if change["deleted"] else "upsert",
@@ -1376,10 +1524,7 @@ class SyncPushView(APIView):
             if event_uuid:
                 event_defaults["local_uuid"] = event_uuid
 
-            event, event_created = SyncEvent.objects.get_or_create(
-                local_uuid=dedup_uuid,
-                defaults=event_defaults,
-            )
+            event, event_created = SyncEvent.objects.get_or_create(local_uuid=dedup_uuid, defaults=event_defaults)
             if not event_created:
                 results.append(
                     {
@@ -1391,7 +1536,6 @@ class SyncPushView(APIView):
                 )
                 continue
 
-            # Process the change
             try:
                 if change["deleted"]:
                     delete_fn = DELETES.get(change["model"])
@@ -1400,11 +1544,9 @@ class SyncPushView(APIView):
                     event.status = SyncEvent.Status.APPLIED
                     event.save(update_fields=["status"])
                 else:
-                    # Resolve FK references before upsert
                     resolved_data = resolve_fk(change.get("data", {}), change["model"])
                     upsert_fn = UPSERTS.get(change["model"])
                     if not upsert_fn:
-                        logger.warning("sync_push_no_upserter model=%s", change["model"])
                         event.status = SyncEvent.Status.ERROR
                         event.message = f"No handler for {change['model']}"
                         event.save(update_fields=["status", "message"])
@@ -1420,8 +1562,7 @@ class SyncPushView(APIView):
                         continue
 
                     upsert_fn(local_uuid, resolved_data, request.user)
-                    if change["model"] == "survey_response":
-                        survey_upserted = True
+                    survey_upserted = survey_upserted or change["model"] == "survey_response"
                     event.status = SyncEvent.Status.APPLIED
                     event.save(update_fields=["status"])
 
@@ -1433,12 +1574,10 @@ class SyncPushView(APIView):
                         "local_uuid": local_uuid,
                     }
                 )
-
             except PermissionError as exc:
                 event.status = SyncEvent.Status.ERROR
                 event.message = str(exc)
                 event.save(update_fields=["status", "message"])
-                logger.warning("sync_push_permission_denied model=%s local_uuid=%s", change["model"], local_uuid)
                 results.append(
                     {
                         "event_uuid": str(event.local_uuid),
@@ -1448,12 +1587,10 @@ class SyncPushView(APIView):
                         "message": event.message,
                     }
                 )
-
             except Patient.DoesNotExist:
                 event.status = SyncEvent.Status.ERROR
                 event.message = "Referenced patient not found"
                 event.save(update_fields=["status", "message"])
-                logger.warning("sync_push_patient_not_found model=%s local_uuid=%s", change["model"], local_uuid)
                 results.append(
                     {
                         "event_uuid": str(event.local_uuid),
@@ -1463,14 +1600,10 @@ class SyncPushView(APIView):
                         "message": event.message,
                     }
                 )
-
             except (KeyError, ValueError, TypeError) as exc:
                 event.status = SyncEvent.Status.ERROR
                 event.message = f"Invalid data: {exc}"
                 event.save(update_fields=["status", "message"])
-                logger.warning(
-                    "sync_push_invalid_data model=%s local_uuid=%s error=%s", change["model"], local_uuid, exc
-                )
                 results.append(
                     {
                         "event_uuid": str(event.local_uuid),
@@ -1480,12 +1613,10 @@ class SyncPushView(APIView):
                         "message": event.message,
                     }
                 )
-
             except IntegrityError:
                 event.status = SyncEvent.Status.ERROR
                 event.message = "Database integrity error"
                 event.save(update_fields=["status", "message"])
-                logger.warning("sync_push_integrity_error model=%s local_uuid=%s", change["model"], local_uuid)
                 results.append(
                     {
                         "event_uuid": str(event.local_uuid),
@@ -1495,22 +1626,12 @@ class SyncPushView(APIView):
                         "message": event.message,
                     }
                 )
-
             except Exception:
                 logger.exception("sync_push_unexpected_error model=%s local_uuid=%s", change["model"], local_uuid)
                 event.status = SyncEvent.Status.ERROR
                 event.message = "Internal server error"
                 event.save(update_fields=["status", "message"])
-                results.append(
-                    {
-                        "event_uuid": str(event.local_uuid),
-                        "status": event.status,
-                        "model": change["model"],
-                        "local_uuid": local_uuid,
-                        "message": event.message,
-                    }
-                )
-                raise  # Re-raise to roll back the transaction
+                raise
 
         logger.info(
             "sync_push_done device_id=%s change_count=%d survey_upserted=%s",
@@ -1518,7 +1639,6 @@ class SyncPushView(APIView):
             len(flat_changes),
             survey_upserted,
         )
-
         response_payload = {"results": results, "status": "synced"}
         if survey_upserted:
             response_payload["risk_assessment"] = "processing"

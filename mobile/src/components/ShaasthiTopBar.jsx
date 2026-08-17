@@ -5,10 +5,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { COLORS } from "../constants/colors";
 import { TricolorStripe } from "./TricolorStripe";
 import { tapTargetMin } from "../constants/typography";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 export function ShaasthiTopBar({ titleHi, titleEn, showBack, rightComponent, variant = "primary" }) {
   const router = useRouter();
   const dark = variant === "primary";
+  const locale = useLocale();
+  const primaryTitle = locale === "en" ? titleEn || titleHi : translateHindiText(titleHi, locale);
 
   return (
     <View style={[styles.wrap, dark && styles.wrapPrimary]}>
@@ -25,8 +28,8 @@ export function ShaasthiTopBar({ titleHi, titleEn, showBack, rightComponent, var
           )}
         </View>
         <View style={styles.center}>
-          <Text style={[styles.titleHi, dark && styles.titleLight]}>{titleHi}</Text>
-          {titleEn ? <Text style={[styles.titleEn, dark && styles.titleEnLight]}>{titleEn}</Text> : null}
+          <Text style={[styles.titleHi, dark && styles.titleLight]}>{primaryTitle}</Text>
+          {titleEn && locale !== "en" ? <Text style={[styles.titleEn, dark && styles.titleEnLight]}>{titleEn}</Text> : null}
         </View>
         <View style={[styles.side, styles.sideRight]}>{rightComponent}</View>
       </View>

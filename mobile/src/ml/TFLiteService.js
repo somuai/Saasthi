@@ -53,13 +53,22 @@ const FEATURE_RULES = [
 
 let modelHandle = null;
 let loaded = false;
+let modelVersion = "rules-v1";
 
 export async function loadRiskModel() {
   if (loaded) return true;
   try {
     const bundled = require("../../assets/ml/weights.json");
-    modelHandle = bundled?.features ?? null;
-    if (!modelHandle) throw new Error("No weights found");
+    const features = bundled?.features ?? null;
+    if (!features) throw new Error("No weights found");
+    modelVersion = bundled?.modelVersion || modelVersion;
+    modelHandle = features.map((f) => {
+      const match = FEATURE_RULES.find((r) => r.factor === f.factor);
+      return {
+        ...f,
+        check: match ? match.check : () => false,
+      };
+    });
   } catch {
     modelHandle = FEATURE_RULES;
   }
@@ -86,6 +95,10 @@ export async function runRiskInference(patient, survey, mcpData) {
   }
   const score = Math.min(Math.round(totalScore), 100);
   return { score, raw: [score / 100] };
+}
+
+export function getModelVersion() {
+  return modelVersion;
 }
 
 export function featureCount() {

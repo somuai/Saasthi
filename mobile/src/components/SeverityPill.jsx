@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 const OPTIONS = [
   { key: "mild", hi: "हल्का", en: "Mild", color: COLORS.success },
@@ -11,6 +12,7 @@ const OPTIONS = [
 
 export function SeverityPill({ value, onChange }) {
   const pulse = useRef(new Animated.Value(1)).current;
+  const locale = useLocale();
   useEffect(() => {
     if (value !== "severe") return undefined;
     const loop = Animated.loop(
@@ -35,8 +37,8 @@ export function SeverityPill({ value, onChange }) {
             onPress={() => onChange?.(o.key)}
             style={[styles.pill, { borderColor: o.color }, selected && { backgroundColor: o.color, borderWidth: 0 }]}
           >
-            <Text style={[styles.hi, selected && styles.on]}>{o.hi}</Text>
-            <Text style={[styles.en, selected && styles.on]}>{o.en}</Text>
+            <Text style={[styles.hi, selected && styles.on]}>{locale === "en" ? o.en : translateHindiText(o.hi, locale)}</Text>
+            {locale === "en" ? null : <Text style={[styles.en, selected && styles.on]}>{o.en}</Text>}
           </Pressable>
         );
         if (o.key === "severe" && selected) {

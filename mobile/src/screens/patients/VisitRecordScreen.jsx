@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { LottieWrapper } from "../../components/LottieWrapper";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
@@ -21,6 +22,7 @@ import { todayYmd } from "../../utils/dateHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
 import { tapTargetMin } from "../../constants/typography";
 import * as SecureStore from "expo-secure-store";
+import { translateHindiText, useLocale } from "../../utils/localization";
 
 const CONDITIONS = [
   { key: "well", icon: "happy-outline", hi: "ठीक", en: "Well" },
@@ -39,6 +41,8 @@ export default function VisitRecordScreen() {
   const database = useDatabase();
   const dispatch = useDispatch();
   const router = useRouter();
+  const locale = useLocale();
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
   const [patient, setPatient] = useState(null);
   const [condition, setCondition] = useState("well");
   const [phcId, setPhcId] = useState(PHC_FACILITIES[0]?.id);
@@ -49,6 +53,7 @@ export default function VisitRecordScreen() {
   const [timestamp] = useState(() => new Date().toISOString());
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState(null);
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
 
   const [otpStep, setOtpStep] = useState(OTP_FLOW.PENDING);
   const [otpId, setOtpId] = useState(null);
@@ -154,7 +159,11 @@ export default function VisitRecordScreen() {
         });
       });
       dispatch(incrementPendingCount(1));
-      router.back();
+      setShowSuccessOverlay(true);
+      setTimeout(() => {
+        setShowSuccessOverlay(false);
+        router.back();
+      }, 2500);
     } catch (e) {
       setSaveError(e?.message || "Failed to save visit");
     } finally {
@@ -260,16 +269,18 @@ export default function VisitRecordScreen() {
               <GovtButton titleHi="OTP भेजें" titleEn="Send OTP" onPress={handleRequestOtp} loading={otpLoading} />
             ) : otpStep === OTP_FLOW.REQUESTED ? (
               <View>
-                <Text style={styles.otpLabel}>परिवार को OTP दें / Ask household for OTP</Text>
+                <Text style={styles.otpLabel}>
+                  {hiText("परिवार को")} OTP {hiText("दें")} / Ask household for OTP
+                </Text>
                 <OtpInputRow value={otpValue} onChange={setOtpValue} onComplete={handleVerifyOtp} length={4} autoFocus />
                 {otpError ? <Text style={styles.otpError}>{otpError}</Text> : null}
                 {otpLoading ? <ActivityIndicator style={{ marginTop: 12 }} /> : null}
                 <View style={styles.otpActions}>
                   <Pressable onPress={handleRequestOtp} style={styles.otpLink}>
-                    <Text style={styles.otpLinkTxt}>पुनः भेजें / Resend</Text>
+                    <Text style={styles.otpLinkTxt}>{hiText("पुनः भेजें")} / Resend</Text>
                   </Pressable>
                   <Pressable onPress={handleBypassOtp} style={styles.otpLink}>
-                    <Text style={styles.otpLinkTxt}>फ़ोन नहीं? / No phone?</Text>
+                    <Text style={styles.otpLinkTxt}>{hiText("फ़ोन नहीं")}? / No phone?</Text>
                   </Pressable>
                 </View>
               </View>
@@ -279,25 +290,27 @@ export default function VisitRecordScreen() {
           <View style={[styles.verifyBadge, otpStep === OTP_FLOW.VERIFIED ? styles.verifyBadgeGreen : styles.verifyBadgeAmber]}>
             <Ionicons name={otpStep === OTP_FLOW.VERIFIED ? "checkmark-circle" : "alert-circle"} size={18} color="#fff" />
             <Text style={styles.verifyBadgeTxt}>
-              {otpStep === OTP_FLOW.VERIFIED ? "पुष्टि भेंट / Visit Verified ✓" : "बिना फ़ोन सत्यापन / No phone verification"}
+              {otpStep === OTP_FLOW.VERIFIED
+                ? hiText("पुष्टि भेंट / Visit Verified ✓")
+                : hiText("बिना फ़ोन सत्यापन / No phone verification")}
             </Text>
           </View>
         ) : null}
 
-        <Text style={styles.labelHi}>स्थिति / Condition</Text>
+        <Text style={styles.labelHi}>{hiText("स्थिति / Condition")}</Text>
         <View style={styles.condRow}>
           {CONDITIONS.map((c) => (
             <Pressable key={c.key} style={[styles.condBtn, condition === c.key && styles.condBtnOn]} onPress={() => setCondition(c.key)}>
               <Ionicons name={c.icon} size={28} color={condition === c.key ? COLORS.primary : COLORS.textSecondary} />
-              <Text style={styles.condTxt}>{c.hi}</Text>
+              <Text style={styles.condTxt}>{hiText(c.hi)}</Text>
             </Pressable>
           ))}
         </View>
 
-        <Text style={styles.labelHi}>सुविधा / Facility</Text>
+        <Text style={styles.labelHi}>{hiText("सुविधा / Facility")}</Text>
         {PHC_FACILITIES.map((p) => (
           <Pressable key={p.id} style={[styles.phcRow, phcId === p.id && styles.phcRowOn]} onPress={() => setPhcId(p.id)}>
-            <Text style={styles.phcHi}>{p.hi}</Text>
+            <Text style={styles.phcHi}>{hiText(p.hi)}</Text>
             <Text style={styles.phcEn}>{p.en}</Text>
           </Pressable>
         ))}
@@ -307,7 +320,7 @@ export default function VisitRecordScreen() {
           {gpsLoading ? (
             <View style={styles.gpsLoadingRow}>
               <ActivityIndicator size="small" color={COLORS.primary} />
-              <Text style={styles.gpsTxt}>GPS प्राप्त कर रहा है… / Acquiring location…</Text>
+              <Text style={styles.gpsTxt}>{hiText("GPS प्राप्त कर रहा है…")} / Acquiring location…</Text>
             </View>
           ) : gps ? (
             <Text style={styles.gpsTxt}>
@@ -315,7 +328,7 @@ export default function VisitRecordScreen() {
             </Text>
           ) : (
             <Pressable onPress={retryGps} style={styles.gpsRetryBtn}>
-              <Text style={styles.gpsRetryTxt}>GPS पुनः प्रयास करें / Retry GPS</Text>
+              <Text style={styles.gpsRetryTxt}>{hiText("GPS पुनः प्रयास करें")} / Retry GPS</Text>
             </Pressable>
           )}
         </View>
@@ -344,6 +357,22 @@ export default function VisitRecordScreen() {
         <GovtButton titleHi="सहेजें" titleEn="Save visit offline" onPress={saveVisit} loading={saving} />
         {saveError ? <Text style={styles.errorTxt}>{saveError}</Text> : null}
       </ScrollView>
+      {showSuccessOverlay && (
+        <View
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(255,255,255,0.95)",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999,
+          }}
+        >
+          <LottieWrapper name="visit_complete" size={150} loop={false} autoPlay={true} />
+          <Text style={{ marginTop: 12, fontWeight: "900", fontSize: 20, color: COLORS.primary }}>Visit Logged!</Text>
+          <Text style={{ fontSize: 13, color: COLORS.textSecondary }}>Incentive will be credited</Text>
+        </View>
+      )}
     </View>
   );
 }

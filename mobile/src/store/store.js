@@ -13,4 +13,9 @@ export const store = configureStore({
     sync: syncReducer,
     earnings: earningsReducer,
   },
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      immutableCheck: { warnAfter: 1000 },
+      serializableCheck: { warnAfter: 1000 },
+    }),
 });

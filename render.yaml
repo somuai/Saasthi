@@ -1,0 +1,58 @@
+services:
+  - type: web
+    name: saasthi-backend
+    runtime: docker
+    repo: https://github.com/Luciferai04/Saasthi
+    branch: main
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    healthCheckPath: /health/
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: CELERY_BROKER_URL
+        fromSync: REDIS_URL
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: DJANGO_ALLOWED_HOSTS
+        value: saasthi-backend.onrender.com
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://saasthi-dashboard.onrender.com
+      - key: CSRF_TRUSTED_ORIGINS
+        value: https://saasthi-backend.onrender.com
+      - key: GUNICORN_WORKERS
+        value: "2"
+      - key: DB_CONN_MAX_AGE
+        value: "60"
+      - key: GEMMA_API_KEY
+        sync: false
+      - key: SENTRY_DSN
+        sync: false
+      - key: FIREBASE_SERVICE_ACCOUNT_JSON
+        sync: false
+
+  - type: worker
+    name: saasthi-celery-worker
+    runtime: docker
+    repo: https://github.com/Luciferai04/Saasthi
+    branch: main
+    rootDir: backend
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        fromSync: saasthi-backend/DJANGO_SECRET_KEY
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: CELERY_BROKER_URL
+        fromSync: REDIS_URL
+      - key: DJANGO_DEBUG
+        value: "false"
+      - key: SENTRY_DSN
+        sync: false
+    dockerCommand: celery -A shaasthi_backend worker -Q risk_assessment,celery -l info

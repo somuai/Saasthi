@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import IncentiveLedgerEntry, IncentiveRate
+from .models import ASHAWorkerProfile, IncentiveLedgerEntry, IncentiveRate
 
 
 @admin.register(IncentiveLedgerEntry)
@@ -37,3 +37,11 @@ class IncentiveRateAdmin(admin.ModelAdmin):
     list_display = ("activity_type", "amount_rupees", "is_active", "updated_at")
     list_filter = ("is_active",)
     search_fields = ("activity_type", "label_en", "label_hi")
+
+
+@admin.register(ASHAWorkerProfile)
+class ASHAWorkerProfileAdmin(admin.ModelAdmin):
+    list_display = ("asha_id", "user", "husband_name", "is_active", "created_at")
+    list_filter = ("is_active",)
+    search_fields = ("asha_id", "user__username", "user__phone", "husband_name")
+    raw_id_fields = ("user",)

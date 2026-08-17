@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("registry", "0006_add_missing_db_indexes"),
         ("risk_engine", "0005_riskassessment_mcp_session_type_and_more"),

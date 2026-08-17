@@ -4,11 +4,13 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useSelector } from "react-redux";
 import { COLORS } from "../constants/colors";
+import { localizePair, translateHindiText, useLocale } from "../utils/localization";
 
 export function SyncPendingBanner({ onSyncPress }) {
   const router = useRouter();
   const pendingCount = useSelector((s) => s.sync.pendingCount);
   const isSyncing = useSelector((s) => s.sync.isSyncing);
+  const locale = useLocale();
 
   if (pendingCount <= 0) return null;
 
@@ -23,9 +25,9 @@ export function SyncPendingBanner({ onSyncPress }) {
         <Ionicons name="cloud-upload-outline" size={24} color={COLORS.syncBannerIcon} />
         <View style={styles.textCol}>
           <Text style={styles.title}>
-            {pendingCount} सर्वेक्षण सिंक के लिए लंबित / {pendingCount} pending sync
+            {localizePair(`${pendingCount} सर्वेक्षण सिंक के लिए लंबित`, `${pendingCount} pending sync`, locale)}
           </Text>
-          <Text style={styles.sub}>ऑफलाइन डेटा सर्वर पर भेजें</Text>
+          <Text style={styles.sub}>{translateHindiText("ऑफलाइन डेटा सर्वर पर भेजें", locale)}</Text>
         </View>
       </View>
       <Text style={styles.cta}>{isSyncing ? "…" : "SYNC"}</Text>

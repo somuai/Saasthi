@@ -1,14 +1,17 @@
 # SHAASTHI — Digital Health Platform for India's ASHA Workers
 
 [![CI](https://github.com/Luciferai04/Saasthi/actions/workflows/eval.yml/badge.svg)](https://github.com/Luciferai04/Saasthi/actions/workflows/eval.yml)
-[![Backend Tests](https://img.shields.io/badge/tests-281%20passing-brightgreen)](https://github.com/Luciferai04/Saasthi/actions)
-[![Frontend Tests](https://img.shields.io/badge/tests-37%20passing-brightgreen)](https://github.com/Luciferai04/Saasthi/actions)
+[![Backend Tests](https://img.shields.io/badge/backend%20tests-493%20passing-brightgreen)](https://github.com/Luciferai04/Saasthi/actions)
+[![Mobile Tests](https://img.shields.io/badge/mobile%20tests-44%20passing-brightgreen)](https://github.com/Luciferai04/Saasthi/actions)
 [![Expo SDK](https://img.shields.io/badge/Expo-52-000020?logo=expo)](https://expo.dev)
 [![Django](https://img.shields.io/badge/Django-5.2-092E20?logo=django)](https://djangoproject.com)
 [![Python](https://img.shields.io/badge/python-3.12%2B-3776AB?logo=python)](https://python.org)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 **Offline-first mobile platform purpose-built for India's 1M+ ASHA health workers.** Digitises household surveys, MCP Card workflows, explainable risk scoring, supervisor dashboards, and incentive management — all functioning without internet connectivity.
+
+> 📖 **Read the in-depth [About & Architecture Guide](ABOUT.md)**  
+> 🚀 **Explore the [v1.0.0 Production Release Notes](RELEASE_NOTES.md)**
 
 ---
 

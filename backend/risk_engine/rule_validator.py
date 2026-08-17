@@ -54,7 +54,16 @@ class RuleValidator:
 
     @staticmethod
     def is_valid_field_path(path: str) -> bool:
-        valid_prefixes = ("patient.", "survey.answers.", "anc.", "growth.", "pnc.", "milestone.", "immunization.", "delivery.")
+        valid_prefixes = (
+            "patient.",
+            "survey.answers.",
+            "anc.",
+            "growth.",
+            "pnc.",
+            "milestone.",
+            "immunization.",
+            "delivery.",
+        )
         return path.startswith(valid_prefixes)
 
     @staticmethod

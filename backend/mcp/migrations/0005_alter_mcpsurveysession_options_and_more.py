@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("mcp", "0004_alter_ancvisit_patient_alter_careinteraction_patient_and_more"),
     ]

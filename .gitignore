@@ -42,6 +42,7 @@ shaasthi-firebase-service-account.json
 # Local runtime
 tmp/
 logs/
+backend/users.json
 
 # Xcode / CocoaPods
 mobile/ios/Pods/
@@ -70,3 +71,12 @@ mobile/.easignore
 *.pem
 *.key
 *.p12
+
+# Screenshots and scratch dumps in root
+*.png
+*.jpg
+*.xml
+.verify/
+.opencode/
+dist/
+

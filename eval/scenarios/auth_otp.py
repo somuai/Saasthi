@@ -2,7 +2,6 @@
 import sys
 
 import requests
-
 from _http import API, api_available, request_otp, verify_otp
 
 PHONE = "+919988776601"

@@ -2,13 +2,16 @@ import PropTypes from "prop-types";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { COLORS } from "../constants/colors";
 import { tapTarget } from "../constants/design";
+import { translateHindiText, useLocale } from "../utils/localization";
 
 export function GovtButton({ titleHi, titleEn, onPress, variant = "primary", disabled, loading, accessibilityLabel }) {
+  const locale = useLocale();
   const isPrimary = variant === "primary";
+  const primaryTitle = locale === "en" ? titleEn || titleHi : translateHindiText(titleHi, locale);
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel || `${titleHi} ${titleEn}`}
+      accessibilityLabel={accessibilityLabel || `${primaryTitle} ${titleEn || ""}`.trim()}
       onPress={onPress}
       disabled={disabled || loading}
       style={({ pressed }) => [
@@ -22,8 +25,8 @@ export function GovtButton({ titleHi, titleEn, onPress, variant = "primary", dis
         <ActivityIndicator color={isPrimary ? "#fff" : COLORS.primary} />
       ) : (
         <View style={styles.textCol}>
-          <Text style={[styles.hi, isPrimary && styles.onPrimary]}>{titleHi}</Text>
-          {titleEn ? <Text style={[styles.en, isPrimary && styles.onPrimaryMuted]}>{titleEn}</Text> : null}
+          <Text style={[styles.hi, isPrimary && styles.onPrimary]}>{primaryTitle}</Text>
+          {titleEn && locale !== "en" ? <Text style={[styles.en, isPrimary && styles.onPrimaryMuted]}>{titleEn}</Text> : null}
         </View>
       )}
     </Pressable>

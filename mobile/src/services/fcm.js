@@ -4,10 +4,13 @@ import { getAccessToken } from "./auth";
 import { logger } from "../utils/logger";
 
 let messaging = null;
+const isMissingDefaultFirebaseApp = (error) =>
+  String(error?.message || error || "").includes("No Firebase App '[DEFAULT]' has been created");
+
 try {
   messaging = require("@react-native-firebase/messaging").default;
 } catch (e) {
-  logger.warn("Firebase messaging not available", e?.message);
+  logger.debug("Firebase messaging not available", e?.message);
 }
 
 export async function requestNotificationPermission() {
@@ -26,6 +29,10 @@ export async function getFcmToken() {
   try {
     return await messaging().getToken();
   } catch (e) {
+    if (isMissingDefaultFirebaseApp(e)) {
+      logger.debug("Skipping FCM token registration until Firebase is initialized");
+      return null;
+    }
     logger.warn("Failed to get FCM token", e?.message);
     return null;
   }

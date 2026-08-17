@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import RiskAssessment, RiskRule
+from .models import HealthcareFacility, RiskAssessment, RiskRule
 
 
 @admin.register(RiskRule)
@@ -37,3 +37,10 @@ class RiskAssessmentAdmin(admin.ModelAdmin):
     list_filter = ("level", "primary_category", "triggered_by_hard_flag")
     search_fields = ("local_uuid", "patient__full_name")
     readonly_fields = ("rules_snapshot",)
+
+
+@admin.register(HealthcareFacility)
+class HealthcareFacilityAdmin(admin.ModelAdmin):
+    list_display = ("name", "facility_type", "district", "block", "village", "is_active")
+    list_filter = ("facility_type", "district", "is_active")
+    search_fields = ("name", "name_hi", "district", "block", "village")

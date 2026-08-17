@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("followups", "0010_fix_fk_on_delete_user"),
         ("registry", "0006_add_missing_db_indexes"),

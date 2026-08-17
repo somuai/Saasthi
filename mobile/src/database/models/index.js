@@ -10,6 +10,7 @@ import FollowUp from "./FollowUp";
 import Flag from "./Flag";
 import Referral from "./Referral";
 import IncentiveRecord from "./IncentiveRecord";
+import LocationLog from "./LocationLog";
 
 export {
   Household,
@@ -24,6 +25,7 @@ export {
   Flag,
   Referral,
   IncentiveRecord,
+  LocationLog,
 };
 
 export const modelClasses = [
@@ -39,4 +41,5 @@ export const modelClasses = [
   Flag,
   Referral,
   IncentiveRecord,
+  LocationLog,
 ];

@@ -7,7 +7,9 @@ from django.utils import timezone
 
 class CareInteraction(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="care_interactions", on_delete=models.SET_NULL, null=True)
+    patient = models.ForeignKey(
+        "registry.Patient", related_name="care_interactions", on_delete=models.SET_NULL, null=True
+    )
     protocol = models.CharField(max_length=120, blank=True)
     notes = models.TextField(blank=True)
     occurred_at = models.DateTimeField(default=timezone.now)
@@ -99,7 +101,9 @@ class DeliveryRecord(models.Model):
         MISSED_ABORTION = "missed_abortion", "Missed Abortion"
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    mother_patient = models.ForeignKey("registry.Patient", related_name="deliveries", on_delete=models.SET_NULL, null=True)
+    mother_patient = models.ForeignKey(
+        "registry.Patient", related_name="deliveries", on_delete=models.SET_NULL, null=True
+    )
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     delivery_date = models.DateField()
     delivery_place = models.CharField(max_length=20, choices=DeliveryPlace.choices)
@@ -143,10 +147,13 @@ class PNCVisit(models.Model):
         DAY_14 = "day14", "Day 14"
         DAY_21 = "day21", "Day 21"
         DAY_28 = "day28", "Day 28"
+        DAY_42 = "day42", "Day 42"
         EXTRA = "extra", "Extra Visit"
 
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    mother_patient = models.ForeignKey("registry.Patient", related_name="pnc_visits", on_delete=models.SET_NULL, null=True)
+    mother_patient = models.ForeignKey(
+        "registry.Patient", related_name="pnc_visits", on_delete=models.SET_NULL, null=True
+    )
     delivery_record = models.ForeignKey(DeliveryRecord, null=True, blank=True, on_delete=models.SET_NULL)
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     visit_timing = models.CharField(max_length=10, choices=VisitTiming.choices)
@@ -223,7 +230,9 @@ class GrowthRecord(models.Model):
 
 class DevelopmentMilestoneCheck(models.Model):
     local_uuid = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
-    patient = models.ForeignKey("registry.Patient", related_name="milestone_checks", on_delete=models.SET_NULL, null=True)
+    patient = models.ForeignKey(
+        "registry.Patient", related_name="milestone_checks", on_delete=models.SET_NULL, null=True
+    )
     asha_worker = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL)
     check_date = models.DateField()
     age_at_check_months = models.IntegerField()

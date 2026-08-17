@@ -1,12 +1,9 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { ShaasthiTabBar } from "../../src/components/ShaasthiTabBar";
-import { useOverdueFollowUpCount } from "../../src/hooks/useOverdueFollowUpCount";
 import { FEATURES } from "../../src/constants/featureFlags";
 
 export default function TabsLayout() {
-  const overdueCount = useOverdueFollowUpCount();
-
   return (
     <Tabs
       tabBar={(props) => <ShaasthiTabBar {...props} />}
@@ -19,7 +16,7 @@ export default function TabsLayout() {
         name="home"
         options={{
           title: "Home",
-          tabBarLabel: "होम / Home",
+          tabBarLabel: "Home",
           tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
         }}
       />
@@ -27,7 +24,7 @@ export default function TabsLayout() {
         name="patients"
         options={{
           title: "Patients",
-          tabBarLabel: "मरीज / Patients",
+          tabBarLabel: "Patients",
           tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
         }}
       />
@@ -35,47 +32,34 @@ export default function TabsLayout() {
         name="followups"
         options={{
           title: "Follow-ups",
-          tabBarLabel: "फॉलो-अप / Follow-ups",
-          tabBarBadge: overdueCount > 0 ? overdueCount : undefined,
-          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+          href: null,
         }}
       />
       <Tabs.Screen
         name="earnings"
         options={{
           title: "Earnings",
-          tabBarLabel: "कमाई / Earnings",
+          tabBarLabel: "Earnings",
           tabBarIcon: ({ color, size }) => <Ionicons name="wallet" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="mcp"
         options={{
-          title: "MCP",
-          tabBarLabel: "एमसीपी / MCP",
+          title: "Mother Control",
+          tabBarLabel: "Mother Control",
           tabBarIcon: ({ color, size }) => <Ionicons name="medkit" size={size} color={color} />,
         }}
       />
-      {FEATURES.OFFLINE_MAP ? (
-        <Tabs.Screen
-          name="map"
-          options={{
-            title: "Map",
-            tabBarLabel: "नक्शा / Map",
-            tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />,
-          }}
-        />
-      ) : null}
-      {FEATURES.GEMMA_ONDEVICE ? (
-        <Tabs.Screen
-          name="ai-assistant"
-          options={{
-            title: "AI Assistant",
-            tabBarLabel: "AI सहायिका / AI",
-            tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" size={size} color={color} />,
-          }}
-        />
-      ) : null}
+      <Tabs.Screen
+        name="map"
+        options={{
+          title: "Map",
+          tabBarLabel: "Map",
+          tabBarIcon: ({ color, size }) => <Ionicons name="map" size={size} color={color} />,
+          href: FEATURES.OFFLINE_MAP ? undefined : null,
+        }}
+      />
       <Tabs.Screen
         name="sync"
         options={{

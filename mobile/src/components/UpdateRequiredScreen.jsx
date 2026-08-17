@@ -4,13 +4,16 @@ import { COLORS } from "../constants/colors";
 import { spacing, typography } from "../constants/design";
 import { GovtButton } from "./GovtButton";
 import PropTypes from "prop-types";
+import { localizePair, useLocale } from "../utils/localization";
 
 export function UpdateRequiredScreen({ updateUrl }) {
+  const locale = useLocale();
+
   return (
     <View style={styles.root}>
       <Ionicons name="cloud-offline-outline" size={64} color={COLORS.warning} />
-      <Text style={styles.heading}>अपडेट आवश्यक / Update Required</Text>
-      <Text style={styles.body}>कृपया नया संस्करण डाउनलोड करें / Please download the latest version.</Text>
+      <Text style={styles.heading}>{localizePair("अपडेट आवश्यक", "Update Required", locale)}</Text>
+      <Text style={styles.body}>{localizePair("कृपया नया संस्करण डाउनलोड करें", "Please download the latest version.", locale)}</Text>
       {updateUrl && <GovtButton titleHi="अपडेट करें" titleEn="Update" onPress={() => Linking.openURL(updateUrl)} />}
     </View>
   );

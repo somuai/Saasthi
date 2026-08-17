@@ -5,7 +5,7 @@ export const FEATURES = {
   VOICE_INPUT: true,
   PDF_PAYSLIP: true,
   TFLITE_SCORING: true,
-  GEMMA_ONDEVICE: true,
+  GEMMA_ONDEVICE: false,
 };
 
 export const INCENTIVE_RATES = {

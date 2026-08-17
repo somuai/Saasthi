@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { LottieWrapper } from "../../components/LottieWrapper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useDatabase } from "@nozbe/watermelondb/react";
 import { Q } from "@nozbe/watermelondb";
@@ -12,8 +13,8 @@ import { ToggleRow } from "../../components/ToggleRow";
 import { RiskBadge } from "../../components/RiskBadge";
 import { GovtInput } from "../../components/GovtInput";
 import { COLORS } from "../../constants/colors";
-import { FEATURES } from "../../constants/featureFlags";
 import { scorePatient } from "../../ml/riskScorer";
+import { ensureModelLoaded, scoreWithBestAvailable } from "../../ml/riskEngine";
 import { todayYmd } from "../../utils/dateHelpers";
 import { incrementPendingCount } from "../../features/sync/syncSlice";
 import { getWorkerServerId } from "../../utils/workerId";
@@ -26,6 +27,8 @@ import {
   symptomJson,
 } from "./surveySubmit";
 import { draftKey, mergeDraftOrPrefill } from "./surveyDraft";
+import { useLocale, translateHindiText } from "../../utils/localization";
+import { logger } from "../../utils/logger";
 
 const STEPS = [
   "Consent / सहमति",
@@ -55,6 +58,10 @@ export default function SurveyScreen() {
   const [form, setForm] = useState(emptySurveyForm);
   const [seriousModal, setSeriousModal] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+  const [successParams, setSuccessParams] = useState(null);
+  const locale = useLocale();
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
 
   const patch = useCallback((partial) => setForm((f) => ({ ...f, ...partial })), []);
 
@@ -89,7 +96,7 @@ export default function SurveyScreen() {
     return () => {
       cancelled = true;
     };
-  }, [patient?.id, patientId]);
+  }, [patient, patientId]);
 
   useEffect(() => {
     if (!patientId) return undefined;
@@ -143,16 +150,23 @@ export default function SurveyScreen() {
     if (stepIndex === 4 && hasSerious) setSeriousModal(true);
   }, [stepIndex, hasSerious]);
 
+  useEffect(() => {
+    ensureModelLoaded().catch((err) => {
+      logger.warn("Model preload failed:", err?.message || err);
+    });
+  }, []);
+
   async function finish() {
     if (!patient || !form.consent) return;
     setSaving(true);
-    const r = scorePatient(pNorm, surveyForScore, mcpData);
+    const r = await scoreWithBestAvailable(pNorm, surveyForScore, mcpData);
     const sideFx = computeSubmitSideEffects(form, r, patient);
     const now = Date.now();
     const day = todayYmd();
+    let survey;
     try {
       await database.write(async () => {
-        const survey = await database.collections.get("survey_responses").create((s) => {
+        survey = await database.collections.get("survey_responses").create((s) => {
           s.patientId = patient.id;
           if (workerServerId) s.ashaWorkerServerId = workerServerId;
           s.surveyDate = day;
@@ -255,20 +269,25 @@ export default function SurveyScreen() {
       });
       await AsyncStorage.removeItem(draftKey(patient.id));
       dispatch(incrementPendingCount(5));
-      router.replace({
+      setSuccessParams({
         pathname: "/(tabs)/survey/result",
         params: {
           patientId: patient.id,
           patientName: patient.name,
+          patientAge: patient.age != null ? String(patient.age) : "",
+          patientGender: patient.gender || "",
           score: String(r.score),
           riskLevel: r.riskLevel,
           factors: JSON.stringify(r.triggeredFactors || []),
+          primaryCategory: r.primaryCategory,
           recEn: r.recommendation.en,
           recHi: r.recommendation.hi,
           recUrgency: r.recommendation.urgency,
-          recommendationSource: FEATURES.TFLITE_SCORING ? "tflite" : "rule_template",
+          recommendationSource: r.modelSource || r.recommendationSource || "rule_template",
+          surveyLocalId: survey.id,
         },
       });
+      setShowSuccessOverlay(true);
     } catch (e) {
       Alert.alert("Save failed", e?.message || "Could not save survey. Please try again.");
     } finally {
@@ -280,18 +299,23 @@ export default function SurveyScreen() {
     return (
       <View style={styles.page}>
         <GovtHeader titleHi="सर्वे" title="Survey" showBack showSync />
-        <Text style={styles.muted}>Patient not found / मरीज नहीं मिला</Text>
+        <Text style={styles.muted}>{hiText("Patient not found / मरीज नहीं मिला")}</Text>
       </View>
     );
   }
 
+  const isHighRisk = risk.riskLevel === "high" || risk.riskLevel === "critical";
+  const headerBgColor = isHighRisk ? "#D32F2F" : COLORS.matriMaAccent;
+  const pageBg = isHighRisk ? COLORS.background : COLORS.matriMaBg;
+
   return (
-    <View style={styles.page}>
+    <View style={[styles.page, { backgroundColor: pageBg }, isHighRisk && { borderWidth: 3, borderColor: "#D32F2F" }]}>
       <GovtHeader
         titleHi="सर्वे"
         title={patient.name}
         showBack
         showSync
+        backgroundColor={headerBgColor}
         rightComponent={
           <Pressable onPress={() => AsyncStorage.setItem(draftKey(patient.id), JSON.stringify(form))} style={styles.draftBtn}>
             <Text style={styles.draftTxt}>Draft</Text>
@@ -305,19 +329,31 @@ export default function SurveyScreen() {
           ))}
         </View>
         <Text style={styles.step}>
-          Step {stepIndex + 1}/{STEPS.length}: {STEPS[stepIndex]}
+          Step {stepIndex + 1}/{STEPS.length}: {hiText(STEPS[stepIndex])}
         </Text>
 
         {stepIndex === 0 ? (
           <>
             <ToggleRow
-              labelHi="देखभाल सहमति"
-              labelEn="Care consent"
+              labelHi="সরাসরি মৌখিক সম্মতি / Oral Consent"
+              labelEn="Consent Verified / সম্মতি নেওয়া হয়েছে"
               value={form.consent}
               onChange={(v) => patch({ consent: v })}
               required
             />
-            <Text style={styles.label}>भेंट प्रकार / Visit type</Text>
+            <View style={styles.consentNotice}>
+              <Text style={styles.consentNoticeTxt}>
+                By enabling, you verify that the patient has provided affirmative oral consent for collecting health data (identity, medical
+                history, pregnancy status, and GPS coordinates) to coordinate care under the Digital Personal Data Protection (DPDP) Act
+                2023. The patient can withdraw consent at any time.
+              </Text>
+              <Text style={[styles.consentNoticeTxt, { marginTop: 4 }]}>
+                এটি চালু করে, আপনি নিশ্চিত করছেন যে রোগী ডিজিটাল পার্সোনাল ডেটা প্রোটেকশন (ডিপিডিপি) আইন ২০২৩ এর অধীনে কেয়ার কোঅর্ডিনেশনের
+                জন্য স্বাস্থ্য সংক্রান্ত তথ্য (পরিচয়, চিকিৎসাগত ইতিহাস, গর্ভাবস্থার স্থিতি এবং জিপিএস স্থানাঙ্ক) সংগ্রহের জন্য ইতিবাচক মৌখিক
+                সম্মতি দিয়েছেন। রোগী যেকোনো সময় এই সম্মতি প্রত্যাহার করতে পারেন।
+              </Text>
+            </View>
+            <Text style={styles.label}>{hiText("भेंट प्रकार / Visit type")}</Text>
             <View style={styles.row}>
               {VISIT_TYPES.map((vt) => (
                 <Pressable
@@ -325,7 +361,7 @@ export default function SurveyScreen() {
                   style={[styles.chip, form.visitType === vt.key && styles.chipOn]}
                   onPress={() => patch({ visitType: vt.key })}
                 >
-                  <Text style={[styles.chipTxt, form.visitType === vt.key && styles.chipTxtOn]}>{vt.hi}</Text>
+                  <Text style={[styles.chipTxt, form.visitType === vt.key && styles.chipTxtOn]}>{hiText(vt.hi)}</Text>
                 </Pressable>
               ))}
             </View>
@@ -341,7 +377,7 @@ export default function SurveyScreen() {
               onChangeText={(t) => patch({ ashaObservation: t })}
               multiline
             />
-            <Text style={styles.label}>रहन-सहन / Living condition</Text>
+            <Text style={styles.label}>{hiText("रहन-सहन / Living condition")}</Text>
             <View style={styles.row}>
               {["clean", "moderate", "poor"].map((k) => (
                 <Pressable
@@ -353,7 +389,7 @@ export default function SurveyScreen() {
                 </Pressable>
               ))}
             </View>
-            <Text style={styles.label}>स्वास्थ्य पहुंच / Healthcare access</Text>
+            <Text style={styles.label}>{hiText("स्वास्थ्य पहुंच / Healthcare access")}</Text>
             <View style={styles.row}>
               {["easy", "difficult"].map((k) => (
                 <Pressable
@@ -485,7 +521,7 @@ export default function SurveyScreen() {
 
         {stepIndex === 5 ? (
           <>
-            <Text style={styles.section}>जीर्ण / Chronic</Text>
+            <Text style={styles.section}>{hiText("जीर्ण / Chronic")}</Text>
             <ToggleRow
               labelHi="बार-बार पेशाब"
               labelEn="Frequent urination"
@@ -510,7 +546,7 @@ export default function SurveyScreen() {
               value={form.chronicKnownBpDm}
               onChange={(v) => patch({ chronicKnownBpDm: v })}
             />
-            <Text style={styles.section}>संक्रामक / Communicable</Text>
+            <Text style={styles.section}>{hiText("संक्रामक / Communicable")}</Text>
             <ToggleRow
               labelHi="2+ सप्ताह खांसी"
               labelEn="Cough 2+ weeks"
@@ -541,14 +577,16 @@ export default function SurveyScreen() {
         {stepIndex === 6 ? (
           <>
             <Text style={styles.label}>
-              भेंट: {VISIT_TYPES.find((v) => v.key === form.visitType)?.hi || form.visitType} / {form.visitType}
+              {hiText("भेंट:")} {hiText(VISIT_TYPES.find((v) => v.key === form.visitType)?.hi || form.visitType)} / {form.visitType}
             </Text>
             <RiskBadge risk={risk} />
             <Text style={styles.factors}>
-              {riskResult.triggeredFactors.map((item) => `${item.labelHi} (+${item.weight})`).join(", ") || "कोई कारक नहीं / None"}
+              {riskResult.triggeredFactors
+                .map((item) => `${locale === "en" ? item.labelEn : hiText(item.labelHi)} (+${item.weight})`)
+                .join(", ") || hiText("कोई कारक नहीं / None")}
             </Text>
             {computeSubmitSideEffects(form, riskResult, patient).followUps.length > 0 ? (
-              <Text style={styles.muted}>फॉलो-अप निर्धारित / Follow-up scheduled</Text>
+              <Text style={styles.muted}>{hiText("फॉलो-अप निर्धारित / Follow-up scheduled")}</Text>
             ) : null}
           </>
         ) : null}
@@ -581,8 +619,8 @@ export default function SurveyScreen() {
       <Modal visible={seriousModal} transparent animationType="slide">
         <View style={styles.modalBg}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>तत्काल सहायता / Emergency</Text>
-            <Text style={styles.modalBody}>गंभीर लक्षण — नजदीकी स्वास्थ्य केंद्र या आपात नंबर पर संपर्क करें।</Text>
+            <Text style={styles.modalTitle}>{hiText("तत्काल सहायता / Emergency")}</Text>
+            <Text style={styles.modalBody}>{hiText("गंभीर लक्षण — नजदीकी स्वास्थ्य केंद्र या आपात नंबर पर संपर्क करें।")}</Text>
             {EMERGENCY_NUMBERS.map((n) => (
               <Pressable key={n.tel} style={styles.callBtn} onPress={() => Linking.openURL(`tel:${n.tel}`)}>
                 <Text style={styles.callTxt}>
@@ -594,12 +632,53 @@ export default function SurveyScreen() {
           </View>
         </View>
       </Modal>
+      {showSuccessOverlay && (
+        <View
+          style={{
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(255,255,255,0.95)",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 999,
+          }}
+        >
+          <LottieWrapper
+            name="survey_success"
+            size={180}
+            loop={false}
+            autoPlay={true}
+            onFinish={() => {
+              setShowSuccessOverlay(false);
+              if (successParams) {
+                router.replace(successParams);
+              }
+            }}
+          />
+          <Text style={{ marginTop: 12, fontWeight: "900", fontSize: 20, color: "#16A34A" }}>Survey Saved!</Text>
+          <Text style={{ fontSize: 13, color: "#475569" }}>Analyzing health risks...</Text>
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: COLORS.background },
+  consentNotice: {
+    backgroundColor: "rgba(65, 108, 175, 0.05)",
+    borderWidth: 1,
+    borderColor: "rgba(65, 108, 175, 0.15)",
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 8,
+    marginBottom: 16,
+  },
+  consentNoticeTxt: {
+    fontSize: 11,
+    lineHeight: 14,
+    color: COLORS.textSecondary,
+  },
   scrollContainer: { flex: 1 },
   scroll: { flexGrow: 1, padding: 16, paddingBottom: 48 },
   step: { fontWeight: "800", fontSize: 15, marginBottom: 12, color: COLORS.textPrimary },

@@ -1,0 +1,20 @@
+groups:
+  - name: dispatch_alerts
+    rules:
+      - alert: HighDispatchLatency
+        expr: rate(django_http_requests_latency_seconds_sum{view="dispatch"}[5m]) / rate(django_http_requests_latency_seconds_count{view="dispatch"}[5m]) > 2
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High Dispatch Latency"
+          description: "Dispatch endpoint latency is above 2 seconds for more than 2 minutes."
+      
+      - alert: HighSyncLatency
+        expr: rate(django_http_requests_latency_seconds_sum{view="sync_push"}[5m]) / rate(django_http_requests_latency_seconds_count{view="sync_push"}[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Sync Push Latency"
+          description: "Sync push endpoint latency is above 5 seconds."

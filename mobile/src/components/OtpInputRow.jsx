@@ -1,22 +1,36 @@
 import PropTypes from "prop-types";
-import React, { useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { StyleSheet, TextInput, View } from "react-native";
 import { COLORS } from "../constants/colors";
 import { tapTargetMin } from "../constants/typography";
 
 export function OtpInputRow({ value, onChange, onComplete, autoFocus, length = 6 }) {
-  const refs = useRef([]);
-  if (refs.current.length !== length) {
-    refs.current = Array(length)
-      .fill(null)
-      .map(() => React.createRef());
-  }
-  const pad = Array(length - value.length).fill("");
-  const digits = value.length === length ? value.split("") : [...value.split(""), ...pad].slice(0, length);
+  // Store actual DOM/native refs in a stable array — never recreated
+  const inputEls = useRef([]);
+
+  // Stable callback-ref factory: each TextInput calls this to register itself
+  const setRef = useCallback((i, el) => {
+    inputEls.current[i] = el;
+  }, []);
+
+  const focusInput = useCallback((i) => {
+    inputEls.current[i]?.focus?.();
+  }, []);
+
+  const pad = useMemo(() => Array(length).fill(""), [length]);
+  const digits = useMemo(() => {
+    const chars = value.split("");
+    return [...chars, ...pad].slice(0, length);
+  }, [value, length, pad]);
 
   useEffect(() => {
-    if (autoFocus) refs[0].current?.focus?.();
-  }, [autoFocus]);
+    if (autoFocus) {
+      // Small delay to ensure the TextInput is mounted
+      const t = setTimeout(() => focusInput(0), 100);
+      return () => clearTimeout(t);
+    }
+    return undefined;
+  }, [autoFocus, focusInput]);
 
   function setDigit(i, text) {
     const digitsOnly = text.replace(/\D/g, "");
@@ -24,7 +38,7 @@ export function OtpInputRow({ value, onChange, onComplete, autoFocus, length = 6
       const pasted = digitsOnly.slice(0, length);
       onChange(pasted);
       const focusIdx = Math.min(length - 1, pasted.length - 1);
-      refs[focusIdx].current?.focus?.();
+      focusInput(focusIdx);
       if (pasted.length === length) onComplete?.(pasted);
       return;
     }
@@ -32,13 +46,13 @@ export function OtpInputRow({ value, onChange, onComplete, autoFocus, length = 6
     const next = digits.map((d, idx) => (idx === i ? digit : d));
     const joined = next.join("");
     onChange(joined);
-    if (digit && i < length - 1) refs[i + 1].current?.focus?.();
+    if (digit && i < length - 1) focusInput(i + 1);
     if (digit && i === length - 1 && joined.length === length) onComplete?.(joined);
   }
 
   function onKeyPress(i, e) {
     if (e.nativeEvent.key === "Backspace" && !digits[i] && i > 0) {
-      refs[i - 1].current?.focus?.();
+      focusInput(i - 1);
     }
   }
 
@@ -47,7 +61,7 @@ export function OtpInputRow({ value, onChange, onComplete, autoFocus, length = 6
       {digits.map((d, i) => (
         <TextInput
           key={i}
-          ref={refs[i]}
+          ref={(el) => setRef(i, el)}
           style={[styles.box, d ? styles.boxFilled : null]}
           keyboardType="number-pad"
           maxLength={1}

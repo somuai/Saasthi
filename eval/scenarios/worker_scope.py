@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 import sys
-import time
 
 import requests
-
 from _http import API, api_available, auth_headers, now_ms, request_otp, verify_otp
 
 PHONE_A = "+919988776603"

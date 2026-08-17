@@ -1,6 +1,5 @@
 """Safety-critical audit tests for risk engine — hard flags, normalization, snapshot immutability."""
 
-
 import pytest
 from risk_engine.engine import RiskEngine, resolve_path
 from risk_engine.models import RiskAssessment, RiskRule

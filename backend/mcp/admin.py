@@ -47,7 +47,14 @@ class PNCVisitAdmin(admin.ModelAdmin):
 
 @admin.register(GrowthRecord)
 class GrowthRecordAdmin(admin.ModelAdmin):
-    list_display = ("local_uuid", "patient", "recorded_date", "age_completed_months", "nutritional_status", "is_faltering")
+    list_display = (
+        "local_uuid",
+        "patient",
+        "recorded_date",
+        "age_completed_months",
+        "nutritional_status",
+        "is_faltering",
+    )
     list_filter = ("nutritional_status", "is_faltering", "recorded_date")
     search_fields = ("local_uuid", "patient__full_name", "aww_notes")
     readonly_fields = ("local_uuid", "created_at", "updated_at")

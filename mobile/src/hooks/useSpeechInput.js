@@ -1,5 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import Voice from "@react-native-voice/voice";
+
+const getVoice = () => {
+  try {
+    return require("@react-native-voice/voice").default;
+  } catch (e) {
+    return null;
+  }
+};
 
 export function useSpeechInput(onResult) {
   const [isListening, setIsListening] = useState(false);
@@ -10,12 +17,21 @@ export function useSpeechInput(onResult) {
   onResultRef.current = onResult;
 
   useEffect(() => {
-    Voice.isAvailable()
+    const voiceLib = getVoice();
+    if (!voiceLib || !voiceLib.isAvailable) {
+      setIsSupported(false);
+      return;
+    }
+    voiceLib
+      .isAvailable()
       .then((available) => setIsSupported(available))
       .catch(() => setIsSupported(false));
   }, []);
 
   useEffect(() => {
+    const voiceLib = getVoice();
+    if (!voiceLib) return;
+
     const onSpeechResults = (e) => {
       const text = (e.value || [""])[0];
       setTranscript(text);
@@ -26,28 +42,41 @@ export function useSpeechInput(onResult) {
       setIsListening(false);
     };
     const onSpeechEnd = () => setIsListening(false);
-    Voice.onSpeechResults = onSpeechResults;
-    Voice.onSpeechError = onSpeechError;
-    Voice.onSpeechEnd = onSpeechEnd;
+    voiceLib.onSpeechResults = onSpeechResults;
+    voiceLib.onSpeechError = onSpeechError;
+    voiceLib.onSpeechEnd = onSpeechEnd;
     return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
+      voiceLib
+        .destroy()
+        .then(() => voiceLib.removeAllListeners())
+        .catch(() => {});
     };
   }, []);
 
   const startListening = useCallback(() => {
     setError(null);
     setTranscript("");
-    Voice.start("hi-IN")
+    const voiceLib = getVoice();
+    if (!voiceLib) {
+      setError("Voice input not supported on this device");
+      return;
+    }
+    voiceLib
+      .start("hi-IN")
       .then(() => setIsListening(true))
       .catch(() => {
-        Voice.start("en-IN")
+        voiceLib
+          .start("en-IN")
           .then(() => setIsListening(true))
           .catch((e) => setError(e.message));
       });
   }, []);
 
   const stopListening = useCallback(() => {
-    Voice.stop()
+    const voiceLib = getVoice();
+    if (!voiceLib) return;
+    voiceLib
+      .stop()
       .then(() => setIsListening(false))
       .catch(() => {});
   }, []);

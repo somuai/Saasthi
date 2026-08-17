@@ -27,10 +27,28 @@ class RiskRuleReadSerializer(serializers.ModelSerializer):
     class Meta:
         model = RiskRule
         fields = [
-            'id', 'code', 'name', 'description', 'field_path', 'operator', 'value',
-            'weight', 'severity', 'flag_type', 'is_active', 'version', 'is_hard_flag',
-            'hard_flag_message_en', 'hard_flag_message_hi', 'category', 'deactivated_at',
-            'deactivated_by', 'rule_label_en', 'rule_label_hi', 'created_at', 'updated_at'
+            "id",
+            "code",
+            "name",
+            "description",
+            "field_path",
+            "operator",
+            "value",
+            "weight",
+            "severity",
+            "flag_type",
+            "is_active",
+            "version",
+            "is_hard_flag",
+            "hard_flag_message_en",
+            "hard_flag_message_hi",
+            "category",
+            "deactivated_at",
+            "deactivated_by",
+            "rule_label_en",
+            "rule_label_hi",
+            "created_at",
+            "updated_at",
         ]
 
 
@@ -47,40 +65,78 @@ class AssessmentCategoriesSerializer(serializers.Serializer):
 
 class RiskAssessmentResponseSerializer(serializers.Serializer):
     assessment_id = serializers.UUIDField(source="local_uuid")
+    local_survey_id = serializers.SerializerMethodField()
     patient_id = serializers.SerializerMethodField()
     patient_name = serializers.SerializerMethodField()
+    patient_name_hi = serializers.SerializerMethodField()
+    patient_age = serializers.SerializerMethodField()
+    patient_gender = serializers.SerializerMethodField()
     household_id = serializers.SerializerMethodField()
+    household_code = serializers.SerializerMethodField()
+    village = serializers.SerializerMethodField()
     surveyed_at = serializers.DateTimeField(allow_null=True)
     assessed_at = serializers.DateTimeField(source="created_at")
 
     risk_level = serializers.CharField(source="level")
     raw_score = serializers.IntegerField(source="total_score")
     normalized_score = serializers.IntegerField(allow_null=True)
+    patient_population = serializers.CharField()
     triggered_by_hard_flag = serializers.BooleanField()
     hard_flag_message = serializers.SerializerMethodField()
+    hard_flag_message_en = serializers.SerializerMethodField()
     hard_flag_message_hi = serializers.SerializerMethodField()
 
     categories = serializers.SerializerMethodField()
     explanations = serializers.JSONField()
+    protocol_checklist = serializers.JSONField()
     recommended_action = serializers.SerializerMethodField()
     recommendation_source = serializers.CharField()
     score_source = serializers.CharField()
 
+    def get_local_survey_id(self, obj):
+        if obj.survey_response_id:
+            return str(obj.survey_response.local_uuid)
+        return ""
+
     def get_patient_id(self, obj):
+        if not obj.patient_id:
+            return ""
         return str(obj.patient.local_uuid)
 
     def get_patient_name(self, obj):
-        return obj.patient.full_name
+        return obj.patient.full_name if obj.patient_id else ""
+
+    def get_patient_name_hi(self, obj):
+        return obj.patient.name_hi if obj.patient_id else ""
+
+    def get_patient_age(self, obj):
+        return obj.patient.age_years if obj.patient_id else None
+
+    def get_patient_gender(self, obj):
+        return obj.patient.gender if obj.patient_id else ""
 
     def get_household_id(self, obj):
-        if obj.patient.household_id:
+        if obj.patient_id and obj.patient.household_id:
             return str(obj.patient.household.local_uuid)
         return ""
 
-    def get_hard_flag_message(self, obj):
+    def get_household_code(self, obj):
+        if obj.patient_id and obj.patient.household_id:
+            return obj.patient.household.household_code or ""
+        return ""
+
+    def get_village(self, obj):
+        if not obj.patient_id:
+            return ""
+        return obj.patient.village or (obj.patient.household.village if obj.patient.household_id else "")
+
+    def get_hard_flag_message_en(self, obj):
         if obj.triggered_by_hard_flag and obj.hard_flag_rule:
             return obj.hard_flag_rule.hard_flag_message_en
         return None
+
+    def get_hard_flag_message(self, obj):
+        return self.get_hard_flag_message_en(obj)
 
     def get_hard_flag_message_hi(self, obj):
         if obj.triggered_by_hard_flag and obj.hard_flag_rule:

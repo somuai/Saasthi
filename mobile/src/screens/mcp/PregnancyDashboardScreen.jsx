@@ -10,12 +10,15 @@ import { GovtButton } from "../../components/GovtButton";
 import { ListRow } from "../../components/ListRow";
 import { calculateEDD, calculatePOG, getANCDueDates, calculateANCStatus, isoFromDate } from "../../utils/mcpHelpers";
 import { todayYmd, formatIndianDate } from "../../utils/dateHelpers";
+import { useLocale, translateHindiText } from "../../utils/localization";
 
 function StatCard({ labelHi, labelEn, value, color }) {
+  const locale = useLocale();
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
   return (
     <View style={[statStyles.card, color ? { borderLeftColor: color } : null]}>
       <Text style={statStyles.value}>{value}</Text>
-      <Text style={statStyles.hi}>{labelHi}</Text>
+      <Text style={statStyles.hi}>{hiText(labelHi)}</Text>
       <Text style={statStyles.en}>{labelEn}</Text>
     </View>
   );
@@ -40,9 +43,11 @@ const statStyles = StyleSheet.create({
 });
 
 function StatusBadge({ label, color }) {
+  const locale = useLocale();
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
   return (
     <View style={[badgeStyles.badge, { backgroundColor: color + "20", borderColor: color }]}>
-      <Text style={[badgeStyles.text, { color }]}>{label}</Text>
+      <Text style={[badgeStyles.text, { color }]}>{hiText(label)}</Text>
     </View>
   );
 }
@@ -135,6 +140,9 @@ export default function PregnancyDashboardScreen() {
     return () => sub.unsubscribe();
   }, [database, patient]);
 
+  const locale = useLocale();
+  const hiText = (hi) => (locale === "en" ? hi : translateHindiText(hi, locale));
+
   const lmp = mother?.lmpDate || patient?.lmpDate;
   const pog = lmp ? calculatePOG(lmp) : 0;
   const edd = lmp ? isoFromDate(calculateEDD(lmp)) : "—";
@@ -150,7 +158,7 @@ export default function PregnancyDashboardScreen() {
           data={patients}
           keyExtractor={(p) => p.id}
           contentContainerStyle={{ padding: 16 }}
-          ListEmptyComponent={<Text style={styles.muted}>कोई गर्भवती मरीज नहीं</Text>}
+          ListEmptyComponent={<Text style={styles.muted}>{hiText("कोई गर्भवती मरीज नहीं")}</Text>}
           renderItem={({ item }) => (
             <Pressable style={styles.pick} onPress={() => router.setParams({ patientId: item.id })}>
               <Text style={styles.pickName}>{item.name}</Text>
@@ -195,7 +203,7 @@ export default function PregnancyDashboardScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>ANC Visits / एएनसी भेंट</Text>
+          <Text style={styles.cardTitle}>{hiText("ANC Visits / एएनसी भेंट")}</Text>
           <ProgressBar current={ancStatus.completed} total={ancStatus.target} label={`${ancStatus.completed}/${ancStatus.target}`} />
           {!isDelivered && (
             <View style={styles.visitTabs}>
@@ -218,26 +226,32 @@ export default function PregnancyDashboardScreen() {
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>TT Injections / टीटी इंजेक्शन</Text>
-          <Text style={styles.meta}>TT1: {mother?.ttInjection1Date ? formatIndianDate(mother.ttInjection1Date) : "Pending / बाकी"}</Text>
-          <Text style={styles.meta}>TT2: {mother?.ttInjection2Date ? formatIndianDate(mother.ttInjection2Date) : "Pending / बाकी"}</Text>
+          <Text style={styles.cardTitle}>{hiText("TT Injections / टीटी इंजेक्शन")}</Text>
+          <Text style={styles.meta}>
+            TT1: {mother?.ttInjection1Date ? formatIndianDate(mother.ttInjection1Date) : hiText("Pending / बाकी")}
+          </Text>
+          <Text style={styles.meta}>
+            TT2: {mother?.ttInjection2Date ? formatIndianDate(mother.ttInjection2Date) : hiText("Pending / बाकी")}
+          </Text>
         </View>
 
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>IFA / आयरन फोलिक एसिड</Text>
+          <Text style={styles.cardTitle}>{hiText("IFA / आयरन फोलिक एसिड")}</Text>
           <Text style={styles.meta}>Issued: {mother?.ifaTabletsIssued != null ? `${mother.ifaTabletsIssued} tablets` : "0 tablets"}</Text>
         </View>
 
         {mother?.jsyRegistered && (
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>JSY / जननी सुरक्षा योजना</Text>
+            <Text style={styles.cardTitle}>{hiText("JSY / जननी सुरक्षा योजना")}</Text>
             <Text style={styles.meta}>Registered: Yes</Text>
           </View>
         )}
 
         {flags.length > 0 && (
           <View style={[styles.card, { borderLeftColor: COLORS.danger, borderLeftWidth: 4 }]}>
-            <Text style={[styles.cardTitle, { color: COLORS.danger }]}>Open Flags / खुले फ़्लैग ({flags.length})</Text>
+            <Text style={[styles.cardTitle, { color: COLORS.danger }]}>
+              {hiText("Open Flags / खुले फ़्लैग")} ({flags.length})
+            </Text>
             {flags.slice(0, 3).map((f) => (
               <Text key={f.id} style={styles.flagItem}>
                 • {f.flagType}: {f.description || f.severity}
