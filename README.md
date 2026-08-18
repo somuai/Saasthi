@@ -44,40 +44,9 @@ India's ASHA (Accredited Social Health Activist) workers serve as the frontline 
 
 ## Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│                      ASHA Worker Device                          │
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │  Expo React Native App (WatermelonDB + Redux Toolkit)      │ │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────┐ │ │
-│  │  │ Patients │ │ Surveys  │ │ Risk     │ │ MCP Card     │ │ │
-│  │  │ Registry │ │ (7-step) │ │ Scorer   │ │ (ANC/PNC/    │ │ │
-│  │  │          │ │          │ │ (27      │ │  Immuniz.)   │ │ │
-│  │  │          │ │          │ │  rules)  │ │              │ │ │
-│  │  └──────────┘ └──────────┘ └──────────┘ └──────────────┘ │ │
-│  │  ┌──────────┐ ┌──────────┐ ┌────────────────────────────┐ │ │
-│  │  │Follow-ups│ │ Voice    │ │ TFLite Scoring / AI Chat   │ │ │
-│  │  │ Calendar │ │ Input    │ │ (on-device ML inference)   │ │ │
-│  │  └──────────┘ └──────────┘ └────────────────────────────┘ │ │
-│  └──────────────────────────┬─────────────────────────────────┘ │
-│                             │ HTTPS (WatermelonDB sync)         │
-└─────────────────────────────┼───────────────────────────────────┘
-                              v
-┌──────────────────────────────────────────────────────────────────┐
-│                      Server (Docker Compose)                     │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────────────────┐ │
-│  │ Django   │ │ Celery   │ │ Redis    │ │ PostgreSQL 16      │ │
-│  │ REST API │ │ Workers  │ │ (broker) │ │                    │ │
-│  │ (DRF)    │ │          │ │          │ │                    │ │
-│  │ 18 apps  │ │ Risk     │ │          │ │                    │ │
-│  │          │ │ Assess / │ │          │ │                    │ │
-│  │          │ │ Gemma AI │ │          │ │                    │ │
-│  └──────────┘ └──────────┘ └──────────┘ └────────────────────┘ │
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │  Nginx (rate limiting, reverse proxy, TLS termination)    │ │
-│  └────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
-```
+<div align="center">
+  <img src="docs/assets/architecture.png" alt="Shaasthi System Architecture" width="100%" style="border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.25);" />
+</div>
 
 **Key design properties:**
 - **Mobile**: React Native / Expo SDK 52, WatermelonDB for local persistence, Redux Toolkit for state
